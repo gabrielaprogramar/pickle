@@ -1,0 +1,11 @@
+{
+  "imoNumber": "9876543",
+  "vesselName": "MV Poseidon Explorer",
+  "shipType": "Bulk Carrier",
+  "ratingYear": 2025,
+  "ciiRating": "B",
+  "operationalCii": 3.12,
+  "requiredCii": 3.5,
+  "attainedEexi": 4.28,
+  "fleetAverageCii": 3.45
+}

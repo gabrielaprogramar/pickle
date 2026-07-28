@@ -1,0 +1,25 @@
+/**
+ * index.ts — public barrel export for the Services layer
+ * ─────────────────────────────────────────────────────────────────────────────
+ *
+ * One clean import path:
+ *
+ *   import { createDocumentService, createDocumentUploadService, createAiExtractionService } from "@/services";
+ */
+
+export { createDocumentService } from "./documents.service";
+export type { DocumentService, DocumentServiceOptions, DocumentStatusDetail } from "./documents.service";
+
+export { createDocumentUploadService } from "./document-upload.service";
+export type {
+  DocumentUploadServiceOptions,
+  DocumentUploadInput,
+  DocumentUploadResult,
+} from "./document-upload.service";
+
+export { createAiExtractionService } from "./ai-extraction.service";
+export type {
+  AiExtractionServiceOptions,
+  AiExtractionOutput,
+  AiExtractionService,
+} from "./ai-extraction.service";

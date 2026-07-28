@@ -1,0 +1,10 @@
+{
+  "imoNumber": "9876543",
+  "vesselName": "MV Poseidon Explorer",
+  "reportingPeriod": "2025",
+  "totalCo2Tonnes": 8450.0,
+  "euVoyageEmissionsTonnes": 3200.0,
+  "euPortEmissionsTonnes": 420.0,
+  "allocatedAllowances": 3620,
+  "monitoringMethodology": "DTZ (Distance-Time-Zone)"
+}

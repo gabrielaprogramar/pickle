@@ -1,0 +1,12 @@
+{
+  "imoNumber": "9876543",
+  "vesselName": "MV Poseidon Explorer",
+  "port": "Rotterdam",
+  "deliveryDate": "2026-06-15",
+  "fuelType": "VLSFO",
+  "quantityTonnes": 1200.5,
+  "sulphurContentPct": 0.48,
+  "densityKgM3": 985.0,
+  "supplier": "Global Marine Fuels B.V.",
+  "bdnReference": "BDN-2026-001234"
+}

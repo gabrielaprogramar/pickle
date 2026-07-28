@@ -1,0 +1,9 @@
+/**
+ * index.ts — public barrel export for the Hooks layer
+ * ─────────────────────────────────────────────────────────────────────────────
+ */
+
+export { useDocuments } from "./use-documents";
+export { useDocument } from "./use-document";
+export { useDocumentUpload } from "./use-document-upload";
+export { useDocumentStatus } from "./use-document-status";

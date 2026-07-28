@@ -1,0 +1,16 @@
+{
+  "imoNumber": "9876543",
+  "vesselName": "MV Poseidon Explorer",
+  "reportingPeriod": "2025",
+  "totalEnergyMwh": 24500.0,
+  "ghgIntensityWtw": 89.2,
+  "ghgIntensityTtw": 82.1,
+  "euRelativeGhgIntensity": 91.5,
+  "isCompliant": true,
+  "penaltyEur": null,
+  "fuelBreakdown": [
+    { "fuelType": "VLSFO", "sharePct": 65.0, "ghgIntensity": 91.2 },
+    { "fuelType": "MGO", "sharePct": 25.0, "ghgIntensity": 89.0 },
+    { "fuelType": "LNG", "sharePct": 10.0, "ghgIntensity": 67.0 }
+  ]
+}
