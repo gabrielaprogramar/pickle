@@ -443,6 +443,32 @@ export type ValidationReportInsert = {
   readonly latency_ms?: number | null;
 };
 
+// ── 1f. REVIEW AUDIT LOG ROW TYPES (1:1 with migration 0005) ────────────────
+
+/** One row of the `review_audit_log` table. */
+export type ReviewAuditLogRow = {
+  readonly id: string;
+  readonly review_task_id: string;
+  readonly field_name: string | null;
+  readonly action: string;
+  readonly previous_value: unknown | null;
+  readonly new_value: unknown | null;
+  readonly reviewer: string;
+  readonly notes: string | null;
+  readonly created_at: string;
+};
+
+/** Payload for inserting a review audit log entry. id/created_at are server-defaulted. */
+export type ReviewAuditLogInsert = {
+  readonly review_task_id: string;
+  readonly field_name?: string | null;
+  readonly action: string;
+  readonly previous_value?: unknown | null;
+  readonly new_value?: unknown | null;
+  readonly reviewer: string;
+  readonly notes?: string | null;
+};
+
 // ── 2. DATABASE INTERFACE (Supabase generated-types shape) ───────────────────
 
 /**
@@ -538,6 +564,12 @@ export type Database = {
         Row: ValidationReportRow;
         Insert: ValidationReportInsert;
         Update: Partial<ValidationReportInsert>;
+        Relationships: Relationships;
+      };
+      review_audit_log: {
+        Row: ReviewAuditLogRow;
+        Insert: ReviewAuditLogInsert;
+        Update: Partial<ReviewAuditLogInsert>;
         Relationships: Relationships;
       };
     };

@@ -30,3 +30,10 @@ export type {
   ValidationOutput,
   ValidationService,
 } from "./validation.service";
+
+export { createReviewService } from "./review.service";
+export type {
+  ReviewServiceOptions,
+  ReviewTaskFilter,
+  ReviewService,
+} from "./review.service";

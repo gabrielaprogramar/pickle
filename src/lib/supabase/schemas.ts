@@ -216,6 +216,24 @@ export const ValidationReportInsertSchema = z.object({
   latency_ms: z.number().int().nonnegative().nullable().optional(),
 });
 
+// ── Review Audit Log insert schema ──────────────────────────────────────────
+
+const AUDIT_ACTIONS = [
+  "approved", "rejected", "needs_changes", "escalated",
+  "field_approved", "field_rejected", "field_edited",
+  "field_uncertain", "comment_added", "assigned",
+] as const;
+
+export const ReviewAuditLogInsertSchema = z.object({
+  review_task_id: z.string().uuid(),
+  field_name: z.string().max(255).nullable().optional(),
+  action: z.enum(AUDIT_ACTIONS),
+  previous_value: z.unknown().nullable().optional(),
+  new_value: z.unknown().nullable().optional(),
+  reviewer: z.string().max(255),
+  notes: z.string().max(8192).nullable().optional(),
+});
+
 // ── Derived TypeScript types (use these instead of hand-written types) ────────
 
 export type DocumentInsertInput = z.infer<typeof DocumentInsertSchema>;

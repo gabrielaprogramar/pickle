@@ -18,16 +18,20 @@ import {
   createProcessingLogRepository,
   createAiExtractionRepository,
   createValidationReportRepository,
+  createReviewTaskRepository,
+  createReviewAuditLogRepository,
 } from "@/lib/supabase";
 import { getStorageClient } from "@/lib/storage/client";
 import { getOcrProvider } from "@/lib/ocr/provider";
 import { getAiProvider } from "@/lib/ai/provider";
 import { getValidationProvider } from "@/lib/validation/provider";
+import { getReviewProvider } from "@/lib/review/provider";
 import {
   createDocumentService,
   createDocumentUploadService,
   createAiExtractionService,
   createValidationService,
+  createReviewService,
 } from "@/services";
 import type { DocumentService } from "@/services/documents.service";
 import type { AiExtractionService } from "@/services/ai-extraction.service";
@@ -91,5 +95,20 @@ export function buildValidationService() {
     reportRepo: createValidationReportRepository({ client }),
     extractionRepo: createAiExtractionRepository({ client }),
     documentRepo: createDocumentRepository({ client }),
+  });
+}
+
+/** Build a ReviewService from real providers (API route hot path). */
+export function buildReviewService() {
+  const client = getSupabaseClient();
+  const reviewProvider = getReviewProvider();
+
+  return createReviewService({
+    reviewTaskRepo: createReviewTaskRepository({ client }),
+    auditLogRepo: createReviewAuditLogRepository({ client }),
+    documentRepo: createDocumentRepository({ client }),
+    extractionRepo: createAiExtractionRepository({ client }),
+    validationRepo: createValidationReportRepository({ client }),
+    reviewProvider,
   });
 }

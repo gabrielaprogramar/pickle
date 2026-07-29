@@ -27,6 +27,7 @@ export default function RootLayout({
           </span>
           <a href="/" style={{ color: "#ccc", textDecoration: "none" }}>Dashboard</a>
           <a href="/documents" style={{ color: "#ccc", textDecoration: "none" }}>Documents</a>
+          <a href="/review" style={{ color: "#ccc", textDecoration: "none" }}>Review</a>
         </nav>
         <main style={{ padding: "24px", maxWidth: "1200px", margin: "0 auto" }}>
           {children}

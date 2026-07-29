@@ -593,6 +593,16 @@ class FakeQueryBuilder {
       if (row.updated_at === undefined) {
         row.updated_at = row.created_at;
       }
+
+    }
+
+    // ── Review Audit Log table (Phase 2A.5) ────────────────────────────
+
+    if (this.state.table === "review_audit_log") {
+      if (row.field_name === undefined) row.field_name = null;
+      if (row.previous_value === undefined) row.previous_value = null;
+      if (row.new_value === undefined) row.new_value = null;
+      if (row.notes === undefined) row.notes = null;
     }
 
     return row;

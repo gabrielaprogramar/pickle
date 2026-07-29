@@ -68,6 +68,8 @@ export type {
   AiExtractionInsert,
   ValidationReportRow,
   ValidationReportInsert,
+  ReviewAuditLogRow,
+  ReviewAuditLogInsert,
 } from "./types";
 
 // Errors — callers branch with `instanceof`.
@@ -163,6 +165,13 @@ export type {
   ValidationReportInsert as ValidationReportRepositoryInsert,
 } from "./repositories/validation_reports";
 
+// Review Audit Log repository.
+export { createReviewAuditLogRepository } from "./repositories/review_audit_log";
+export type {
+  ReviewAuditLogRepository,
+  CreateReviewAuditLogRepositoryOptions,
+} from "./repositories/review_audit_log";
+
 // Zod validation schemas.
 export {
   DocumentTypeSchema,
@@ -184,6 +193,7 @@ export {
   DocumentRelationshipInsertSchema,
   AiExtractionInsertSchema,
   ValidationReportInsertSchema,
+  ReviewAuditLogInsertSchema,
 } from "./schemas";
 
 // Mapper (re-exported so the orchestration layer can build payloads directly if

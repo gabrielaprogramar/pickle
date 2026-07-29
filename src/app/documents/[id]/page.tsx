@@ -8,6 +8,7 @@
 import { useParams } from "next/navigation";
 import { useDocument } from "@/hooks/use-document";
 import { useDocumentValidation } from "@/hooks/use-document-validation";
+import { useDocumentReview } from "@/hooks/use-document-review";
 
 const STATUS_COLORS: Record<string, string> = {
   uploaded: "#f59e0b",
@@ -104,6 +105,11 @@ export default function DocumentDetailPage() {
     validationError,
     validationDetail,
   } = useDocumentValidation(id);
+  const {
+    createReviewTask,
+    creating: reviewCreating,
+    error: reviewError,
+  } = useDocumentReview(id);
 
   if (loading) {
     return <p style={{ color: "#666" }}>Loading document...</p>;
@@ -293,6 +299,58 @@ export default function DocumentDetailPage() {
           </button>
           {extractionError && (
             <p style={{ color: "#ef4444", fontSize: "13px", marginTop: "8px" }}>{extractionError}</p>
+          )}
+        </section>
+      )}
+
+      {/* Human Review */}
+      {(documentRow.status === "extracted" || documentRow.status === "under_review" || documentRow.status === "approved" || documentRow.status === "rejected") && (
+        <section style={{ border: "1px solid #e0e0e0", borderRadius: "8px", padding: "20px", marginBottom: "16px" }}>
+          <h2 style={{ fontSize: "18px", marginBottom: "12px" }}>Human Review</h2>
+          {documentRow.status === "extracted" && (
+            <>
+              <p style={{ color: "#666", fontSize: "14px", marginBottom: "12px" }}>
+                Send this document for human review to validate AI-extracted information.
+              </p>
+              <button
+                onClick={() => { void createReviewTask(); }}
+                disabled={reviewCreating}
+                style={{
+                  padding: "8px 20px",
+                  borderRadius: "6px",
+                  backgroundColor: reviewCreating ? "#c4b5fd" : "#8b5cf6",
+                  color: "#fff",
+                  border: "none",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                  cursor: reviewCreating ? "not-allowed" : "pointer",
+                }}
+              >
+                {reviewCreating ? "Creating..." : "Send for Review"}
+              </button>
+            </>
+          )}
+          {(documentRow.status === "under_review" || documentRow.status === "approved" || documentRow.status === "rejected") && (
+            <a
+              href="/review"
+              style={{
+                display: "inline-block",
+                padding: "8px 20px",
+                borderRadius: "6px",
+                backgroundColor: "#8b5cf6",
+                color: "#fff",
+                textDecoration: "none",
+                fontSize: "14px",
+                fontWeight: "500",
+              }}
+            >
+              {documentRow.status === "approved" ? "View Review (Approved)" :
+               documentRow.status === "rejected" ? "View Review (Rejected)" :
+               "View Review Task"}
+            </a>
+          )}
+          {reviewError && (
+            <p style={{ color: "#ef4444", fontSize: "13px", marginTop: "8px" }}>{reviewError}</p>
           )}
         </section>
       )}
