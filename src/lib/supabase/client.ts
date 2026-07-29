@@ -25,6 +25,7 @@
 
 import { createClient } from "@supabase/supabase-js";
 import { loadConfig, type SupabaseConfig } from "./config";
+import { createFakeSupabaseClient } from "./fake-client";
 import type { Database } from "./types";
 
 export type { Database };
@@ -65,10 +66,53 @@ let cached: TypedSupabaseClient | null = null;
 /**
  * Returns the process-wide Supabase client, building it on first call.
  * Hot-path callers (the API route) reuse one client + its connection pool.
+ *
+ * In mock mode (SUPABASE_USE_MOCK=true, the default), returns an in-memory
+ * fake seeded with fixture data so the app works out of the box.
  */
 export function getSupabaseClient(): TypedSupabaseClient {
   if (cached) return cached;
-  cached = createSupabaseClient();
+
+  const config = loadConfig();
+  if (config.useMock) {
+    const now = new Date().toISOString();
+    cached = createFakeSupabaseClient({
+      tables: {
+        vessels: [
+          {
+            id: crypto.randomUUID(),
+            imo: "9074729",
+            name: "Aurelia",
+            mmsi: "310625000",
+            ship_id: "371663",
+            created_at: now,
+            updated_at: now,
+          },
+          {
+            id: crypto.randomUUID(),
+            imo: "1234567",
+            name: "Northern Star",
+            mmsi: "219000123",
+            ship_id: "123456",
+            created_at: now,
+            updated_at: now,
+          },
+          {
+            id: crypto.randomUUID(),
+            imo: "7654321",
+            name: "Pacific Voyager",
+            mmsi: "538001234",
+            ship_id: "789012",
+            created_at: now,
+            updated_at: now,
+          },
+        ],
+      },
+    }) as unknown as TypedSupabaseClient;
+    return cached;
+  }
+
+  cached = createSupabaseClient(config);
   return cached;
 }
 

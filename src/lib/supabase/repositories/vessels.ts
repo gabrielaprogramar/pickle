@@ -27,7 +27,8 @@
 
 import type { TypedSupabaseClient } from "../client";
 import { getSupabaseClient } from "../client";
-import type { VesselInsert, VesselRow } from "../types";
+import type { VesselInsert, VesselRow, Page, PaginationOptions } from "../types";
+import { normalizePagination } from "../types";
 import { mapError } from "../errors";
 
 export interface VesselRepository {
@@ -35,6 +36,8 @@ export interface VesselRepository {
   upsertByImo(input: VesselInsert): Promise<VesselRow>;
   /** Look up a vessel by IMO. Returns null when no vessel exists for it. */
   findByImo(imo: string): Promise<VesselRow | null>;
+  /** List vessels newest-first as a paginated Page. */
+  findAll(pagination?: Partial<PaginationOptions>): Promise<Page<VesselRow>>;
 }
 
 export interface CreateVesselRepositoryOptions {
@@ -80,6 +83,41 @@ export function createVesselRepository(
         return (data as VesselRow | null) ?? null;
       } catch (e) {
         throw mapError("find vessel by IMO", e);
+      }
+    },
+
+    async findAll(
+      pagination?: Partial<PaginationOptions>,
+    ): Promise<Page<VesselRow>> {
+      const { limit, offset } = normalizePagination(
+        pagination?.limit,
+        pagination?.offset,
+      );
+      try {
+        const client = getClient();
+        const countRes = await client
+          .from("vessels")
+          .select("*", { count: "exact", head: true });
+        const total =
+          typeof countRes.count === "number" ? countRes.count : 0;
+
+        const from = offset;
+        const to = offset + limit - 1;
+        const { data, error } = await client
+          .from("vessels")
+          .select()
+          .order("updated_at", { ascending: false, nullsFirst: false })
+          .range(from, to);
+
+        if (error) throw error;
+        return {
+          rows: (data as VesselRow[]) ?? [],
+          limit,
+          offset,
+          total,
+        };
+      } catch (e) {
+        throw mapError("list vessels", e);
       }
     },
   };

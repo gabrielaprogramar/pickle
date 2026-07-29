@@ -469,6 +469,35 @@ export type ReviewAuditLogInsert = {
   readonly notes?: string | null;
 };
 
+export interface PaginationOptions {
+  readonly limit: number;
+  readonly offset: number;
+}
+
+/** A page of results from a collection read. */
+export interface Page<T> {
+  readonly rows: readonly T[];
+  readonly limit: number;
+  readonly offset: number;
+  readonly total: number;
+}
+
+export const MAX_LIMIT = 100;
+export const DEFAULT_LIMIT = 50;
+
+export function normalizePagination(
+  limit: number | undefined,
+  offset: number | undefined,
+): PaginationOptions {
+  const safeLimit = Number.isFinite(limit) && (limit as number) > 0
+    ? Math.min(Math.trunc(limit as number), MAX_LIMIT)
+    : DEFAULT_LIMIT;
+  const safeOffset = Number.isFinite(offset) && (offset as number) > 0
+    ? Math.trunc(offset as number)
+    : 0;
+  return { limit: safeLimit, offset: safeOffset };
+}
+
 // ── 2. DATABASE INTERFACE (Supabase generated-types shape) ───────────────────
 
 /**

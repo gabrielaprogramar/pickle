@@ -34,7 +34,14 @@ import { mapError } from "../errors";
 import type {
   AisPositionInsert,
   AisPositionRow,
+  Page,
+  PaginationOptions,
 } from "../types";
+import { normalizePagination } from "../types";
+import {
+  createVesselRepository,
+  type VesselRepository,
+} from "./vessels";
 
 export interface AisPositionsRepository {
   /** Insert a single AIS position fix. Returns the stored row. */
@@ -43,10 +50,17 @@ export interface AisPositionsRepository {
   insertBatch(inputs: readonly AisPositionInsert[]): Promise<AisPositionRow[]>;
   /** Newest position for a vessel (by internal vessel UUID). Null if none. */
   findLatestByVesselId(vesselId: string): Promise<AisPositionRow | null>;
+  /** List a vessel's AIS fixes newest-first as a paginated Page, resolved by IMO. */
+  findByVesselImo(
+    imo: string,
+    pagination?: Partial<PaginationOptions>,
+  ): Promise<Page<AisPositionRow>>;
 }
 
 export interface CreateAisPositionsRepositoryOptions {
   readonly client?: TypedSupabaseClient;
+  /** Inject the vessel repository (tests). Defaults to one built from `client`. */
+  readonly vesselRepository?: VesselRepository;
 }
 
 export function createAisPositionsRepository(
@@ -54,6 +68,7 @@ export function createAisPositionsRepository(
 ): AisPositionsRepository {
   const getClient = (): TypedSupabaseClient =>
     opts.client ?? getSupabaseClient();
+  const vessels = opts.vesselRepository ?? createVesselRepository({ client: opts.client });
 
   return {
     async insert(input: AisPositionInsert): Promise<AisPositionRow> {
@@ -105,6 +120,41 @@ export function createAisPositionsRepository(
         return (data as AisPositionRow | null) ?? null;
       } catch (e) {
         throw mapError("find latest AIS position", e);
+      }
+    },
+
+    async findByVesselImo(
+      imo: string,
+      pagination?: Partial<PaginationOptions>,
+    ): Promise<Page<AisPositionRow>> {
+      const { limit, offset } = normalizePagination(
+        pagination?.limit,
+        pagination?.offset,
+      );
+      try {
+        const client = getClient();
+        const vessel = await vessels.findByImo(imo);
+        if (!vessel) {
+          return { rows: [], limit, offset, total: 0 };
+        }
+        const from = offset;
+        const to = offset + limit - 1;
+        const { data, error } = await client
+          .from("ais_positions")
+          .select()
+          .eq("vessel_id", vessel.id)
+          .order("ts", { ascending: false })
+          .range(from, to);
+
+        if (error) throw error;
+        return {
+          rows: (data as AisPositionRow[]) ?? [],
+          limit,
+          offset,
+          total: 0,
+        };
+      } catch (e) {
+        throw mapError("find AIS positions by vessel IMO", e);
       }
     },
   };

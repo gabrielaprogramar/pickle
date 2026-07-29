@@ -35,6 +35,8 @@ export interface DocumentRepository {
   listByVesselId(vesselId: string): Promise<DocumentRow[]>;
   /** List all documents, optionally filtered by type. */
   listByType(documentType: DocumentType): Promise<DocumentRow[]>;
+  /** List all documents, newest first. */
+  listAll(): Promise<DocumentRow[]>;
 }
 
 export interface CreateDocumentRepositoryOptions {
@@ -126,6 +128,21 @@ export function createDocumentRepository(
         return (data as DocumentRow[]) ?? [];
       } catch (e) {
         throw mapError("list documents by type", e);
+      }
+    },
+
+    async listAll(): Promise<DocumentRow[]> {
+      try {
+        const client = getClient();
+        const { data, error } = await client
+          .from("documents")
+          .select()
+          .order("created_at", { ascending: false });
+
+        if (error) throw error;
+        return (data as DocumentRow[]) ?? [];
+      } catch (e) {
+        throw mapError("list all documents", e);
       }
     },
   };

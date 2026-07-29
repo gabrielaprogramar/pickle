@@ -113,9 +113,7 @@ export function createDocumentService(
       if (filter?.documentType) {
         return documentRepo.listByType(filter.documentType as DocumentRow["document_type"]);
       }
-      // No filter: list all by returning empty (caller should use specific filter).
-      // For now, we don't have a listAll — callers must filter.
-      return [];
+      return documentRepo.listAll();
     },
 
     async getDocumentStatus(id: string): Promise<DocumentStatusDetail | null> {

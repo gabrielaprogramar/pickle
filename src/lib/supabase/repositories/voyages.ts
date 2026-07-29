@@ -38,7 +38,8 @@ import {
   createVesselRepository,
   type VesselRepository,
 } from "./vessels";
-import type { VoyageRow } from "../types";
+import type { VoyageRow, Page, PaginationOptions } from "../types";
+import { normalizePagination } from "../types";
 
 export interface VoyageRepository {
   /**
@@ -48,6 +49,11 @@ export interface VoyageRepository {
   insertFromDomain(voyage: Voyage): Promise<VoyageRow>;
   /** Look up the most recent voyage for a vessel (by IMO). Null if none. */
   findLatestByImo(imo: string): Promise<VoyageRow | null>;
+  /** List a vessel's voyages newest-first as a paginated Page, resolved by IMO. */
+  findByImo(
+    imo: string,
+    pagination?: Partial<PaginationOptions>,
+  ): Promise<Page<VoyageRow>>;
 }
 
 export interface CreateVoyageRepositoryOptions {
@@ -103,6 +109,44 @@ export function createVoyageRepository(
         return (data as VoyageRow | null) ?? null;
       } catch (e) {
         throw mapError("find latest voyage by IMO", e);
+      }
+    },
+
+    async findByImo(
+      imo: string,
+      pagination?: Partial<PaginationOptions>,
+    ): Promise<Page<VoyageRow>> {
+      const { limit, offset } = normalizePagination(
+        pagination?.limit,
+        pagination?.offset,
+      );
+      try {
+        const client = getClient();
+        const countRes = await client
+          .from("voyages")
+          .select("*", { count: "exact", head: true })
+          .eq("vessels.imo", imo);
+        const total =
+          typeof countRes.count === "number" ? countRes.count : 0;
+
+        const from = offset;
+        const to = offset + limit - 1;
+        const { data, error } = await client
+          .from("voyages")
+          .select("*, vessels!inner(imo)")
+          .eq("vessels.imo", imo)
+          .order("departure_time", { ascending: false, nullsFirst: false })
+          .range(from, to);
+
+        if (error) throw error;
+        return {
+          rows: (data as VoyageRow[]) ?? [],
+          limit,
+          offset,
+          total,
+        };
+      } catch (e) {
+        throw mapError("find voyages by IMO", e);
       }
     },
   };

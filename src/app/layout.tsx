@@ -1,8 +1,18 @@
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import { MainLayout } from "@/components/layout/main-layout";
+import "./globals.css";
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
-  title: "Poseidon Ledger",
-  description: "Maritime ESG Compliance Intelligence Platform",
+  title: "Poseidon Ledger — Maritime Intelligence",
+  description:
+    "Maritime intelligence & ESG compliance platform for fleet monitoring, document management, and operational oversight.",
 };
 
 export default function RootLayout({
@@ -11,27 +21,9 @@ export default function RootLayout({
   readonly children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body style={{ fontFamily: "system-ui, -apple-system, sans-serif", margin: 0, padding: 0 }}>
-        <nav
-          style={{
-            backgroundColor: "#1a2332",
-            padding: "12px 24px",
-            display: "flex",
-            alignItems: "center",
-            gap: "24px",
-          }}
-        >
-          <span style={{ color: "#4fc3f7", fontWeight: "bold", fontSize: "18px" }}>
-            Poseidon Ledger
-          </span>
-          <a href="/" style={{ color: "#ccc", textDecoration: "none" }}>Dashboard</a>
-          <a href="/documents" style={{ color: "#ccc", textDecoration: "none" }}>Documents</a>
-          <a href="/review" style={{ color: "#ccc", textDecoration: "none" }}>Review</a>
-        </nav>
-        <main style={{ padding: "24px", maxWidth: "1200px", margin: "0 auto" }}>
-          {children}
-        </main>
+    <html lang="en" className={`${inter.variable} dark`}>
+      <body className="font-sans antialiased">
+        <MainLayout>{children}</MainLayout>
       </body>
     </html>
   );

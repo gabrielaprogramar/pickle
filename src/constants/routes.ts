@@ -1,0 +1,18 @@
+export const ROUTES = {
+  dashboard: "/",
+  fleet: "/fleet",
+  vesselDetail: (imo: string) => `/fleet/${imo}`,
+  voyages: "/voyages",
+  voyageDetail: (id: string) => `/voyages/${id}`,
+  ais: "/ais",
+  marinetraffic: "/marinetraffic",
+  documents: "/documents",
+  documentDetail: (id: string) => `/documents/${id}`,
+  review: "/review",
+  reviewDetail: (id: string) => `/review/${id}`,
+  ocr: "/ocr",
+  compliance: "/compliance",
+  dnv: "/dnv",
+  analytics: "/analytics",
+  settings: "/settings",
+} as const;

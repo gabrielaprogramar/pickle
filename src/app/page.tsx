@@ -1,40 +1,291 @@
-export default function HomePage() {
+"use client";
+
+import { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
+import {
+  Ship,
+  Navigation,
+  Radio,
+  FileText,
+  ClipboardCheck,
+  ScanEye,
+  ShieldCheck,
+  ArrowRight,
+  AlertTriangle,
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ErrorBanner } from "@/components/error-banner";
+import { getVessels } from "@/services/vessels.service";
+import { ApiError } from "@/services/api-client";
+import { ROUTES } from "@/constants/routes";
+import type { VesselRow } from "@/lib/supabase/types";
+
+interface DashboardStats {
+  readonly totalVessels: number;
+  readonly latestUpdate: string | null;
+  readonly isLoading: boolean;
+  readonly error: ApiError | null;
+}
+
+interface StatCardProps {
+  readonly label: string;
+  readonly value: string | number;
+  readonly icon: React.ReactNode;
+  readonly href?: string;
+  readonly badge?: string;
+  readonly isLoading?: boolean;
+  readonly mono?: boolean;
+}
+
+function StatCard({
+  label,
+  value,
+  icon,
+  href,
+  badge,
+  isLoading,
+  mono,
+}: StatCardProps) {
+  const card = (
+    <Card className="hover:border-primary/30 transition-colors">
+      <CardHeader className="flex flex-row items-center justify-between pb-1">
+        <CardTitle className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+          {label}
+        </CardTitle>
+        <div className="text-muted-foreground/60">{icon}</div>
+      </CardHeader>
+      <CardContent className="flex items-center gap-2">
+        {isLoading ? (
+          <Skeleton className="h-6 w-20" />
+        ) : (
+          <>
+            <span
+              className={`text-lg font-semibold tabular-nums ${
+                mono ? "font-mono-technical" : ""
+              }`}
+            >
+              {value}
+            </span>
+            {badge && (
+              <Badge variant="muted" className="text-[9px]">
+                {badge}
+              </Badge>
+            )}
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
+
+  if (href) {
+    return <Link href={href} className="block">{card}</Link>;
+  }
+  return card;
+}
+
+export default function DashboardPage() {
+  const [stats, setStats] = useState<DashboardStats>({
+    totalVessels: 0,
+    latestUpdate: null,
+    isLoading: true,
+    error: null,
+  });
+
+  const fetchStats = useCallback(async () => {
+    setStats((s) => ({ ...s, isLoading: true, error: null }));
+    try {
+      const result = await getVessels({ limit: 1 });
+      const totalVessels = result.total;
+      const latestVessel = result.rows[0] as VesselRow | undefined;
+      const latestUpdate = latestVessel?.updated_at ?? null;
+
+      setStats({
+        totalVessels,
+        latestUpdate,
+        isLoading: false,
+        error: null,
+      });
+    } catch (err) {
+      setStats({
+        totalVessels: 0,
+        latestUpdate: null,
+        isLoading: false,
+        error:
+          err instanceof ApiError
+            ? err
+            : new ApiError("UNKNOWN", String(err), 0),
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchStats();
+  }, [fetchStats]);
+
+  const formatTimestamp = (iso: string | null): string => {
+    if (!iso) return "—";
+    const d = new Date(iso);
+    const now = new Date();
+    const diffMs = now.getTime() - d.getTime();
+    const diffMin = Math.floor(diffMs / 60000);
+    if (diffMin < 1) return "Just now";
+    if (diffMin < 60) return `${diffMin}m ago`;
+    const diffH = Math.floor(diffMin / 60);
+    if (diffH < 24) return `${diffH}h ago`;
+    return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
+  };
+
   return (
     <div>
-      <h1 style={{ fontSize: "24px", fontWeight: "bold", marginBottom: "16px" }}>
-        Maritime ESG Compliance Intelligence
-      </h1>
-      <p style={{ color: "#666", marginBottom: "24px" }}>
-        Manage vessel compliance documents, track emissions, and monitor regulatory status.
-      </p>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "16px" }}>
-        <div style={{ border: "1px solid #e0e0e0", borderRadius: "8px", padding: "20px" }}>
-          <h2 style={{ fontSize: "18px", marginBottom: "8px" }}>Documents</h2>
-          <p style={{ color: "#666", fontSize: "14px" }}>
-            Upload and manage compliance documents including BDN, CII, EU-ETS, and FuelEU reports.
-          </p>
-          <a
-            href="/documents"
-            style={{
-              display: "inline-block",
-              marginTop: "12px",
-              padding: "8px 16px",
-              backgroundColor: "#1a2332",
-              color: "white",
-              borderRadius: "4px",
-              textDecoration: "none",
-              fontSize: "14px",
-            }}
-          >
-            View Documents
-          </a>
+      <div className="mb-6">
+        <h1 className="text-base font-semibold tracking-tight">
+          Operational Dashboard
+        </h1>
+        <p className="mt-0.5 text-xs text-muted-foreground">
+          Fleet overview and system status
+        </p>
+      </div>
+
+      {stats.error && (
+        <div className="mb-6">
+          <ErrorBanner
+            message={stats.error.message}
+            code={stats.error.code}
+            onRetry={fetchStats}
+          />
         </div>
-        <div style={{ border: "1px solid #e0e0e0", borderRadius: "8px", padding: "20px" }}>
-          <h2 style={{ fontSize: "18px", marginBottom: "8px" }}>Coming Soon</h2>
-          <p style={{ color: "#666", fontSize: "14px" }}>
-            Vessel tracking, voyage history, and AIS position monitoring.
-          </p>
-        </div>
+      )}
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-3">
+        <StatCard
+          label="Total Vessels"
+          value={stats.totalVessels}
+          icon={<Ship className="h-4 w-4" />}
+          href={ROUTES.fleet}
+          isLoading={stats.isLoading}
+        />
+        <StatCard
+          label="Active Voyages"
+          value="—"
+          icon={<Navigation className="h-4 w-4" />}
+          href={ROUTES.voyages}
+          badge="Soon"
+        />
+        <StatCard
+          label="Latest AIS Update"
+          value={formatTimestamp(stats.latestUpdate)}
+          icon={<Radio className="h-4 w-4" />}
+          href={ROUTES.ais}
+          isLoading={stats.isLoading}
+        />
+        <StatCard
+          label="Documents"
+          value="—"
+          icon={<FileText className="h-4 w-4" />}
+          href={ROUTES.documents}
+        />
+        <StatCard
+          label="Review"
+          value="—"
+          icon={<ClipboardCheck className="h-4 w-4" />}
+          href={ROUTES.review}
+        />
+        <StatCard
+          label="OCR Queue"
+          value="—"
+          icon={<ScanEye className="h-4 w-4" />}
+          badge="Phase 2"
+        />
+        <StatCard
+          label="Compliance Alerts"
+          value="—"
+          icon={<ShieldCheck className="h-4 w-4" />}
+          badge="Phase 2"
+        />
+      </div>
+
+      <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-3">
+        <Card className="lg:col-span-1">
+          <CardHeader className="pb-1">
+            <CardTitle className="text-xs font-medium">Quick Actions</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-2">
+            <Button variant="outline" size="sm" className="justify-between h-8 text-xs" asChild>
+              <Link href={ROUTES.fleet}>
+                <span className="flex items-center gap-2">
+                  <Ship className="h-3.5 w-3.5" />
+                  View Fleet
+                </span>
+                <ArrowRight className="h-3 w-3 text-muted-foreground" />
+              </Link>
+            </Button>
+            <Button variant="outline" size="sm" className="justify-between h-8 text-xs" asChild>
+              <Link href={ROUTES.voyages}>
+                <span className="flex items-center gap-2">
+                  <Navigation className="h-3.5 w-3.5" />
+                  Track Voyages
+                </span>
+                <ArrowRight className="h-3 w-3 text-muted-foreground" />
+              </Link>
+            </Button>
+            <Button variant="outline" size="sm" className="justify-between h-8 text-xs" asChild>
+              <Link href={ROUTES.ais}>
+                <span className="flex items-center gap-2">
+                  <Radio className="h-3.5 w-3.5" />
+                  AIS Positions
+                </span>
+                <ArrowRight className="h-3 w-3 text-muted-foreground" />
+              </Link>
+            </Button>
+            <Button variant="outline" size="sm" className="justify-between h-8 text-xs" asChild>
+              <Link href={ROUTES.documents}>
+                <span className="flex items-center gap-2">
+                  <FileText className="h-3.5 w-3.5" />
+                  Documents
+                </span>
+                <ArrowRight className="h-3 w-3 text-muted-foreground" />
+              </Link>
+            </Button>
+            <Button variant="outline" size="sm" className="justify-between h-8 text-xs" asChild>
+              <Link href={ROUTES.review}>
+                <span className="flex items-center gap-2">
+                  <ClipboardCheck className="h-3.5 w-3.5" />
+                  Review Queue
+                </span>
+                <ArrowRight className="h-3 w-3 text-muted-foreground" />
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-2">
+          <CardHeader className="pb-1">
+            <CardTitle className="text-xs font-medium">System Status</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-xs">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">API</span>
+                <Badge variant="success" className="text-[9px]">Operational</Badge>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">MarineTraffic</span>
+                <Badge variant="muted" className="text-[9px]">Connected</Badge>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">OCR Engine</span>
+                <Badge variant="outline" className="text-[9px]">Pending</Badge>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Compliance</span>
+                <Badge variant="outline" className="text-[9px]">Pending</Badge>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
