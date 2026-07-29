@@ -1,5 +1,5 @@
 import { describe, it, expect, run } from "@/lib/marinetraffic/__tests__/_testRunner";
-import { assembleReport, createValidator, VALIDATOR_VER } from "../validator";
+import { assembleReport, createValidator, createWeightedValidator, computeWeightedConfidence, VALIDATOR_VER } from "../validator";
 import { runAllRules } from "../rules";
 import type { ValidationInput, ValidationRuleResult } from "../types";
 
@@ -16,6 +16,13 @@ function makeInput(overrides: Partial<ValidationInput> = {}): ValidationInput {
       port: "Rotterdam",
       fuelType: "VLSFO",
       supplier: "Supplier Co",
+      bdnReference: "BDN-2026-001",
+      shipType: "Container Ship",
+      ratingYear: 2026,
+      ciiRating: "C",
+      operationalCii: 9.5,
+      requiredCii: 10.2,
+      attainedEexi: 8.1,
     },
     extractionSummary: "BDN for bunkering at Rotterdam",
     extractionWarnings: [],
@@ -187,6 +194,75 @@ describe("VALIDATOR_VER", () => {
   it("is a non-empty string", () => {
     expect(typeof VALIDATOR_VER).toBe("string");
     expect(VALIDATOR_VER.length).toBeGreaterThan(0);
+  });
+});
+
+describe("computeWeightedConfidence", () => {
+  it("returns 1.0 for perfect scores", () => {
+    const result = computeWeightedConfidence(1.0, 1.0, 100);
+    expect(result).toBe(1.0);
+  });
+
+  it("returns 0.0 for zero scores", () => {
+    const result = computeWeightedConfidence(0, 0, 0);
+    expect(result).toBe(0);
+  });
+
+  it("weights extraction confidence the highest", () => {
+    // OCR=1.0, AI=0.5, Validation=1.0 → 0.2*1 + 0.5*0.5 + 0.3*1 = 0.2+0.25+0.3 = 0.75
+    const result = computeWeightedConfidence(1.0, 0.5, 100);
+    expect(result).toBe(0.75);
+  });
+
+  it("gives more weight to extraction than OCR", () => {
+    const highOcr = computeWeightedConfidence(1.0, 0, 0);
+    const highAi = computeWeightedConfidence(0, 1.0, 0);
+    expect(highAi).toBeGreaterThan(highOcr);
+  });
+
+  it("rounds to 3 decimal places", () => {
+    const result = computeWeightedConfidence(0.33, 0.33, 33);
+    expect(result.toString().split(".")[1]?.length || 0).toBeLessThanOrEqual(3);
+  });
+});
+
+describe("createWeightedValidator", () => {
+  it("returns a ValidationProvider", () => {
+    const validator = createWeightedValidator();
+    expect(validator).toBeTruthy();
+    expect(typeof validator.validate).toBe("function");
+  });
+
+  it("produces a weighted score", async () => {
+    const validator = createWeightedValidator();
+    const report = await validator.validate({
+      extractionConfidence: 0.95,
+      extractionFields: {
+        imoNumber: "9876543",
+        vesselName: "Test Vessel",
+        deliveryDate: "2026-06-15",
+        quantityTonnes: 1500,
+        sulphurContentPct: 0.5,
+        densityKgM3: 950,
+        port: "Rotterdam",
+        fuelType: "VLSFO",
+        supplier: "Supplier Co",
+        bdnReference: "BDN-2026-001",
+        shipType: "Container Ship",
+        ratingYear: 2026,
+        ciiRating: "C",
+        operationalCii: 9.5,
+        requiredCii: 10.2,
+        attainedEexi: 8.1,
+      },
+      extractionSummary: "Summary",
+      extractionWarnings: [],
+      extractionMissingFields: [],
+      documentType: "imo_dcs",
+      ocrConfidence: 0.92,
+    });
+    expect(report.score).toBeGreaterThan(0);
+    expect(report.status).toBe("passed");
   });
 });
 

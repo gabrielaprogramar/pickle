@@ -26,6 +26,7 @@ export type ValidationCategory =
 
 /** Severity of a validation finding. */
 export type ValidationSeverity =
+  | "blocking"
   | "error"
   | "warning"
   | "info";
@@ -117,4 +118,36 @@ export interface ValidationProvider {
 export interface ValidatorMetadata {
   readonly validatorVersion: string;
   readonly latencyMs: number;
+}
+
+// ── Rule Engine Interfaces ───────────────────────────────────────────────────
+
+/** Context passed to every validation rule. */
+export interface ValidationContext {
+  readonly fields: Record<string, unknown>;
+  readonly documentType: string;
+  readonly ocrConfidence: number;
+  readonly extractionConfidence: number;
+  readonly extractionSummary: string;
+  readonly extractionWarnings: string[];
+  readonly extractionMissingFields: string[];
+}
+
+/** A single validation rule. */
+export interface ValidationRule {
+  readonly id: string;
+  readonly name: string;
+  readonly category: ValidationCategory;
+  readonly defaultSeverity: Exclude<ValidationSeverity, null>;
+  /** Document types this rule applies to. Empty array means all types. */
+  readonly appliesTo: readonly string[];
+  validate(context: ValidationContext): ValidationRuleResult;
+}
+
+/** Registry of validation rules, queryable by document type. */
+export interface IRuleRegistry {
+  register(rule: ValidationRule): void;
+  registerMany(rules: ValidationRule[]): void;
+  getRulesForDocumentType(documentType: string): ValidationRule[];
+  getAllRules(): ValidationRule[];
 }

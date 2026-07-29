@@ -30,3 +30,7 @@ export { runAllRules, ALL_RULES } from "./rules";
 
 // Mock provider (exported for tests).
 export { createMockValidator, MOCK_VALIDATION_FIXTURES } from "./mock-validator";
+
+// Rule engine.
+export { RuleRegistry, createRule, toValidationContext } from "./rule-engine";
+export type { IRuleRegistry } from "./rule-engine";
