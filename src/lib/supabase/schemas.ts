@@ -197,6 +197,25 @@ export const AiExtractionInsertSchema = z.object({
   error_message: z.string().max(4096).nullable().optional(),
 });
 
+// ── Validation Report insert schema ────────────────────────────────────────
+
+export const ValidationReportInsertSchema = z.object({
+  document_id: z.string().uuid(),
+  extraction_id: z.string().uuid().nullable().optional(),
+  status: z.enum(["pending", "passed", "warning", "failed", "error"]).optional(),
+  score: z.number().int().min(0).max(100).optional(),
+  rule_results: z.array(z.record(z.string(), z.unknown())).optional(),
+  passed_count: z.number().int().nonnegative().optional(),
+  failed_count: z.number().int().nonnegative().optional(),
+  error_count: z.number().int().nonnegative().optional(),
+  warning_count: z.number().int().nonnegative().optional(),
+  blocking_issues: z.array(z.string()).optional(),
+  recommended_review: z.array(z.string()).optional(),
+  ready_for_review: z.boolean().optional(),
+  validator_version: z.string().max(64).optional(),
+  latency_ms: z.number().int().nonnegative().nullable().optional(),
+});
+
 // ── Derived TypeScript types (use these instead of hand-written types) ────────
 
 export type DocumentInsertInput = z.infer<typeof DocumentInsertSchema>;
@@ -208,3 +227,4 @@ export type ProcessingLogInsertInput = z.infer<typeof ProcessingLogInsertSchema>
 export type ReviewTaskInsertInput = z.infer<typeof ReviewTaskInsertSchema>;
 export type DocumentRelationshipInsertInput = z.infer<typeof DocumentRelationshipInsertSchema>;
 export type AiExtractionInsertInput = z.infer<typeof AiExtractionInsertSchema>;
+export type ValidationReportInsertInput = z.infer<typeof ValidationReportInsertSchema>;

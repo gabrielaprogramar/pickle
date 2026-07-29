@@ -23,3 +23,10 @@ export type {
   AiExtractionOutput,
   AiExtractionService,
 } from "./ai-extraction.service";
+
+export { createValidationService } from "./validation.service";
+export type {
+  ValidationServiceOptions,
+  ValidationOutput,
+  ValidationService,
+} from "./validation.service";

@@ -17,14 +17,17 @@ import {
   createDocumentEntityRepository,
   createProcessingLogRepository,
   createAiExtractionRepository,
+  createValidationReportRepository,
 } from "@/lib/supabase";
 import { getStorageClient } from "@/lib/storage/client";
 import { getOcrProvider } from "@/lib/ocr/provider";
 import { getAiProvider } from "@/lib/ai/provider";
+import { getValidationProvider } from "@/lib/validation/provider";
 import {
   createDocumentService,
   createDocumentUploadService,
   createAiExtractionService,
+  createValidationService,
 } from "@/services";
 import type { DocumentService } from "@/services/documents.service";
 import type { AiExtractionService } from "@/services/ai-extraction.service";
@@ -75,5 +78,18 @@ export function buildAiExtractionService(): AiExtractionService {
     ocrResultRepo: createOcrResultRepository({ client }),
     documentRepo: createDocumentRepository({ client }),
     logRepo: createProcessingLogRepository({ client }),
+  });
+}
+
+/** Build a ValidationService from real providers (API route hot path). */
+export function buildValidationService() {
+  const client = getSupabaseClient();
+  const validationProvider = getValidationProvider();
+
+  return createValidationService({
+    validationProvider,
+    reportRepo: createValidationReportRepository({ client }),
+    extractionRepo: createAiExtractionRepository({ client }),
+    documentRepo: createDocumentRepository({ client }),
   });
 }

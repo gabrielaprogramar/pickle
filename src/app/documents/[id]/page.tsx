@@ -7,6 +7,7 @@
 
 import { useParams } from "next/navigation";
 import { useDocument } from "@/hooks/use-document";
+import { useDocumentValidation } from "@/hooks/use-document-validation";
 
 const STATUS_COLORS: Record<string, string> = {
   uploaded: "#f59e0b",
@@ -55,6 +56,35 @@ function ConfidenceBar({ confidence }: { confidence: number }) {
   );
 }
 
+function ValidationScoreBar({ score }: { score: number }) {
+  const color =
+    score >= 90 ? "#10b981" : score >= 70 ? "#f59e0b" : score >= 50 ? "#f97316" : "#ef4444";
+
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+      <div
+        style={{
+          flex: 1,
+          height: "8px",
+          backgroundColor: "#e5e7eb",
+          borderRadius: "4px",
+          overflow: "hidden",
+        }}
+      >
+        <div
+          style={{
+            width: `${score}%`,
+            height: "100%",
+            backgroundColor: color,
+            borderRadius: "4px",
+          }}
+        />
+      </div>
+      <span style={{ fontSize: "13px", fontWeight: "500", color }}>{score}/100</span>
+    </div>
+  );
+}
+
 export default function DocumentDetailPage() {
   const params = useParams();
   const id = typeof params.id === "string" ? params.id : null;
@@ -66,6 +96,14 @@ export default function DocumentDetailPage() {
     extracting,
     extractionError,
   } = useDocument(id);
+  const {
+    validation,
+    loading: validationLoading,
+    triggerValidation,
+    validating,
+    validationError,
+    validationDetail,
+  } = useDocumentValidation(id);
 
   if (loading) {
     return <p style={{ color: "#666" }}>Loading document...</p>;
@@ -258,6 +296,132 @@ export default function DocumentDetailPage() {
           )}
         </section>
       )}
+
+      {/* Validation */}
+      <section style={{ border: "1px solid #e0e0e0", borderRadius: "8px", padding: "20px", marginBottom: "16px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+          <h2 style={{ fontSize: "18px" }}>Validation</h2>
+          {validation && (
+            <span
+              style={{
+                padding: "4px 12px",
+                borderRadius: "4px",
+                fontWeight: "500",
+                fontSize: "13px",
+                backgroundColor: validation.ready_for_review ? "#dcfce7" : "#fef2f2",
+                color: validation.ready_for_review ? "#166534" : "#991b1b",
+              }}
+            >
+              {validation.ready_for_review ? "Ready for Review" : "Needs Review"}
+            </span>
+          )}
+        </div>
+
+        {validationLoading && (
+          <p style={{ color: "#666", fontSize: "14px" }}>Loading validation...</p>
+        )}
+
+        {!validationLoading && !validation && !validationDetail && (
+          <div style={{ textAlign: "center", padding: "16px 0" }}>
+            <p style={{ color: "#666", fontSize: "14px", marginBottom: "12px" }}>
+              No validation report yet. Run validation to check extraction quality.
+            </p>
+            <button
+              onClick={() => { void triggerValidation(); }}
+              disabled={validating}
+              style={{
+                padding: "8px 20px",
+                borderRadius: "6px",
+                backgroundColor: validating ? "#93c5fd" : "#2563eb",
+                color: "#fff",
+                border: "none",
+                fontSize: "14px",
+                fontWeight: "500",
+                cursor: validating ? "not-allowed" : "pointer",
+              }}
+            >
+              {validating ? "Validating..." : "Run Validation"}
+            </button>
+            {validationError && (
+              <p style={{ color: "#ef4444", fontSize: "13px", marginTop: "8px" }}>{validationError}</p>
+            )}
+          </div>
+        )}
+
+        {(validation || validationDetail) && (
+          <div>
+            {/* Score */}
+            <div style={{ marginBottom: "12px" }}>
+              <span style={{ fontSize: "13px", color: "#666", marginRight: "8px" }}>Validation Score:</span>
+              <ValidationScoreBar score={validation?.score ?? validationDetail?.persisted.score ?? 0} />
+            </div>
+
+            {/* Summary counts */}
+            <div style={{ display: "flex", gap: "16px", marginBottom: "12px" }}>
+              <div style={{ fontSize: "13px", color: "#166534" }}>
+                Passed: {validation?.passed_count ?? validationDetail?.persisted.passed_count ?? 0}
+              </div>
+              {(validation?.warning_count ?? validationDetail?.persisted.warning_count ?? 0) > 0 && (
+                <div style={{ fontSize: "13px", color: "#92400e" }}>
+                  Warnings: {validation?.warning_count ?? validationDetail?.persisted.warning_count ?? 0}
+                </div>
+              )}
+              {(validation?.error_count ?? validationDetail?.persisted.error_count ?? 0) > 0 && (
+                <div style={{ fontSize: "13px", color: "#991b1b" }}>
+                  Errors: {validation?.error_count ?? validationDetail?.persisted.error_count ?? 0}
+                </div>
+              )}
+            </div>
+
+            {/* Blocking Issues */}
+            {(validation?.blocking_issues ?? validationDetail?.report.blockingIssues ?? []).length > 0 && (
+              <div style={{ marginBottom: "12px", padding: "10px", backgroundColor: "#fef2f2", borderRadius: "4px", border: "1px solid #fecaca" }}>
+                <span style={{ fontSize: "13px", fontWeight: "500", color: "#991b1b" }}>Blocking Issues</span>
+                <ul style={{ margin: "4px 0 0 0", paddingLeft: "18px", fontSize: "13px", color: "#991b1b" }}>
+                  {(validation?.blocking_issues ?? validationDetail?.report.blockingIssues ?? []).map((issue, i) => (
+                    <li key={i}>{issue}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Recommended Review */}
+            {(validation?.recommended_review ?? validationDetail?.report.recommendedReview ?? []).length > 0 && (
+              <div style={{ marginBottom: "12px", padding: "10px", backgroundColor: "#fffbeb", borderRadius: "4px", border: "1px solid #fde68a" }}>
+                <span style={{ fontSize: "13px", fontWeight: "500", color: "#92400e" }}>Recommended Review</span>
+                <ul style={{ margin: "4px 0 0 0", paddingLeft: "18px", fontSize: "13px", color: "#92400e" }}>
+                  {(validation?.recommended_review ?? validationDetail?.report.recommendedReview ?? []).map((reason, i) => (
+                    <li key={i}>{reason}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Re-run button */}
+            <div style={{ marginTop: "12px" }}>
+              <button
+                onClick={() => { void triggerValidation(); }}
+                disabled={validating}
+                style={{
+                  padding: "6px 16px",
+                  borderRadius: "6px",
+                  backgroundColor: validating ? "#e5e7eb" : "#f3f4f6",
+                  color: validating ? "#9ca3af" : "#374151",
+                  border: "1px solid #d1d5db",
+                  fontSize: "13px",
+                  fontWeight: "500",
+                  cursor: validating ? "not-allowed" : "pointer",
+                }}
+              >
+                {validating ? "Validating..." : "Re-run Validation"}
+              </button>
+              {validationError && (
+                <p style={{ color: "#ef4444", fontSize: "13px", marginTop: "8px" }}>{validationError}</p>
+              )}
+            </div>
+          </div>
+        )}
+      </section>
 
       {/* Processing Jobs */}
       {jobs.length > 0 && (

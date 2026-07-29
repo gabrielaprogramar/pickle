@@ -402,6 +402,47 @@ export type AiExtractionInsert = {
   readonly error_message?: string | null;
 };
 
+// ── 1e. VALIDATION REPORT ROW TYPES (1:1 with migration 0004) ───────────────
+
+/** One row of the `validation_reports` table. */
+export type ValidationReportRow = {
+  readonly id: string;
+  readonly document_id: string;
+  readonly extraction_id: string | null;
+  readonly status: string;
+  readonly score: number;
+  readonly rule_results: unknown[];
+  readonly passed_count: number;
+  readonly failed_count: number;
+  readonly error_count: number;
+  readonly warning_count: number;
+  readonly blocking_issues: string[];
+  readonly recommended_review: string[];
+  readonly ready_for_review: boolean;
+  readonly validator_version: string;
+  readonly latency_ms: number | null;
+  readonly created_at: string;
+  readonly updated_at: string;
+};
+
+/** Payload for inserting a validation report. id/created_at/updated_at are server-defaulted. */
+export type ValidationReportInsert = {
+  readonly document_id: string;
+  readonly extraction_id?: string | null;
+  readonly status?: string;
+  readonly score?: number;
+  readonly rule_results?: unknown[];
+  readonly passed_count?: number;
+  readonly failed_count?: number;
+  readonly error_count?: number;
+  readonly warning_count?: number;
+  readonly blocking_issues?: string[];
+  readonly recommended_review?: string[];
+  readonly ready_for_review?: boolean;
+  readonly validator_version?: string;
+  readonly latency_ms?: number | null;
+};
+
 // ── 2. DATABASE INTERFACE (Supabase generated-types shape) ───────────────────
 
 /**
@@ -491,6 +532,12 @@ export type Database = {
         Row: AiExtractionRow;
         Insert: AiExtractionInsert;
         Update: Partial<AiExtractionInsert>;
+        Relationships: Relationships;
+      };
+      validation_reports: {
+        Row: ValidationReportRow;
+        Insert: ValidationReportInsert;
+        Update: Partial<ValidationReportInsert>;
         Relationships: Relationships;
       };
     };

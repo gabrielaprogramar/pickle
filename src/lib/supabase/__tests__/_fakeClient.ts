@@ -574,6 +574,27 @@ class FakeQueryBuilder {
       }
     }
 
+    // ── Validation Report table (Phase 2A.4) ─────────────────────────────
+
+    if (this.state.table === "validation_reports") {
+      if (row.extraction_id === undefined) row.extraction_id = null;
+      if (row.status === undefined) row.status = "pending";
+      if (row.score === undefined) row.score = 0;
+      if (row.rule_results === undefined) row.rule_results = [];
+      if (row.passed_count === undefined) row.passed_count = 0;
+      if (row.failed_count === undefined) row.failed_count = 0;
+      if (row.error_count === undefined) row.error_count = 0;
+      if (row.warning_count === undefined) row.warning_count = 0;
+      if (row.blocking_issues === undefined) row.blocking_issues = [];
+      if (row.recommended_review === undefined) row.recommended_review = [];
+      if (row.ready_for_review === undefined) row.ready_for_review = false;
+      if (row.validator_version === undefined) row.validator_version = "1.0.0";
+      if (row.latency_ms === undefined) row.latency_ms = null;
+      if (row.updated_at === undefined) {
+        row.updated_at = row.created_at;
+      }
+    }
+
     return row;
   }
 }
