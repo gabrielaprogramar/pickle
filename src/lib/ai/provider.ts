@@ -49,6 +49,9 @@ export function getAiProvider(): AiProvider {
         cached = createOpenAiProvider({
           apiKey,
           model: process.env.OPENAI_MODEL?.trim() || "gpt-4o",
+          timeoutMs: parseInt(process.env.OPENAI_TIMEOUT_MS ?? "", 10) || undefined,
+          temperature: parseFloat(process.env.OPENAI_TEMPERATURE ?? "") || undefined,
+          maxRetries: parseInt(process.env.OPENAI_MAX_RETRIES ?? "", 10) || undefined,
         });
       } catch {
         cached = createMockAiProvider();

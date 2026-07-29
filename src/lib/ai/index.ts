@@ -30,3 +30,14 @@ export { createMockAiProvider, MOCK_AI_FIXTURES } from "./mock-provider";
 // OpenAI provider.
 export { createOpenAiProvider } from "./openai-provider";
 export type { OpenAiProviderConfig } from "./openai-provider";
+
+// OpenAI errors.
+export {
+  OpenAiError,
+  OpenAiConfigError,
+  OpenAiAuthError,
+  OpenAiApiError,
+  OpenAiTimeoutError,
+  OpenAiRateLimitError,
+  OpenAiInvalidResponseError,
+} from "./openai-errors";

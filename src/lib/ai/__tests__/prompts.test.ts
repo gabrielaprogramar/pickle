@@ -47,6 +47,14 @@ describe("getExtractionPrompt — document type mapping", () => {
     expect(prompt.expectedFields).toContain("monitoringMethodology");
   });
 
+  it("returns noon_report prompt for noon_report", () => {
+    const prompt = getExtractionPrompt("noon_report");
+    expect(prompt.description).toContainString("Noon Report");
+    expect(prompt.expectedFields).toContain("positionLatitude");
+    expect(prompt.expectedFields).toContain("positionLongitude");
+    expect(prompt.expectedFields).toContain("engineRpm");
+  });
+
   it("returns unknown prompt for certificate", () => {
     const prompt = getExtractionPrompt("certificate");
     expect(prompt.description).toContainString("Unknown");
@@ -58,9 +66,12 @@ describe("getExtractionPrompt — document type mapping", () => {
     expect(prompt.description).toContainString("Unknown");
   });
 
-  it("returns unknown prompt for logbook", () => {
+  it("returns logbook prompt for logbook", () => {
     const prompt = getExtractionPrompt("logbook");
-    expect(prompt.description).toContainString("Unknown");
+    expect(prompt.description).toContainString("Logbook");
+    expect(prompt.expectedFields).toContain("entryDate");
+    expect(prompt.expectedFields).toContain("entryType");
+    expect(prompt.expectedFields).toContain("incidents");
   });
 
   it("returns unknown prompt for other", () => {
@@ -99,6 +110,14 @@ describe("getExtractionPrompt — prompt quality", () => {
 
     const euEts = getExtractionPrompt("eu_mrv");
     expect(euEts.expectedFields).toContain("totalCo2Tonnes");
+
+    const noonReport = getExtractionPrompt("noon_report");
+    expect(noonReport.expectedFields).toContain("positionLatitude");
+    expect(noonReport.expectedFields).toContain("positionLongitude");
+
+    const logbookP = getExtractionPrompt("logbook");
+    expect(logbookP.expectedFields).toContain("entryDate");
+    expect(logbookP.expectedFields).toContain("entryType");
   });
 });
 
@@ -108,6 +127,8 @@ describe("EXTRACTION_PROMPTS — exported prompts", () => {
     expect(EXTRACTION_PROMPTS.cii).toBeTruthy();
     expect(EXTRACTION_PROMPTS.fuelEu).toBeTruthy();
     expect(EXTRACTION_PROMPTS.euEts).toBeTruthy();
+    expect(EXTRACTION_PROMPTS.noonReport).toBeTruthy();
+    expect(EXTRACTION_PROMPTS.logbook).toBeTruthy();
     expect(EXTRACTION_PROMPTS.unknown).toBeTruthy();
   });
 
