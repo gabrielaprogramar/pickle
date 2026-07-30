@@ -366,3 +366,106 @@ export const NotificationPreferenceInsertSchema = z.object({
 });
 
 export type NotificationPreferenceInsertInput = z.infer<typeof NotificationPreferenceInsertSchema>;
+
+// ── AI Assistant schemas (Phase 3A) ─────────────────────────────────────────
+
+export const KnowledgeSourceSchema = z.enum([
+  "eu_ets_directive",
+  "fueleu_regulation",
+  "thetis_mrv_guidance",
+  "marpol_annex_vi",
+  "fueleu_guidance",
+  "poseidon_policy",
+]);
+
+export const KnowledgeRegulationSchema = z.enum([
+  "EU_ETS",
+  "FuelEU",
+  "THETIS_MRV",
+  "MARPOL",
+  "POSEIDON",
+]);
+
+export const ConversationStatusSchema = z.enum(["ACTIVE", "ARCHIVED", "DELETED"]);
+
+export const MessageRoleSchema = z.enum(["system", "user", "assistant", "tool"]);
+
+export const ToolStatusSchema = z.enum(["pending", "running", "success", "error"]);
+
+export const KnowledgeDocumentInsertSchema = z.object({
+  source: KnowledgeSourceSchema,
+  regulation: KnowledgeRegulationSchema,
+  title: z.string().min(1),
+  article_section: z.string().optional(),
+  effective_date: z.string().optional(),
+  version: z.string().optional(),
+  content: z.string().min(1),
+  metadata: z.record(z.string(), z.unknown()).optional(),
+});
+
+export const KnowledgeChunkInsertSchema = z.object({
+  document_id: z.string().uuid(),
+  chunk_index: z.number().int().min(0),
+  content: z.string().min(1),
+  article_section: z.string().optional(),
+  heading: z.string().optional(),
+  embedding: z.unknown().optional(),
+  token_count: z.number().int().positive().optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
+});
+
+export const AssistantConversationInsertSchema = z.object({
+  user_id: z.string().min(1),
+  organization_id: z.string().optional(),
+  title: z.string().optional(),
+  model_id: z.string().optional(),
+  prompt_version: z.string().optional(),
+  status: ConversationStatusSchema.optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
+});
+
+export const AssistantMessageInsertSchema = z.object({
+  conversation_id: z.string().uuid(),
+  role: MessageRoleSchema,
+  content: z.string().optional(),
+  tool_call_id: z.string().uuid().optional(),
+  tool_name: z.string().optional(),
+  tool_input: z.record(z.string(), z.unknown()).optional(),
+  tool_output: z.record(z.string(), z.unknown()).optional(),
+  tool_status: ToolStatusSchema.optional(),
+  citations: z.array(z.record(z.string(), z.unknown())).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
+});
+
+export const AssistantToolCallInsertSchema = z.object({
+  conversation_id: z.string().uuid(),
+  message_id: z.string().uuid().optional(),
+  tool_name: z.string().min(1),
+  tool_input: z.record(z.string(), z.unknown()),
+  tool_output: z.record(z.string(), z.unknown()).optional(),
+  success: z.boolean().optional(),
+  error_message: z.string().optional(),
+  latency_ms: z.number().int().nonnegative().optional(),
+  permission_granted: z.boolean().optional(),
+});
+
+export const AssistantEvaluationLogInsertSchema = z.object({
+  test_name: z.string().min(1),
+  assistant_type: z.string().optional(),
+  query: z.string().min(1),
+  response: z.string().optional(),
+  citation_accuracy: z.number().min(0).max(1).optional(),
+  retrieval_precision: z.number().min(0).max(1).optional(),
+  hallucination_flag: z.boolean().optional(),
+  tool_selection_accuracy: z.number().min(0).max(1).optional(),
+  response_latency_ms: z.number().int().nonnegative().optional(),
+  no_math_leak_violation: z.boolean().optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
+});
+
+export type KnowledgeDocumentInsertInput = z.infer<typeof KnowledgeDocumentInsertSchema>;
+export type KnowledgeChunkInsertInput = z.infer<typeof KnowledgeChunkInsertSchema>;
+export type AssistantConversationInsertInput = z.infer<typeof AssistantConversationInsertSchema>;
+export type AssistantMessageInsertInput = z.infer<typeof AssistantMessageInsertSchema>;
+export type AssistantToolCallInsertInput = z.infer<typeof AssistantToolCallInsertSchema>;
+export type AssistantEvaluationLogInsertInput = z.infer<typeof AssistantEvaluationLogInsertSchema>;

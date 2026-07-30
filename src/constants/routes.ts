@@ -15,4 +15,5 @@ export const ROUTES = {
   dnv: "/dnv",
   analytics: "/analytics",
   settings: "/settings",
+  assistant: "/assistant",
 } as const;

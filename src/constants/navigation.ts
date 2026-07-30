@@ -11,6 +11,7 @@ import {
   Building2,
   BarChart3,
   Settings,
+  Bot,
   type LucideIcon,
 } from "lucide-react";
 import { ROUTES } from "./routes";
@@ -50,6 +51,11 @@ export const NAVIGATION: readonly NavSection[] = [
         label: "Review",
         href: ROUTES.review,
         icon: ClipboardCheck,
+      },
+      {
+        label: "Assistant",
+        href: ROUTES.assistant,
+        icon: Bot,
       },
       {
         label: "MarineTraffic",

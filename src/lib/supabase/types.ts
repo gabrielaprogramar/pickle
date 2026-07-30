@@ -1151,6 +1151,202 @@ export type NotificationPreferenceInsert = {
   readonly in_app_enabled?: boolean;
 };
 
+// ── 1q. AI ASSISTANT ROW TYPES (Phase 3A) ──────────────────────────────────
+
+/** Knowledge source document type classification. */
+export type KnowledgeSource =
+  | "eu_ets_directive"
+  | "fueleu_regulation"
+  | "thetis_mrv_guidance"
+  | "marpol_annex_vi"
+  | "fueleu_guidance"
+  | "poseidon_policy";
+
+/** Knowledge regulation classification. */
+export type KnowledgeRegulation =
+  | "EU_ETS"
+  | "FuelEU"
+  | "THETIS_MRV"
+  | "MARPOL"
+  | "POSEIDON";
+
+/** One row of the `knowledge_documents` table. */
+export type KnowledgeDocumentRow = {
+  readonly id: string;
+  readonly source: KnowledgeSource;
+  readonly regulation: KnowledgeRegulation;
+  readonly title: string;
+  readonly article_section: string | null;
+  readonly effective_date: string | null;
+  readonly version: string;
+  readonly content: string;
+  readonly metadata: Record<string, unknown>;
+  readonly created_at: string;
+  readonly updated_at: string;
+};
+
+/** Payload for inserting a knowledge document. id/created_at/updated_at are server-defaulted. */
+export type KnowledgeDocumentInsert = {
+  readonly source: KnowledgeSource;
+  readonly regulation: KnowledgeRegulation;
+  readonly title: string;
+  readonly article_section?: string | null;
+  readonly effective_date?: string | null;
+  readonly version?: string;
+  readonly content: string;
+  readonly metadata?: Record<string, unknown>;
+};
+
+/** One row of the `knowledge_chunks` table. */
+export type KnowledgeChunkRow = {
+  readonly id: string;
+  readonly document_id: string;
+  readonly chunk_index: number;
+  readonly content: string;
+  readonly article_section: string | null;
+  readonly heading: string | null;
+  readonly embedding: unknown | null;
+  readonly token_count: number | null;
+  readonly metadata: Record<string, unknown>;
+  readonly created_at: string;
+};
+
+/** Payload for inserting a knowledge chunk. id/created_at are server-defaulted. */
+export type KnowledgeChunkInsert = {
+  readonly document_id: string;
+  readonly chunk_index: number;
+  readonly content: string;
+  readonly article_section?: string | null;
+  readonly heading?: string | null;
+  readonly embedding?: unknown | null;
+  readonly token_count?: number | null;
+  readonly metadata?: Record<string, unknown>;
+};
+
+/** Conversation lifecycle status. */
+export type ConversationStatus = "ACTIVE" | "ARCHIVED" | "DELETED";
+
+/** One row of the `assistant_conversations` table. */
+export type AssistantConversationRow = {
+  readonly id: string;
+  readonly user_id: string;
+  readonly organization_id: string | null;
+  readonly title: string;
+  readonly model_id: string;
+  readonly prompt_version: string;
+  readonly status: ConversationStatus;
+  readonly metadata: Record<string, unknown>;
+  readonly created_at: string;
+  readonly updated_at: string;
+};
+
+/** Payload for inserting an assistant conversation. id/created_at/updated_at are server-defaulted. */
+export type AssistantConversationInsert = {
+  readonly user_id: string;
+  readonly organization_id?: string | null;
+  readonly title?: string;
+  readonly model_id?: string;
+  readonly prompt_version?: string;
+  readonly status?: ConversationStatus;
+  readonly metadata?: Record<string, unknown>;
+};
+
+/** Message role classification. */
+export type MessageRole = "system" | "user" | "assistant" | "tool";
+
+/** Tool call execution status. */
+export type ToolStatus = "pending" | "running" | "success" | "error";
+
+/** One row of the `assistant_messages` table. */
+export type AssistantMessageRow = {
+  readonly id: string;
+  readonly conversation_id: string;
+  readonly role: MessageRole;
+  readonly content: string | null;
+  readonly tool_call_id: string | null;
+  readonly tool_name: string | null;
+  readonly tool_input: Record<string, unknown> | null;
+  readonly tool_output: Record<string, unknown> | null;
+  readonly tool_status: string | null;
+  readonly citations: Array<Record<string, unknown>>;
+  readonly metadata: Record<string, unknown>;
+  readonly created_at: string;
+};
+
+/** Payload for inserting an assistant message. id/created_at are server-defaulted. */
+export type AssistantMessageInsert = {
+  readonly conversation_id: string;
+  readonly role: MessageRole;
+  readonly content?: string | null;
+  readonly tool_call_id?: string | null;
+  readonly tool_name?: string | null;
+  readonly tool_input?: Record<string, unknown> | null;
+  readonly tool_output?: Record<string, unknown> | null;
+  readonly tool_status?: string | null;
+  readonly citations?: Array<Record<string, unknown>>;
+  readonly metadata?: Record<string, unknown>;
+};
+
+/** One row of the `assistant_tool_calls` table. */
+export type AssistantToolCallRow = {
+  readonly id: string;
+  readonly conversation_id: string;
+  readonly message_id: string | null;
+  readonly tool_name: string;
+  readonly tool_input: Record<string, unknown>;
+  readonly tool_output: Record<string, unknown> | null;
+  readonly success: boolean;
+  readonly error_message: string | null;
+  readonly latency_ms: number | null;
+  readonly permission_granted: boolean;
+  readonly created_at: string;
+};
+
+/** Payload for inserting an assistant tool call. id/created_at are server-defaulted. */
+export type AssistantToolCallInsert = {
+  readonly conversation_id: string;
+  readonly message_id?: string | null;
+  readonly tool_name: string;
+  readonly tool_input: Record<string, unknown>;
+  readonly tool_output?: Record<string, unknown> | null;
+  readonly success?: boolean;
+  readonly error_message?: string | null;
+  readonly latency_ms?: number | null;
+  readonly permission_granted?: boolean;
+};
+
+/** One row of the `assistant_evaluation_log` table. */
+export type AssistantEvaluationLogRow = {
+  readonly id: string;
+  readonly test_name: string;
+  readonly assistant_type: string;
+  readonly query: string;
+  readonly response: string | null;
+  readonly citation_accuracy: number | null;
+  readonly retrieval_precision: number | null;
+  readonly hallucination_flag: boolean;
+  readonly tool_selection_accuracy: number | null;
+  readonly response_latency_ms: number | null;
+  readonly no_math_leak_violation: boolean;
+  readonly metadata: Record<string, unknown>;
+  readonly created_at: string;
+};
+
+/** Payload for inserting an evaluation log entry. id/created_at are server-defaulted. */
+export type AssistantEvaluationLogInsert = {
+  readonly test_name: string;
+  readonly assistant_type?: string;
+  readonly query: string;
+  readonly response?: string | null;
+  readonly citation_accuracy?: number | null;
+  readonly retrieval_precision?: number | null;
+  readonly hallucination_flag?: boolean;
+  readonly tool_selection_accuracy?: number | null;
+  readonly response_latency_ms?: number | null;
+  readonly no_math_leak_violation?: boolean;
+  readonly metadata?: Record<string, unknown>;
+};
+
 /**
  * Empty Relationships array placeholder. Every table in a generated Database
  * interface declares its foreign-key relationships; postgrest-js's GenericTable
@@ -1341,6 +1537,42 @@ export type Database = {
         Row: NotificationPreferenceRow;
         Insert: NotificationPreferenceInsert;
         Update: Partial<NotificationPreferenceInsert>;
+        Relationships: Relationships;
+      };
+      knowledge_documents: {
+        Row: KnowledgeDocumentRow;
+        Insert: KnowledgeDocumentInsert;
+        Update: Partial<KnowledgeDocumentInsert>;
+        Relationships: Relationships;
+      };
+      knowledge_chunks: {
+        Row: KnowledgeChunkRow;
+        Insert: KnowledgeChunkInsert;
+        Update: Partial<KnowledgeChunkInsert>;
+        Relationships: Relationships;
+      };
+      assistant_conversations: {
+        Row: AssistantConversationRow;
+        Insert: AssistantConversationInsert;
+        Update: Partial<AssistantConversationInsert>;
+        Relationships: Relationships;
+      };
+      assistant_messages: {
+        Row: AssistantMessageRow;
+        Insert: AssistantMessageInsert;
+        Update: Partial<AssistantMessageInsert>;
+        Relationships: Relationships;
+      };
+      assistant_tool_calls: {
+        Row: AssistantToolCallRow;
+        Insert: AssistantToolCallInsert;
+        Update: Partial<AssistantToolCallInsert>;
+        Relationships: Relationships;
+      };
+      assistant_evaluation_log: {
+        Row: AssistantEvaluationLogRow;
+        Insert: AssistantEvaluationLogInsert;
+        Update: Partial<AssistantEvaluationLogInsert>;
         Relationships: Relationships;
       };
     };

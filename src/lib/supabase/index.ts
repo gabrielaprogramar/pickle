@@ -265,6 +265,27 @@ export type {
   NotificationPreferenceInsert,
 } from "./types";
 
+// Phase 3A AI Assistant types.
+export type {
+  KnowledgeSource,
+  KnowledgeRegulation,
+  KnowledgeDocumentRow,
+  KnowledgeDocumentInsert,
+  KnowledgeChunkRow,
+  KnowledgeChunkInsert,
+  ConversationStatus,
+  AssistantConversationRow,
+  AssistantConversationInsert,
+  MessageRole,
+  ToolStatus,
+  AssistantMessageRow,
+  AssistantMessageInsert,
+  AssistantToolCallRow,
+  AssistantToolCallInsert,
+  AssistantEvaluationLogRow,
+  AssistantEvaluationLogInsert,
+} from "./types";
+
 // Zod validation schemas.
 export {
   DocumentTypeSchema,
@@ -295,6 +316,17 @@ export {
   NotificationSeveritySchema,
   NotificationInsertSchema,
   NotificationPreferenceInsertSchema,
+  KnowledgeSourceSchema,
+  KnowledgeRegulationSchema,
+  ConversationStatusSchema,
+  MessageRoleSchema,
+  ToolStatusSchema,
+  KnowledgeDocumentInsertSchema,
+  KnowledgeChunkInsertSchema,
+  AssistantConversationInsertSchema,
+  AssistantMessageInsertSchema,
+  AssistantToolCallInsertSchema,
+  AssistantEvaluationLogInsertSchema,
 } from "./schemas";
 
 // Phase 2C.6 repositories.
@@ -321,6 +353,43 @@ export type {
   NotificationPreferenceRepository,
   CreateNotificationPreferenceRepositoryOptions,
 } from "./repositories/notification_preferences";
+
+// Phase 3A AI Assistant repositories.
+export { createKnowledgeDocumentRepository } from "./repositories/knowledge_documents";
+export type {
+  KnowledgeDocumentRepository,
+  CreateKnowledgeDocumentRepositoryOptions,
+} from "./repositories/knowledge_documents";
+
+export { createKnowledgeChunkRepository } from "./repositories/knowledge_chunks";
+export type {
+  KnowledgeChunkRepository,
+  CreateKnowledgeChunkRepositoryOptions,
+} from "./repositories/knowledge_chunks";
+
+export { createAssistantConversationRepository } from "./repositories/assistant_conversations";
+export type {
+  AssistantConversationRepository,
+  CreateAssistantConversationRepositoryOptions,
+} from "./repositories/assistant_conversations";
+
+export { createAssistantMessageRepository } from "./repositories/assistant_messages";
+export type {
+  AssistantMessageRepository,
+  CreateAssistantMessageRepositoryOptions,
+} from "./repositories/assistant_messages";
+
+export { createAssistantToolCallRepository } from "./repositories/assistant_tool_calls";
+export type {
+  AssistantToolCallRepository,
+  CreateAssistantToolCallRepositoryOptions,
+} from "./repositories/assistant_tool_calls";
+
+export { createAssistantEvaluationLogRepository } from "./repositories/assistant_evaluation_log";
+export type {
+  AssistantEvaluationLogRepository,
+  CreateAssistantEvaluationLogRepositoryOptions,
+} from "./repositories/assistant_evaluation_log";
 
 // Mapper (re-exported so the orchestration layer can build payloads directly if
 // it ever needs to — e.g. a batch importer).
