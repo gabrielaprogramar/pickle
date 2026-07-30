@@ -202,7 +202,7 @@ export default function AisPage() {
           <div className="space-y-4">
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-xs font-medium flex items-center gap-1.5">
+                <CardTitle className="font-mono text-[11px] font-medium uppercase tracking-[0.1em] flex items-center gap-1.5">
                   <Map className="h-3.5 w-3.5 text-primary" />
                   Position Map
                 </CardTitle>
@@ -211,7 +211,7 @@ export default function AisPage() {
                 <div className="flex items-center justify-center rounded-md border border-dashed border-border/50 bg-muted/20 h-48 text-center">
                   <div>
                     <Map className="h-6 w-6 mx-auto mb-1 text-muted-foreground/30" />
-                    <p className="text-[10px] text-muted-foreground/50">
+                    <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-muted-foreground/50">
                       Map integration in Phase 2
                     </p>
                   </div>
@@ -222,37 +222,37 @@ export default function AisPage() {
             {latestPos && (
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-xs font-medium">
+                  <CardTitle className="font-mono text-[11px] font-medium uppercase tracking-[0.1em]">
                     Latest Position
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-0.5">
                   <div className="flex justify-between text-xs">
-                    <span className="text-muted-foreground">Coordinates</span>
+                    <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground">Coordinates</span>
                     <span className="font-mono-technical tabular-nums">
                       {latestPos.latitude.toFixed(4)}, {latestPos.longitude.toFixed(4)}
                     </span>
                   </div>
                   <div className="flex justify-between text-xs">
-                    <span className="text-muted-foreground">SOG</span>
+                    <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground">SOG</span>
                     <span className="font-mono-technical tabular-nums">
                       {latestPos.sog != null ? `${latestPos.sog.toFixed(1)} kn` : "—"}
                     </span>
                   </div>
                   <div className="flex justify-between text-xs">
-                    <span className="text-muted-foreground">COG</span>
+                    <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground">COG</span>
                     <span className="font-mono-technical tabular-nums">
                       {latestPos.cog != null ? `${latestPos.cog.toFixed(1)}°` : "—"}
                     </span>
                   </div>
                   <div className="flex justify-between text-xs">
-                    <span className="text-muted-foreground">Heading</span>
+                    <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground">Heading</span>
                     <span className="font-mono-technical tabular-nums">
                       {latestPos.heading != null ? `${latestPos.heading.toFixed(0)}°` : "—"}
                     </span>
                   </div>
                   <div className="flex justify-between text-xs">
-                    <span className="text-muted-foreground">Timestamp</span>
+                    <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground">Timestamp</span>
                     <span className="font-mono-technical tabular-nums text-[10px]">
                       {new Date(latestPos.ts).toLocaleString("en-GB", {
                         day: "2-digit",

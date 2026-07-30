@@ -41,19 +41,19 @@ export function AppHeader() {
 
   return (
     <header className="flex h-11 items-center gap-3 border-b border-border bg-card px-4">
-      <nav className="hidden md:flex items-center gap-1 text-xs text-muted-foreground">
+      <nav className="hidden md:flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
         <Link
           href={ROUTES.dashboard}
-          className="hover:text-foreground transition-colors"
+          className="hover:text-primary transition-colors"
         >
           Dashboard
         </Link>
         {crumbs.map((crumb) => (
-          <span key={crumb.href} className="flex items-center gap-1">
+          <span key={crumb.href} className="flex items-center gap-1.5">
             <ChevronRight className="h-3 w-3" />
             <Link
               href={crumb.href}
-              className="hover:text-foreground transition-colors"
+              className="hover:text-primary transition-colors"
             >
               {crumb.label}
             </Link>
@@ -61,7 +61,7 @@ export function AppHeader() {
         ))}
       </nav>
 
-      <nav className="flex md:hidden items-center gap-1 text-xs text-muted-foreground">
+      <nav className="flex md:hidden items-center gap-1 font-mono text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
         <span className="text-foreground font-medium">
           {crumbs.length > 0 ? crumbs[crumbs.length - 1]!.label : "Dashboard"}
         </span>
@@ -72,7 +72,7 @@ export function AppHeader() {
       <Button
         variant="outline"
         size="sm"
-        className="h-7 text-xs text-muted-foreground gap-1"
+        className="h-7 gap-1.5 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground"
         disabled
       >
         <span className="inline-block h-2 w-2 rounded-full bg-warning" />
@@ -89,7 +89,7 @@ export function AppHeader() {
                 OP
               </AvatarFallback>
             </Avatar>
-            <span className="text-xs text-muted-foreground hidden lg:inline">
+            <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground hidden lg:inline">
               Operator
             </span>
           </Button>

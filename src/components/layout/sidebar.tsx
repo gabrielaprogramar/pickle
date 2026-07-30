@@ -1,13 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import {
-  PanelLeftClose,
-  PanelLeftOpen,
-  Waves,
-} from "lucide-react";
+import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -63,7 +60,7 @@ function SidebarNavItem({
       <item.icon className="h-4 w-4 shrink-0" />
       {!collapsed && <span className="truncate">{item.label}</span>}
       {!collapsed && disabled && (
-        <span className="ml-auto text-[9px] text-muted-foreground/40 font-normal">
+        <span className="ml-auto font-mono text-[9px] uppercase tracking-[0.1em] text-muted-foreground/40 font-normal">
           Soon
         </span>
       )}
@@ -98,7 +95,7 @@ function SidebarNavSection({
   return (
     <div className="space-y-0.5">
       {!collapsed && (
-        <p className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">
+        <p className="px-2 py-1 font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground/60">
           {section.title}
         </p>
       )}
@@ -126,18 +123,24 @@ function SidebarContent({
 }) {
   return (
     <div className="flex h-full flex-col">
-      <div className={cn(
-        "flex h-11 items-center border-b border-sidebar-border px-3",
-        collapsed && "justify-center px-2",
-      )}>
+      <div
+        className={cn(
+          "flex h-11 items-center border-b border-sidebar-border px-3",
+          collapsed && "justify-center px-2",
+        )}
+      >
         <Link
           href="/"
-          className="flex items-center gap-2 font-semibold text-xs text-sidebar-foreground hover:text-sidebar-foreground"
+          className="flex items-center text-sidebar-foreground hover:text-sidebar-foreground"
         >
-          <Waves className="h-5 w-5 text-primary shrink-0" />
-          {!collapsed && (
-            <span className="tracking-tight">POSEIDON</span>
-          )}
+          <Image
+            src="/logo.png"
+            alt="Poseidon Ledger"
+            width={collapsed ? 22 : 150}
+            height={collapsed ? 22 : 26}
+            className="shrink-0"
+            priority
+          />
         </Link>
       </div>
 
@@ -166,7 +169,9 @@ function SidebarContent({
           ) : (
             <>
               <PanelLeftClose className="h-4 w-4" />
-              <span className="ml-2 text-xs">Collapse</span>
+              <span className="ml-2 font-mono text-[10px] uppercase tracking-[0.1em]">
+                Collapse
+              </span>
             </>
           )}
         </Button>
@@ -188,7 +193,10 @@ export function AppSidebar() {
               <Menu className="h-4 w-4" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-56 p-0 bg-sidebar text-sidebar-foreground">
+          <SheetContent
+            side="left"
+            className="w-56 p-0 bg-sidebar text-sidebar-foreground"
+          >
             <SheetTitle className="sr-only">Navigation</SheetTitle>
             <SidebarContent
               collapsed={false}

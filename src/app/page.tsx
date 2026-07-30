@@ -52,7 +52,7 @@ function StatCard({
   const card = (
     <Card className="hover:border-primary/30 transition-colors">
       <CardHeader className="flex flex-row items-center justify-between pb-1">
-        <CardTitle className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+        <CardTitle className="font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
           {label}
         </CardTitle>
         <div className="text-muted-foreground/60">{icon}</div>
@@ -141,10 +141,10 @@ export default function DashboardPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-base font-semibold tracking-tight">
+        <h1 className="font-serif text-xl font-medium tracking-tight text-foreground">
           Operational Dashboard
         </h1>
-        <p className="mt-0.5 text-xs text-muted-foreground">
+        <p className="mt-0.5 font-mono text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
           Fleet overview and system status
         </p>
       </div>
@@ -210,7 +210,9 @@ export default function DashboardPage() {
       <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-3">
         <Card className="lg:col-span-1">
           <CardHeader className="pb-1">
-            <CardTitle className="text-xs font-medium">Quick Actions</CardTitle>
+            <CardTitle className="font-mono text-[11px] font-medium uppercase tracking-[0.1em]">
+              Quick Actions
+            </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-2">
             <Button variant="outline" size="sm" className="justify-between h-8 text-xs" asChild>
@@ -263,23 +265,25 @@ export default function DashboardPage() {
 
         <Card className="lg:col-span-2">
           <CardHeader className="pb-1">
-            <CardTitle className="text-xs font-medium">System Status</CardTitle>
+            <CardTitle className="font-mono text-[11px] font-medium uppercase tracking-[0.1em]">
+              System Status
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-xs">
-              <div className="flex justify-between">
+            <div className="grid grid-cols-2 gap-x-6 gap-y-2 font-mono text-[11px] uppercase tracking-[0.06em]">
+              <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">API</span>
                 <Badge variant="success" className="text-[9px]">Operational</Badge>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">MarineTraffic</span>
                 <Badge variant="muted" className="text-[9px]">Connected</Badge>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">OCR Engine</span>
                 <Badge variant="outline" className="text-[9px]">Pending</Badge>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">Compliance</span>
                 <Badge variant="outline" className="text-[9px]">Pending</Badge>
               </div>

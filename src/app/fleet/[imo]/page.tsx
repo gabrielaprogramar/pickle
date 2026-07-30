@@ -47,7 +47,7 @@ function InfoRow({
 }) {
   return (
     <div className="flex items-baseline justify-between py-1">
-      <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+      <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
         {label}
       </span>
       <span className={`text-xs ${mono ? "font-mono-technical tabular-nums" : ""}`}>
@@ -108,7 +108,7 @@ export default function VesselDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-medium flex items-center gap-1.5">
+            <CardTitle className="font-mono text-[11px] font-medium uppercase tracking-[0.1em] flex items-center gap-1.5">
               <Ship className="h-3.5 w-3.5 text-primary" />
               Vessel Information
             </CardTitle>
@@ -139,7 +139,7 @@ export default function VesselDetailPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-medium flex items-center gap-1.5">
+            <CardTitle className="font-mono text-[11px] font-medium uppercase tracking-[0.1em] flex items-center gap-1.5">
               <Navigation className="h-3.5 w-3.5 text-primary" />
               Latest Voyage
             </CardTitle>
@@ -217,7 +217,7 @@ export default function VesselDetailPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-medium flex items-center gap-1.5">
+            <CardTitle className="font-mono text-[11px] font-medium uppercase tracking-[0.1em] flex items-center gap-1.5">
               <Radio className="h-3.5 w-3.5 text-primary" />
               Latest AIS Position
             </CardTitle>
@@ -294,7 +294,7 @@ export default function VesselDetailPage() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-medium flex items-center gap-1.5">
+            <CardTitle className="font-mono text-[11px] font-medium uppercase tracking-[0.1em] flex items-center gap-1.5">
               <Clock className="h-3.5 w-3.5 text-muted-foreground" />
               Quick Actions
             </CardTitle>

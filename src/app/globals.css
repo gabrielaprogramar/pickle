@@ -4,41 +4,61 @@
 
 @layer base {
   :root {
-    --background: 222 47% 6%;
-    --foreground: 210 40% 96%;
-    --card: 217 33% 9%;
-    --card-foreground: 210 40% 96%;
-    --popover: 217 33% 9%;
-    --popover-foreground: 210 40% 96%;
-    --primary: 185 60% 40%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 217 33% 14%;
-    --secondary-foreground: 210 40% 96%;
-    --muted: 217 33% 14%;
-    --muted-foreground: 215 20% 55%;
-    --border: 217 33% 18%;
-    --input: 217 33% 18%;
-    --ring: 185 60% 40%;
-    --destructive: 0 72% 50%;
-    --destructive-foreground: 0 0% 100%;
+    /* ── Poseidon Ledger brand tokens ──────────────────────────
+       Source hex → HSL (see poseidonledger.com):
+       Navy Base  #060F1E   Navy Mid   #0B1E38
+       Navy Light #112B4F   Navy Card  #0D1F38
+       Teal       #00B89F   Teal Dim   #007A6A
+       Gold       #C9A84C   Text       #F4F2EC
+       Alert Red  #D94F4F
+       ─────────────────────────────────────────────────────────── */
+    --background: 218 67% 7%;        /* Navy Base #060F1E */
+    --foreground: 45 27% 94%;        /* Text Primary #F4F2EC */
+
+    --card: 215 62% 14%;             /* Navy Card #0D1F38 */
+    --card-foreground: 45 27% 94%;
+
+    --popover: 215 62% 14%;          /* Navy Card #0D1F38 */
+    --popover-foreground: 45 27% 94%;
+
+    --primary: 172 100% 36%;         /* Teal #00B89F */
+    --primary-foreground: 218 67% 7%;/* Navy Base — matches site's btn-primary text-on-teal */
+
+    --secondary: 215 65% 19%;        /* Navy Light #112B4F */
+    --secondary-foreground: 45 27% 94%;
+
+    --muted: 215 67% 13%;            /* Navy Mid #0B1E38 */
+    --muted-foreground: 210 3% 55%;  /* blended equivalent of rgba(244,242,236,0.55) on navy */
+
+    --border: 215 35% 22%;           /* subtle navy border, ~ rgba(white,0.10) on Navy Card */
+    --input: 215 35% 22%;
+    --ring: 172 100% 36%;            /* Teal #00B89F */
+
+    --destructive: 0 64% 58%;        /* Alert Red #D94F4F — reserved for warnings/alerts only */
+    --destructive-foreground: 45 27% 94%;
+
     --success: 142 70% 45%;
-    --success-foreground: 0 0% 100%;
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 100%;
-    --chart-1: 185 60% 40%;
-    --chart-2: 210 60% 60%;
-    --chart-3: 142 70% 45%;
-    --chart-4: 38 92% 50%;
-    --chart-5: 0 72% 50%;
-    --sidebar-background: 220 40% 5%;
-    --sidebar-foreground: 210 40% 96%;
-    --sidebar-primary: 185 60% 40%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 217 33% 14%;
-    --sidebar-accent-foreground: 210 40% 96%;
-    --sidebar-border: 217 33% 18%;
-    --sidebar-ring: 185 60% 40%;
-    --radius: 0.375rem;
+    --success-foreground: 218 67% 7%;
+
+    --warning: 44 54% 54%;           /* Gold #C9A84C — restrained secondary/premium emphasis */
+    --warning-foreground: 218 67% 7%;
+
+    --chart-1: 172 100% 36%;         /* Teal */
+    --chart-2: 44 54% 54%;           /* Gold */
+    --chart-3: 142 70% 45%;          /* Success green */
+    --chart-4: 210 60% 60%;          /* Neutral blue, data variety */
+    --chart-5: 0 64% 58%;            /* Alert Red */
+
+    --sidebar-background: 218 70% 5%;
+    --sidebar-foreground: 45 27% 94%;
+    --sidebar-primary: 172 100% 36%;
+    --sidebar-primary-foreground: 218 67% 7%;
+    --sidebar-accent: 215 62% 14%;
+    --sidebar-accent-foreground: 45 27% 94%;
+    --sidebar-border: 215 35% 22%;
+    --sidebar-ring: 172 100% 36%;
+
+    --radius: 0.25rem; /* restrained corners, matches the site's sharper terminal aesthetic */
   }
 
   * {
@@ -48,15 +68,30 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
+    /* Subtle teal grid texture, matching poseidonledger.com's background overlay.
+       Painted as a background-image layer (not a pseudo-element) so it never
+       sits above app content or interferes with existing stacking contexts. */
+    background-image:
+      linear-gradient(rgba(0, 184, 159, 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 184, 159, 0.025) 1px, transparent 1px);
+    background-size: 48px 48px;
+    background-attachment: fixed;
   }
 }
 
 @layer utilities {
   .font-mono-technical {
-    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
-      "Liberation Mono", monospace;
+    font-family: var(--font-mono), ui-monospace, monospace;
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.02em;
+  }
+
+  /* Technical / navigation label style used across nav, section titles,
+     breadcrumbs, badges — mirrors the site's uppercase DM Mono micro-labels. */
+  .label-technical {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
   }
 
   .table-compact tr {

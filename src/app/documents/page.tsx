@@ -1,13 +1,25 @@
-/**
- * documents/page.tsx — Document list page with upload form
- * ─────────────────────────────────────────────────────────────────────────────
- */
-
 "use client";
 
 import { useState } from "react";
 import { useDocuments } from "@/hooks/use-documents";
 import { useDocumentUpload } from "@/hooks/use-document-upload";
+import { PageHeader } from "@/components/page-header";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { ErrorBanner } from "@/components/error-banner";
+import { EmptyState } from "@/components/empty-state";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import Link from "next/link";
+import { FileText, Upload } from "lucide-react";
 
 const DOCUMENT_TYPES = [
   { value: "imo_dcs", label: "IMO DCS" },
@@ -19,15 +31,15 @@ const DOCUMENT_TYPES = [
   { value: "other", label: "Other" },
 ];
 
-const STATUS_COLORS: Record<string, string> = {
-  uploaded: "#f59e0b",
-  processing: "#3b82f6",
-  ocr_complete: "#10b981",
-  extracted: "#10b981",
-  under_review: "#8b5cf6",
-  approved: "#22c55e",
-  rejected: "#ef4444",
-  archived: "#6b7280",
+const STATUS_VARIANTS: Record<string, "default" | "warning" | "success" | "destructive" | "muted" | "outline" | "secondary"> = {
+  uploaded: "warning",
+  processing: "secondary",
+  ocr_complete: "success",
+  extracted: "success",
+  under_review: "outline",
+  approved: "success",
+  rejected: "destructive",
+  archived: "muted",
 };
 
 export default function DocumentsPage() {
@@ -62,141 +74,169 @@ export default function DocumentsPage() {
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
-        <h1 style={{ fontSize: "24px", fontWeight: "bold" }}>Documents</h1>
-        <button
+      <div className="flex items-start justify-between gap-4 mb-4">
+        <div>
+          <h1 className="font-serif text-lg font-light tracking-tight">Documents</h1>
+          <p className="mt-0.5 font-mono text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
+            Document management and processing
+          </p>
+        </div>
+        <Button
+          variant="default"
+          size="sm"
           onClick={() => setShowUpload(!showUpload)}
-          style={{
-            padding: "8px 16px",
-            backgroundColor: showUpload ? "#6b7280" : "#1a2332",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-          }}
         >
+          <Upload className="h-3.5 w-3.5 mr-1.5" />
           {showUpload ? "Cancel" : "Upload Document"}
-        </button>
+        </Button>
       </div>
 
       {uploadSuccess && (
-        <div style={{ padding: "12px", backgroundColor: "#d1fae5", color: "#065f46", borderRadius: "4px", marginBottom: "16px" }}>
+        <div className="mb-4 rounded-md border border-success/30 bg-success/10 px-4 py-3 text-xs text-success-foreground">
           {uploadSuccess}
         </div>
       )}
 
       {uploadError && (
-        <div style={{ padding: "12px", backgroundColor: "#fee2e2", color: "#991b1b", borderRadius: "4px", marginBottom: "16px" }}>
+        <div className="mb-4 rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 text-xs text-destructive-foreground">
           Upload error: {uploadError}
         </div>
       )}
 
       {showUpload && (
-        <form onSubmit={handleUpload} style={{ border: "1px solid #e0e0e0", borderRadius: "8px", padding: "20px", marginBottom: "24px" }}>
-          <h2 style={{ fontSize: "18px", marginBottom: "16px" }}>Upload New Document</h2>
+        <Card className="mb-6">
+          <CardHeader className="pb-2">
+            <CardTitle className="font-mono text-[11px] font-medium uppercase tracking-[0.1em]">
+              Upload New Document
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleUpload} className="space-y-3">
+              <div className="space-y-1">
+                <label className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+                  Title
+                </label>
+                <Input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  required
+                  placeholder="Document title"
+                  className="w-full"
+                />
+              </div>
 
-          <div style={{ marginBottom: "12px" }}>
-            <label style={{ display: "block", marginBottom: "4px", fontSize: "14px", fontWeight: "500" }}>Title</label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-              style={{ width: "100%", padding: "8px", border: "1px solid #d1d5db", borderRadius: "4px" }}
-            />
-          </div>
+              <div className="space-y-1">
+                <label className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+                  Document Type
+                </label>
+                <select
+                  value={documentType}
+                  onChange={(e) => setDocumentType(e.target.value)}
+                  className="flex h-8 w-full rounded-md border border-input bg-transparent px-3 py-1 text-xs shadow-sm transition-colors file:border-0 file:bg-transparent file:text-xs file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {DOCUMENT_TYPES.map((t) => (
+                    <option key={t.value} value={t.value}>{t.label}</option>
+                  ))}
+                </select>
+              </div>
 
-          <div style={{ marginBottom: "12px" }}>
-            <label style={{ display: "block", marginBottom: "4px", fontSize: "14px", fontWeight: "500" }}>Document Type</label>
-            <select
-              value={documentType}
-              onChange={(e) => setDocumentType(e.target.value)}
-              style={{ width: "100%", padding: "8px", border: "1px solid #d1d5db", borderRadius: "4px" }}
-            >
-              {DOCUMENT_TYPES.map((t) => (
-                <option key={t.value} value={t.value}>{t.label}</option>
-              ))}
-            </select>
-          </div>
+              <div className="space-y-1">
+                <label className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+                  File
+                </label>
+                <Input
+                  type="file"
+                  onChange={(e) => setSelectedFile(e.target.files?.[0] ?? null)}
+                  required
+                  className="w-full"
+                />
+              </div>
 
-          <div style={{ marginBottom: "16px" }}>
-            <label style={{ display: "block", marginBottom: "4px", fontSize: "14px", fontWeight: "500" }}>File</label>
-            <input
-              type="file"
-              onChange={(e) => setSelectedFile(e.target.files?.[0] ?? null)}
-              required
-              style={{ width: "100%", padding: "8px", border: "1px solid #d1d5db", borderRadius: "4px" }}
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={uploading || !selectedFile || !title.trim()}
-            style={{
-              padding: "8px 16px",
-              backgroundColor: uploading ? "#9ca3af" : "#1a2332",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              cursor: uploading ? "not-allowed" : "pointer",
-            }}
-          >
-            {uploading ? "Uploading..." : "Upload"}
-          </button>
-        </form>
+              <Button
+                type="submit"
+                variant="default"
+                size="sm"
+                disabled={uploading || !selectedFile || !title.trim()}
+              >
+                {uploading ? "Uploading..." : "Upload"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
       )}
 
-      {loading && <p style={{ color: "#666" }}>Loading documents...</p>}
+      {loading && (
+        <div className="flex items-center justify-center py-12">
+          <p className="font-mono text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
+            Loading documents...
+          </p>
+        </div>
+      )}
+
       {error && (
-        <div style={{ padding: "12px", backgroundColor: "#fee2e2", color: "#991b1b", borderRadius: "4px" }}>
-          Error: {error}
+        <div className="mb-4">
+          <ErrorBanner
+            message={error}
+            code="LOAD_ERROR"
+            onRetry={refetch}
+          />
         </div>
       )}
 
       {!loading && !error && documents.length === 0 && (
-        <p style={{ color: "#666" }}>No documents found. Upload one to get started.</p>
+        <EmptyState
+          icon={<FileText className="h-8 w-8" />}
+          title="No documents found"
+          description="Upload a document to get started."
+        />
       )}
 
       {!loading && documents.length > 0 && (
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr style={{ borderBottom: "2px solid #e0e0e0", textAlign: "left" }}>
-              <th style={{ padding: "8px" }}>Title</th>
-              <th style={{ padding: "8px" }}>Type</th>
-              <th style={{ padding: "8px" }}>Status</th>
-              <th style={{ padding: "8px" }}>Filename</th>
-              <th style={{ padding: "8px" }}>Created</th>
-            </tr>
-          </thead>
-          <tbody>
-            {documents.map((doc) => (
-              <tr key={doc.id} style={{ borderBottom: "1px solid #e0e0e0" }}>
-                <td style={{ padding: "8px" }}>
-                  <a href={`/documents/${doc.id}`} style={{ color: "#1a73e8" }}>{doc.title}</a>
-                </td>
-                <td style={{ padding: "8px" }}>{doc.document_type}</td>
-                <td style={{ padding: "8px" }}>
-                  <span
-                    style={{
-                      padding: "2px 8px",
-                      borderRadius: "4px",
-                      backgroundColor: `${STATUS_COLORS[doc.status] ?? "#6b7280"}22`,
-                      color: STATUS_COLORS[doc.status] ?? "#6b7280",
-                      fontSize: "13px",
-                      fontWeight: "500",
-                    }}
-                  >
-                    {doc.status}
-                  </span>
-                </td>
-                <td style={{ padding: "8px", color: "#666" }}>{doc.filename}</td>
-                <td style={{ padding: "8px", color: "#666" }}>
-                  {new Date(doc.created_at).toLocaleDateString()}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="rounded-lg border border-border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Title</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Filename</TableHead>
+                <TableHead>Created</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {documents.map((doc) => (
+                <TableRow key={doc.id}>
+                  <TableCell className="font-medium">
+                    <Link
+                      href={`/documents/${doc.id}`}
+                      className="text-primary hover:text-primary/80 transition-colors"
+                    >
+                      {doc.title}
+                    </Link>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {doc.document_type}
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={STATUS_VARIANTS[doc.status] ?? "muted"}
+                      className="text-[9px]"
+                    >
+                      {doc.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="font-mono-technical text-[11px] text-muted-foreground">
+                    {doc.filename}
+                  </TableCell>
+                  <TableCell className="font-mono-technical text-[11px] text-muted-foreground tabular-nums">
+                    {new Date(doc.created_at).toLocaleDateString()}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       )}
     </div>
   );

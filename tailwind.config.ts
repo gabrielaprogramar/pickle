@@ -43,8 +43,8 @@ const config: Config = {
           foreground: "hsl(var(--muted-foreground))",
         },
         accent: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
         },
         popover: {
           DEFAULT: "hsl(var(--popover))",
@@ -78,14 +78,26 @@ const config: Config = {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
+        // Body / UI — DM Sans
         sans: [
-          "Inter",
+          "var(--font-sans)",
+          "DM Sans",
           "ui-sans-serif",
           "system-ui",
           "-apple-system",
           "sans-serif",
         ],
+        // Major headings — Cormorant Garamond
+        serif: [
+          "var(--font-serif)",
+          "Cormorant Garamond",
+          "Georgia",
+          "serif",
+        ],
+        // Technical / data / navigation — DM Mono
         mono: [
+          "var(--font-mono)",
+          "DM Mono",
           "ui-monospace",
           "SFMono-Regular",
           "SF Mono",

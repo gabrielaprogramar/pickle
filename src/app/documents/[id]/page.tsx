@@ -1,87 +1,75 @@
-/**
- * documents/[id]/page.tsx — Document detail page with AI extraction display
- * ─────────────────────────────────────────────────────────────────────────────
- */
-
 "use client";
 
 import { useParams } from "next/navigation";
 import { useDocument } from "@/hooks/use-document";
 import { useDocumentValidation } from "@/hooks/use-document-validation";
 import { useDocumentReview } from "@/hooks/use-document-review";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import Link from "next/link";
+import { ArrowLeft, FileText } from "lucide-react";
 
-const STATUS_COLORS: Record<string, string> = {
-  uploaded: "#f59e0b",
-  processing: "#3b82f6",
-  ocr_complete: "#10b981",
-  extracted: "#10b981",
-  under_review: "#8b5cf6",
-  approved: "#22c55e",
-  rejected: "#ef4444",
-  archived: "#6b7280",
-  pending: "#f59e0b",
-  running: "#3b82f6",
-  completed: "#10b981",
-  failed: "#ef4444",
-  cancelled: "#6b7280",
-  unknown_document: "#6b7280",
+const STATUS_VARIANTS: Record<string, "default" | "warning" | "success" | "destructive" | "muted" | "outline" | "secondary"> = {
+  uploaded: "warning",
+  processing: "secondary",
+  ocr_complete: "success",
+  extracted: "success",
+  under_review: "outline",
+  approved: "success",
+  rejected: "destructive",
+  archived: "muted",
+  pending: "warning",
+  running: "secondary",
+  completed: "success",
+  failed: "destructive",
+  cancelled: "muted",
+  unknown_document: "muted",
 };
 
 function ConfidenceBar({ confidence }: { confidence: number }) {
   const pct = Math.round(confidence * 100);
   const color =
-    pct >= 90 ? "#10b981" : pct >= 70 ? "#f59e0b" : pct >= 50 ? "#f97316" : "#ef4444";
+    pct >= 90 ? "bg-success" : pct >= 70 ? "bg-warning" : pct >= 50 ? "bg-orange-500" : "bg-destructive";
 
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-      <div
-        style={{
-          flex: 1,
-          height: "8px",
-          backgroundColor: "#e5e7eb",
-          borderRadius: "4px",
-          overflow: "hidden",
-        }}
-      >
+    <div className="flex items-center gap-2">
+      <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
         <div
-          style={{
-            width: `${pct}%`,
-            height: "100%",
-            backgroundColor: color,
-            borderRadius: "4px",
-          }}
+          className={`h-full rounded-full ${color}`}
+          style={{ width: `${pct}%` }}
         />
       </div>
-      <span style={{ fontSize: "13px", fontWeight: "500", color }}>{pct}%</span>
+      <span className={`font-mono-technical text-[11px] font-medium ${pct >= 90 ? "text-success" : pct >= 70 ? "text-warning" : "text-destructive"}`}>
+        {pct}%
+      </span>
     </div>
   );
 }
 
 function ValidationScoreBar({ score }: { score: number }) {
   const color =
-    score >= 90 ? "#10b981" : score >= 70 ? "#f59e0b" : score >= 50 ? "#f97316" : "#ef4444";
+    score >= 90 ? "bg-success" : score >= 70 ? "bg-warning" : score >= 50 ? "bg-orange-500" : "bg-destructive";
 
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-      <div
-        style={{
-          flex: 1,
-          height: "8px",
-          backgroundColor: "#e5e7eb",
-          borderRadius: "4px",
-          overflow: "hidden",
-        }}
-      >
+    <div className="flex items-center gap-2">
+      <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
         <div
-          style={{
-            width: `${score}%`,
-            height: "100%",
-            backgroundColor: color,
-            borderRadius: "4px",
-          }}
+          className={`h-full rounded-full ${color}`}
+          style={{ width: `${score}%` }}
         />
       </div>
-      <span style={{ fontSize: "13px", fontWeight: "500", color }}>{score}/100</span>
+      <span className={`font-mono-technical text-[11px] font-medium ${score >= 90 ? "text-success" : score >= 70 ? "text-warning" : "text-destructive"}`}>
+        {score}/100
+      </span>
     </div>
   );
 }
@@ -112,463 +100,447 @@ export default function DocumentDetailPage() {
   } = useDocumentReview(id);
 
   if (loading) {
-    return <p style={{ color: "#666" }}>Loading document...</p>;
+    return (
+      <div className="flex items-center justify-center py-12">
+        <p className="font-mono text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
+          Loading document...
+        </p>
+      </div>
+    );
   }
 
   if (error) {
     return (
-      <div style={{ padding: "12px", backgroundColor: "#fee2e2", color: "#991b1b", borderRadius: "4px" }}>
+      <div className="rounded-md border border-destructive/30 bg-destructive/10 p-4 text-xs text-destructive-foreground">
         Error: {error}
       </div>
     );
   }
 
   if (!doc) {
-    return <p style={{ color: "#666" }}>Document not found.</p>;
+    return (
+      <div className="flex items-center justify-center py-12">
+        <p className="font-mono text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
+          Document not found.
+        </p>
+      </div>
+    );
   }
 
   const { document: documentRow, versions, jobs, ocrResults, aiExtractions, latestAiExtraction } = doc;
 
   return (
     <div>
-      <div style={{ marginBottom: "24px" }}>
-        <a href="/documents" style={{ color: "#1a73e8", fontSize: "14px" }}>← Back to Documents</a>
+      <div className="mb-4">
+        <Link
+          href="/documents"
+          className="font-mono text-[11px] uppercase tracking-[0.1em] text-primary hover:text-primary/80 transition-colors"
+        >
+          <ArrowLeft className="h-3 w-3 inline mr-1" />
+          Back to Documents
+        </Link>
       </div>
 
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "24px" }}>
+      <div className="flex items-start justify-between gap-4 mb-6">
         <div>
-          <h1 style={{ fontSize: "24px", fontWeight: "bold", marginBottom: "4px" }}>{documentRow.title}</h1>
-          <p style={{ color: "#666", fontSize: "14px" }}>{documentRow.filename}</p>
+          <h1 className="font-serif text-lg font-light tracking-tight">{documentRow.title}</h1>
+          <p className="mt-0.5 font-mono text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
+            {documentRow.filename}
+          </p>
         </div>
-        <div style={{ display: "flex", gap: "8px" }}>
-          <span
-            style={{
-              padding: "4px 12px",
-              borderRadius: "4px",
-              backgroundColor: `${STATUS_COLORS[documentRow.status] ?? "#6b7280"}22`,
-              color: STATUS_COLORS[documentRow.status] ?? "#6b7280",
-              fontWeight: "500",
-            }}
+        <div className="flex items-center gap-2 shrink-0">
+          <Badge
+            variant={STATUS_VARIANTS[documentRow.status] ?? "muted"}
+            className="text-[9px]"
           >
             {documentRow.status}
-          </span>
+          </Badge>
           {latestAiExtraction && (
-            <span
-              style={{
-                padding: "4px 12px",
-                borderRadius: "4px",
-                backgroundColor: `${STATUS_COLORS[latestAiExtraction.status] ?? "#6b7280"}22`,
-                color: STATUS_COLORS[latestAiExtraction.status] ?? "#6b7280",
-                fontWeight: "500",
-              }}
+            <Badge
+              variant={STATUS_VARIANTS[latestAiExtraction.status] ?? "muted"}
+              className="text-[9px]"
             >
               AI: {latestAiExtraction.status}
-            </span>
+            </Badge>
           )}
         </div>
       </div>
 
-      {/* Document Info */}
-      <section style={{ border: "1px solid #e0e0e0", borderRadius: "8px", padding: "20px", marginBottom: "16px" }}>
-        <h2 style={{ fontSize: "18px", marginBottom: "12px" }}>Document Info</h2>
-        <dl style={{ display: "grid", gridTemplateColumns: "120px 1fr", gap: "8px", fontSize: "14px" }}>
-          <dt style={{ fontWeight: "500", color: "#666" }}>Type</dt>
-          <dd>{documentRow.document_type}</dd>
-          <dt style={{ fontWeight: "500", color: "#666" }}>MIME Type</dt>
-          <dd>{documentRow.mime_type}</dd>
-          <dt style={{ fontWeight: "500", color: "#666" }}>Size</dt>
-          <dd>{documentRow.file_size ? `${(documentRow.file_size / 1024).toFixed(1)} KB` : "N/A"}</dd>
-          <dt style={{ fontWeight: "500", color: "#666" }}>Created</dt>
-          <dd>{new Date(documentRow.created_at).toLocaleString()}</dd>
-          {documentRow.vessel_id && (
-            <>
-              <dt style={{ fontWeight: "500", color: "#666" }}>Vessel ID</dt>
-              <dd>{documentRow.vessel_id}</dd>
-            </>
-          )}
-        </dl>
-      </section>
+      <Card className="mb-4">
+        <CardHeader className="pb-2">
+          <CardTitle className="font-mono text-[11px] font-medium uppercase tracking-[0.1em]">
+            Document Info
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <dl className="grid grid-cols-[120px_1fr] gap-x-4 gap-y-2 text-xs">
+            <dt className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Type</dt>
+            <dd>{documentRow.document_type}</dd>
+            <dt className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">MIME Type</dt>
+            <dd>{documentRow.mime_type}</dd>
+            <dt className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Size</dt>
+            <dd>{documentRow.file_size ? `${(documentRow.file_size / 1024).toFixed(1)} KB` : "N/A"}</dd>
+            <dt className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Created</dt>
+            <dd className="font-mono-technical tabular-nums">{new Date(documentRow.created_at).toLocaleString()}</dd>
+            {documentRow.vessel_id && (
+              <>
+                <dt className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Vessel ID</dt>
+                <dd className="font-mono-technical tabular-nums">{documentRow.vessel_id}</dd>
+              </>
+            )}
+          </dl>
+        </CardContent>
+      </Card>
 
-      {/* AI Extraction */}
       {latestAiExtraction && (
-        <section style={{ border: "1px solid #e0e0e0", borderRadius: "8px", padding: "20px", marginBottom: "16px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-            <h2 style={{ fontSize: "18px" }}>AI Extraction</h2>
-            <span style={{ fontSize: "12px", color: "#666" }}>
-              {latestAiExtraction.provider} / {latestAiExtraction.model}
-              {latestAiExtraction.latency_ms !== null && (
-                <> — {(latestAiExtraction.latency_ms / 1000).toFixed(1)}s</>
-              )}
-            </span>
-          </div>
-
-          {/* Confidence */}
-          {latestAiExtraction.confidence !== null && (
-            <div style={{ marginBottom: "12px" }}>
-              <span style={{ fontSize: "13px", color: "#666", marginRight: "8px" }}>Confidence:</span>
-              <ConfidenceBar confidence={latestAiExtraction.confidence} />
+        <Card className="mb-4">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <CardTitle className="font-mono text-[11px] font-medium uppercase tracking-[0.1em]">
+                AI Extraction
+              </CardTitle>
+              <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+                {latestAiExtraction.provider} / {latestAiExtraction.model}
+                {latestAiExtraction.latency_ms !== null && (
+                  <> — {(latestAiExtraction.latency_ms / 1000).toFixed(1)}s</>
+                )}
+              </span>
             </div>
-          )}
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {latestAiExtraction.confidence !== null && (
+              <div>
+                <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground mr-2">
+                  Confidence
+                </span>
+                <ConfidenceBar confidence={latestAiExtraction.confidence} />
+              </div>
+            )}
 
-          {/* Summary */}
-          {latestAiExtraction.summary && (
-            <div style={{ marginBottom: "12px" }}>
-              <span style={{ fontSize: "13px", fontWeight: "500", color: "#666" }}>Summary</span>
-              <p style={{ fontSize: "14px", marginTop: "4px", lineHeight: "1.5" }}>{latestAiExtraction.summary}</p>
-            </div>
-          )}
+            {latestAiExtraction.summary && (
+              <div>
+                <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground">Summary</span>
+                <p className="mt-1 text-xs leading-relaxed">{latestAiExtraction.summary}</p>
+              </div>
+            )}
 
-          {/* Extracted Fields */}
-          {Object.keys(latestAiExtraction.fields).length > 0 && (
-            <div style={{ marginBottom: "12px" }}>
-              <span style={{ fontSize: "13px", fontWeight: "500", color: "#666" }}>Extracted Fields</span>
-              <pre style={{
-                backgroundColor: "#f5f5f5",
-                padding: "12px",
-                borderRadius: "4px",
-                fontSize: "13px",
-                overflow: "auto",
-                maxHeight: "300px",
-                marginTop: "4px",
-              }}>
-                {JSON.stringify(latestAiExtraction.fields, null, 2)}
-              </pre>
-            </div>
-          )}
+            {Object.keys(latestAiExtraction.fields).length > 0 && (
+              <div>
+                <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground">Extracted Fields</span>
+                <pre className="mt-1 rounded-md bg-muted p-3 text-xs overflow-auto max-h-72 font-mono-technical">
+                  {JSON.stringify(latestAiExtraction.fields, null, 2)}
+                </pre>
+              </div>
+            )}
 
-          {/* Warnings */}
-          {latestAiExtraction.warnings.length > 0 && (
-            <div style={{ marginBottom: "12px", padding: "10px", backgroundColor: "#fffbeb", borderRadius: "4px", border: "1px solid #fde68a" }}>
-              <span style={{ fontSize: "13px", fontWeight: "500", color: "#92400e" }}>Warnings</span>
-              <ul style={{ margin: "4px 0 0 0", paddingLeft: "18px", fontSize: "13px", color: "#92400e" }}>
-                {latestAiExtraction.warnings.map((w, i) => (
-                  <li key={i}>{w}</li>
-                ))}
-              </ul>
-            </div>
-          )}
+            {latestAiExtraction.warnings.length > 0 && (
+              <div className="rounded-md border border-warning/30 bg-warning/10 p-3">
+                <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-warning-foreground">Warnings</span>
+                <ul className="mt-1 space-y-0.5 text-xs text-warning-foreground list-disc list-inside">
+                  {latestAiExtraction.warnings.map((w, i) => (
+                    <li key={i}>{w}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
-          {/* Missing Fields */}
-          {latestAiExtraction.missing_fields.length > 0 && (
-            <div style={{ marginBottom: "12px", padding: "10px", backgroundColor: "#fef2f2", borderRadius: "4px", border: "1px solid #fecaca" }}>
-              <span style={{ fontSize: "13px", fontWeight: "500", color: "#991b1b" }}>Missing Fields</span>
-              <ul style={{ margin: "4px 0 0 0", paddingLeft: "18px", fontSize: "13px", color: "#991b1b" }}>
-                {latestAiExtraction.missing_fields.map((f, i) => (
-                  <li key={i}>{f}</li>
-                ))}
-              </ul>
-            </div>
-          )}
+            {latestAiExtraction.missing_fields.length > 0 && (
+              <div className="rounded-md border border-destructive/30 bg-destructive/10 p-3">
+                <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-destructive-foreground">Missing Fields</span>
+                <ul className="mt-1 space-y-0.5 text-xs text-destructive-foreground list-disc list-inside">
+                  {latestAiExtraction.missing_fields.map((f, i) => (
+                    <li key={i}>{f}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
-          {/* Error */}
-          {latestAiExtraction.error_message && (
-            <div style={{ padding: "10px", backgroundColor: "#fef2f2", borderRadius: "4px", border: "1px solid #fecaca" }}>
-              <span style={{ fontSize: "13px", fontWeight: "500", color: "#991b1b" }}>Error</span>
-              <p style={{ fontSize: "13px", color: "#991b1b", margin: "4px 0 0 0" }}>{latestAiExtraction.error_message}</p>
-            </div>
-          )}
+            {latestAiExtraction.error_message && (
+              <div className="rounded-md border border-destructive/30 bg-destructive/10 p-3">
+                <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-destructive-foreground">Error</span>
+                <p className="mt-1 text-xs text-destructive-foreground">{latestAiExtraction.error_message}</p>
+              </div>
+            )}
 
-          {/* Token Usage */}
-          {latestAiExtraction.total_tokens !== null && (
-            <div style={{ marginTop: "12px", fontSize: "12px", color: "#666" }}>
-              Tokens: {latestAiExtraction.prompt_tokens} prompt + {latestAiExtraction.completion_tokens} completion = {latestAiExtraction.total_tokens} total
-            </div>
-          )}
-        </section>
-      )}
-
-      {/* Trigger Extraction Button */}
-      {!latestAiExtraction && (
-        <section style={{ border: "1px dashed #d1d5db", borderRadius: "8px", padding: "20px", marginBottom: "16px", textAlign: "center" }}>
-          <p style={{ color: "#666", fontSize: "14px", marginBottom: "12px" }}>No AI extraction yet.</p>
-          <button
-            onClick={() => { void triggerExtraction(); }}
-            disabled={extracting}
-            style={{
-              padding: "8px 20px",
-              borderRadius: "6px",
-              backgroundColor: extracting ? "#93c5fd" : "#2563eb",
-              color: "#fff",
-              border: "none",
-              fontSize: "14px",
-              fontWeight: "500",
-              cursor: extracting ? "not-allowed" : "pointer",
-            }}
-          >
-            {extracting ? "Extracting..." : "Run AI Extraction"}
-          </button>
-          {extractionError && (
-            <p style={{ color: "#ef4444", fontSize: "13px", marginTop: "8px" }}>{extractionError}</p>
-          )}
-        </section>
-      )}
-
-      {/* Human Review */}
-      {(documentRow.status === "extracted" || documentRow.status === "under_review" || documentRow.status === "approved" || documentRow.status === "rejected") && (
-        <section style={{ border: "1px solid #e0e0e0", borderRadius: "8px", padding: "20px", marginBottom: "16px" }}>
-          <h2 style={{ fontSize: "18px", marginBottom: "12px" }}>Human Review</h2>
-          {documentRow.status === "extracted" && (
-            <>
-              <p style={{ color: "#666", fontSize: "14px", marginBottom: "12px" }}>
-                Send this document for human review to validate AI-extracted information.
+            {latestAiExtraction.total_tokens !== null && (
+              <p className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+                Tokens: {latestAiExtraction.prompt_tokens} prompt + {latestAiExtraction.completion_tokens} completion = {latestAiExtraction.total_tokens} total
               </p>
-              <button
-                onClick={() => { void createReviewTask(); }}
-                disabled={reviewCreating}
-                style={{
-                  padding: "8px 20px",
-                  borderRadius: "6px",
-                  backgroundColor: reviewCreating ? "#c4b5fd" : "#8b5cf6",
-                  color: "#fff",
-                  border: "none",
-                  fontSize: "14px",
-                  fontWeight: "500",
-                  cursor: reviewCreating ? "not-allowed" : "pointer",
-                }}
-              >
-                {reviewCreating ? "Creating..." : "Send for Review"}
-              </button>
-            </>
-          )}
-          {(documentRow.status === "under_review" || documentRow.status === "approved" || documentRow.status === "rejected") && (
-            <a
-              href="/review"
-              style={{
-                display: "inline-block",
-                padding: "8px 20px",
-                borderRadius: "6px",
-                backgroundColor: "#8b5cf6",
-                color: "#fff",
-                textDecoration: "none",
-                fontSize: "14px",
-                fontWeight: "500",
-              }}
-            >
-              {documentRow.status === "approved" ? "View Review (Approved)" :
-               documentRow.status === "rejected" ? "View Review (Rejected)" :
-               "View Review Task"}
-            </a>
-          )}
-          {reviewError && (
-            <p style={{ color: "#ef4444", fontSize: "13px", marginTop: "8px" }}>{reviewError}</p>
-          )}
-        </section>
+            )}
+          </CardContent>
+        </Card>
       )}
 
-      {/* Validation */}
-      <section style={{ border: "1px solid #e0e0e0", borderRadius: "8px", padding: "20px", marginBottom: "16px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-          <h2 style={{ fontSize: "18px" }}>Validation</h2>
-          {validation && (
-            <span
-              style={{
-                padding: "4px 12px",
-                borderRadius: "4px",
-                fontWeight: "500",
-                fontSize: "13px",
-                backgroundColor: validation.ready_for_review ? "#dcfce7" : "#fef2f2",
-                color: validation.ready_for_review ? "#166534" : "#991b1b",
-              }}
-            >
-              {validation.ready_for_review ? "Ready for Review" : "Needs Review"}
-            </span>
-          )}
-        </div>
-
-        {validationLoading && (
-          <p style={{ color: "#666", fontSize: "14px" }}>Loading validation...</p>
-        )}
-
-        {!validationLoading && !validation && !validationDetail && (
-          <div style={{ textAlign: "center", padding: "16px 0" }}>
-            <p style={{ color: "#666", fontSize: "14px", marginBottom: "12px" }}>
-              No validation report yet. Run validation to check extraction quality.
+      {!latestAiExtraction && (
+        <Card className="mb-4">
+          <CardContent className="flex flex-col items-center justify-center py-8 text-center">
+            <FileText className="h-8 w-8 text-muted-foreground/40 mb-2" />
+            <p className="font-mono text-[11px] uppercase tracking-[0.1em] text-muted-foreground mb-3">
+              No AI extraction yet.
             </p>
-            <button
-              onClick={() => { void triggerValidation(); }}
-              disabled={validating}
-              style={{
-                padding: "8px 20px",
-                borderRadius: "6px",
-                backgroundColor: validating ? "#93c5fd" : "#2563eb",
-                color: "#fff",
-                border: "none",
-                fontSize: "14px",
-                fontWeight: "500",
-                cursor: validating ? "not-allowed" : "pointer",
-              }}
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => { void triggerExtraction(); }}
+              disabled={extracting}
             >
-              {validating ? "Validating..." : "Run Validation"}
-            </button>
-            {validationError && (
-              <p style={{ color: "#ef4444", fontSize: "13px", marginTop: "8px" }}>{validationError}</p>
+              {extracting ? "Extracting..." : "Run AI Extraction"}
+            </Button>
+            {extractionError && (
+              <p className="mt-2 text-xs text-destructive">{extractionError}</p>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {(documentRow.status === "extracted" || documentRow.status === "under_review" || documentRow.status === "approved" || documentRow.status === "rejected") && (
+        <Card className="mb-4">
+          <CardHeader className="pb-2">
+            <CardTitle className="font-mono text-[11px] font-medium uppercase tracking-[0.1em]">
+              Human Review
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {documentRow.status === "extracted" && (
+              <div className="space-y-3">
+                <p className="text-xs text-muted-foreground">
+                  Send this document for human review to validate AI-extracted information.
+                </p>
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => { void createReviewTask(); }}
+                  disabled={reviewCreating}
+                >
+                  {reviewCreating ? "Creating..." : "Send for Review"}
+                </Button>
+              </div>
+            )}
+            {(documentRow.status === "under_review" || documentRow.status === "approved" || documentRow.status === "rejected") && (
+              <Link
+                href="/review"
+                className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-7 px-3"
+              >
+                {documentRow.status === "approved" ? "View Review (Approved)" :
+                 documentRow.status === "rejected" ? "View Review (Rejected)" :
+                 "View Review Task"}
+              </Link>
+            )}
+            {reviewError && (
+              <p className="mt-2 text-xs text-destructive">{reviewError}</p>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      <Card className="mb-4">
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <CardTitle className="font-mono text-[11px] font-medium uppercase tracking-[0.1em]">
+              Validation
+            </CardTitle>
+            {validation && (
+              <Badge
+                variant={validation.ready_for_review ? "success" : "destructive"}
+                className="text-[9px]"
+              >
+                {validation.ready_for_review ? "Ready for Review" : "Needs Review"}
+              </Badge>
             )}
           </div>
-        )}
+        </CardHeader>
+        <CardContent>
+          {validationLoading && (
+            <p className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+              Loading validation...
+            </p>
+          )}
 
-        {(validation || validationDetail) && (
-          <div>
-            {/* Score */}
-            <div style={{ marginBottom: "12px" }}>
-              <span style={{ fontSize: "13px", color: "#666", marginRight: "8px" }}>Validation Score:</span>
-              <ValidationScoreBar score={validation?.score ?? validationDetail?.persisted.score ?? 0} />
-            </div>
-
-            {/* Summary counts */}
-            <div style={{ display: "flex", gap: "16px", marginBottom: "12px" }}>
-              <div style={{ fontSize: "13px", color: "#166534" }}>
-                Passed: {validation?.passed_count ?? validationDetail?.persisted.passed_count ?? 0}
-              </div>
-              {(validation?.warning_count ?? validationDetail?.persisted.warning_count ?? 0) > 0 && (
-                <div style={{ fontSize: "13px", color: "#92400e" }}>
-                  Warnings: {validation?.warning_count ?? validationDetail?.persisted.warning_count ?? 0}
-                </div>
-              )}
-              {(validation?.error_count ?? validationDetail?.persisted.error_count ?? 0) > 0 && (
-                <div style={{ fontSize: "13px", color: "#991b1b" }}>
-                  Errors: {validation?.error_count ?? validationDetail?.persisted.error_count ?? 0}
-                </div>
-              )}
-            </div>
-
-            {/* Blocking Issues */}
-            {(validation?.blocking_issues ?? validationDetail?.report.blockingIssues ?? []).length > 0 && (
-              <div style={{ marginBottom: "12px", padding: "10px", backgroundColor: "#fef2f2", borderRadius: "4px", border: "1px solid #fecaca" }}>
-                <span style={{ fontSize: "13px", fontWeight: "500", color: "#991b1b" }}>Blocking Issues</span>
-                <ul style={{ margin: "4px 0 0 0", paddingLeft: "18px", fontSize: "13px", color: "#991b1b" }}>
-                  {(validation?.blocking_issues ?? validationDetail?.report.blockingIssues ?? []).map((issue, i) => (
-                    <li key={i}>{issue}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* Recommended Review */}
-            {(validation?.recommended_review ?? validationDetail?.report.recommendedReview ?? []).length > 0 && (
-              <div style={{ marginBottom: "12px", padding: "10px", backgroundColor: "#fffbeb", borderRadius: "4px", border: "1px solid #fde68a" }}>
-                <span style={{ fontSize: "13px", fontWeight: "500", color: "#92400e" }}>Recommended Review</span>
-                <ul style={{ margin: "4px 0 0 0", paddingLeft: "18px", fontSize: "13px", color: "#92400e" }}>
-                  {(validation?.recommended_review ?? validationDetail?.report.recommendedReview ?? []).map((reason, i) => (
-                    <li key={i}>{reason}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* Re-run button */}
-            <div style={{ marginTop: "12px" }}>
-              <button
+          {!validationLoading && !validation && !validationDetail && (
+            <div className="flex flex-col items-center py-4 text-center">
+              <p className="font-mono text-[11px] uppercase tracking-[0.1em] text-muted-foreground mb-3">
+                No validation report yet.
+              </p>
+              <Button
+                variant="default"
+                size="sm"
                 onClick={() => { void triggerValidation(); }}
                 disabled={validating}
-                style={{
-                  padding: "6px 16px",
-                  borderRadius: "6px",
-                  backgroundColor: validating ? "#e5e7eb" : "#f3f4f6",
-                  color: validating ? "#9ca3af" : "#374151",
-                  border: "1px solid #d1d5db",
-                  fontSize: "13px",
-                  fontWeight: "500",
-                  cursor: validating ? "not-allowed" : "pointer",
-                }}
               >
-                {validating ? "Validating..." : "Re-run Validation"}
-              </button>
+                {validating ? "Validating..." : "Run Validation"}
+              </Button>
               {validationError && (
-                <p style={{ color: "#ef4444", fontSize: "13px", marginTop: "8px" }}>{validationError}</p>
+                <p className="mt-2 text-xs text-destructive">{validationError}</p>
               )}
             </div>
-          </div>
-        )}
-      </section>
+          )}
 
-      {/* Processing Jobs */}
+          {(validation || validationDetail) && (
+            <div className="space-y-3">
+              <div>
+                <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground mr-2">
+                  Validation Score
+                </span>
+                <ValidationScoreBar score={validation?.score ?? validationDetail?.persisted.score ?? 0} />
+              </div>
+
+              <div className="flex gap-4 text-xs">
+                <span className="text-success">
+                  Passed: {validation?.passed_count ?? validationDetail?.persisted.passed_count ?? 0}
+                </span>
+                {(validation?.warning_count ?? validationDetail?.persisted.warning_count ?? 0) > 0 && (
+                  <span className="text-warning">
+                    Warnings: {validation?.warning_count ?? validationDetail?.persisted.warning_count ?? 0}
+                  </span>
+                )}
+                {(validation?.error_count ?? validationDetail?.persisted.error_count ?? 0) > 0 && (
+                  <span className="text-destructive">
+                    Errors: {validation?.error_count ?? validationDetail?.persisted.error_count ?? 0}
+                  </span>
+                )}
+              </div>
+
+              {(validation?.blocking_issues ?? validationDetail?.report.blockingIssues ?? []).length > 0 && (
+                <div className="rounded-md border border-destructive/30 bg-destructive/10 p-3">
+                  <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-destructive-foreground">Blocking Issues</span>
+                  <ul className="mt-1 space-y-0.5 text-xs text-destructive-foreground list-disc list-inside">
+                    {(validation?.blocking_issues ?? validationDetail?.report.blockingIssues ?? []).map((issue, i) => (
+                      <li key={i}>{issue}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {(validation?.recommended_review ?? validationDetail?.report.recommendedReview ?? []).length > 0 && (
+                <div className="rounded-md border border-warning/30 bg-warning/10 p-3">
+                  <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-warning-foreground">Recommended Review</span>
+                  <ul className="mt-1 space-y-0.5 text-xs text-warning-foreground list-disc list-inside">
+                    {(validation?.recommended_review ?? validationDetail?.report.recommendedReview ?? []).map((reason, i) => (
+                      <li key={i}>{reason}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => { void triggerValidation(); }}
+                  disabled={validating}
+                >
+                  {validating ? "Validating..." : "Re-run Validation"}
+                </Button>
+                {validationError && (
+                  <p className="mt-2 text-xs text-destructive">{validationError}</p>
+                )}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {jobs.length > 0 && (
-        <section style={{ border: "1px solid #e0e0e0", borderRadius: "8px", padding: "20px", marginBottom: "16px" }}>
-          <h2 style={{ fontSize: "18px", marginBottom: "12px" }}>Processing Jobs</h2>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
-            <thead>
-              <tr style={{ borderBottom: "1px solid #e0e0e0" }}>
-                <th style={{ padding: "6px", textAlign: "left" }}>Job Type</th>
-                <th style={{ padding: "6px", textAlign: "left" }}>Status</th>
-                <th style={{ padding: "6px", textAlign: "left" }}>Started</th>
-                <th style={{ padding: "6px", textAlign: "left" }}>Completed</th>
-                <th style={{ padding: "6px", textAlign: "left" }}>Error</th>
-              </tr>
-            </thead>
-            <tbody>
-              {jobs.map((job) => (
-                <tr key={job.id} style={{ borderBottom: "1px solid #f0f0f0" }}>
-                  <td style={{ padding: "6px" }}>{job.job_type}</td>
-                  <td style={{ padding: "6px" }}>
-                    <span style={{ color: STATUS_COLORS[job.status] ?? "#6b7280" }}>{job.status}</span>
-                  </td>
-                  <td style={{ padding: "6px", color: "#666" }}>
-                    {job.started_at ? new Date(job.started_at).toLocaleString() : "—"}
-                  </td>
-                  <td style={{ padding: "6px", color: "#666" }}>
-                    {job.completed_at ? new Date(job.completed_at).toLocaleString() : "—"}
-                  </td>
-                  <td style={{ padding: "6px", color: "#ef4444" }}>
-                    {job.error_message ?? "—"}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </section>
+        <Card className="mb-4">
+          <CardHeader className="pb-2">
+            <CardTitle className="font-mono text-[11px] font-medium uppercase tracking-[0.1em]">
+              Processing Jobs
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Job Type</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Started</TableHead>
+                  <TableHead>Completed</TableHead>
+                  <TableHead>Error</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {jobs.map((job) => (
+                  <TableRow key={job.id}>
+                    <TableCell className="font-medium">{job.job_type}</TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={STATUS_VARIANTS[job.status] ?? "muted"}
+                        className="text-[9px]"
+                      >
+                        {job.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="font-mono-technical text-[11px] text-muted-foreground tabular-nums">
+                      {job.started_at ? new Date(job.started_at).toLocaleString() : "—"}
+                    </TableCell>
+                    <TableCell className="font-mono-technical text-[11px] text-muted-foreground tabular-nums">
+                      {job.completed_at ? new Date(job.completed_at).toLocaleString() : "—"}
+                    </TableCell>
+                    <TableCell className="font-mono-technical text-[11px] text-destructive">
+                      {job.error_message ?? "—"}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       )}
 
-      {/* OCR Results */}
       {ocrResults.length > 0 && (
-        <section style={{ border: "1px solid #e0e0e0", borderRadius: "8px", padding: "20px", marginBottom: "16px" }}>
-          <h2 style={{ fontSize: "18px", marginBottom: "12px" }}>OCR Results</h2>
-          {ocrResults.map((ocr) => (
-            <div key={ocr.id} style={{ marginBottom: "12px" }}>
-              <p style={{ fontSize: "14px", color: "#666", marginBottom: "4px" }}>
-                Confidence: {ocr.confidence !== null ? `${(ocr.confidence * 100).toFixed(1)}%` : "N/A"}
-              </p>
-              {ocr.extracted_data && Object.keys(ocr.extracted_data).length > 0 && (
-                <pre style={{
-                  backgroundColor: "#f5f5f5",
-                  padding: "12px",
-                  borderRadius: "4px",
-                  fontSize: "13px",
-                  overflow: "auto",
-                  maxHeight: "300px",
-                }}>
-                  {JSON.stringify(ocr.extracted_data, null, 2)}
-                </pre>
-              )}
-            </div>
-          ))}
-        </section>
+        <Card className="mb-4">
+          <CardHeader className="pb-2">
+            <CardTitle className="font-mono text-[11px] font-medium uppercase tracking-[0.1em]">
+              OCR Results
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {ocrResults.map((ocr) => (
+              <div key={ocr.id}>
+                <p className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground mb-1">
+                  Confidence: {ocr.confidence !== null ? `${(ocr.confidence * 100).toFixed(1)}%` : "N/A"}
+                </p>
+                {ocr.extracted_data && Object.keys(ocr.extracted_data).length > 0 && (
+                  <pre className="rounded-md bg-muted p-3 text-xs overflow-auto max-h-72 font-mono-technical">
+                    {JSON.stringify(ocr.extracted_data, null, 2)}
+                  </pre>
+                )}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
       )}
 
-      {/* Versions */}
       {versions.length > 0 && (
-        <section style={{ border: "1px solid #e0e0e0", borderRadius: "8px", padding: "20px" }}>
-          <h2 style={{ fontSize: "18px", marginBottom: "12px" }}>Versions</h2>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
-            <thead>
-              <tr style={{ borderBottom: "1px solid #e0e0e0" }}>
-                <th style={{ padding: "6px", textAlign: "left" }}>Version</th>
-                <th style={{ padding: "6px", textAlign: "left" }}>Filename</th>
-                <th style={{ padding: "6px", textAlign: "left" }}>Created</th>
-              </tr>
-            </thead>
-            <tbody>
-              {versions.map((v) => (
-                <tr key={v.id} style={{ borderBottom: "1px solid #f0f0f0" }}>
-                  <td style={{ padding: "6px" }}>v{v.version_number}</td>
-                  <td style={{ padding: "6px" }}>{v.filename}</td>
-                  <td style={{ padding: "6px", color: "#666" }}>
-                    {new Date(v.created_at).toLocaleString()}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </section>
+        <Card className="mb-4">
+          <CardHeader className="pb-2">
+            <CardTitle className="font-mono text-[11px] font-medium uppercase tracking-[0.1em]">
+              Versions
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Version</TableHead>
+                  <TableHead>Filename</TableHead>
+                  <TableHead>Created</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {versions.map((v) => (
+                  <TableRow key={v.id}>
+                    <TableCell className="font-mono-technical tabular-nums">v{v.version_number}</TableCell>
+                    <TableCell>{v.filename}</TableCell>
+                    <TableCell className="font-mono-technical text-[11px] text-muted-foreground tabular-nums">
+                      {new Date(v.created_at).toLocaleString()}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
