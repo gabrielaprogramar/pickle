@@ -537,6 +537,14 @@ class FakeQueryBuilder {
       if (row.details === undefined) row.details = null;
     }
 
+    if (this.state.table === "fuel_eu_records") {
+      if (row.status === undefined) row.status = "draft";
+      if (row.penalty_exposure_estimate === undefined) row.penalty_exposure_estimate = null;
+      if (row.penalty_formula_version === undefined) row.penalty_formula_version = null;
+      if (row.iscc_missing_details === undefined) row.iscc_missing_details = null;
+      if (row.updated_at === undefined) row.updated_at = row.created_at;
+    }
+
     return row;
   }
 }

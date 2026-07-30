@@ -9,6 +9,8 @@ import {
   type FuelDeliveryRepository,
   createFuelTypeRepository,
   type FuelTypeRepository,
+  createFuelEuRecordRepository,
+  type FuelEuRecordRepository,
 } from "@/lib/supabase";
 import { createMarineTrafficClient, type MarineTrafficClient } from "@/lib/marinetraffic";
 
@@ -18,6 +20,7 @@ export interface ApiDependencies {
   readonly aisPositions: AisPositionsRepository;
   readonly fuelDeliveries: FuelDeliveryRepository;
   readonly fuelTypes: FuelTypeRepository;
+  readonly fuelEuRecords: FuelEuRecordRepository;
   readonly marineTraffic: MarineTrafficClient;
 }
 
@@ -27,9 +30,10 @@ export function createDefaultDeps(): ApiDependencies {
   const aisPositions = createAisPositionsRepository();
   const fuelDeliveries = createFuelDeliveryRepository();
   const fuelTypes = createFuelTypeRepository();
+  const fuelEuRecords = createFuelEuRecordRepository();
   const marineTraffic = createMarineTrafficClient();
 
-  return { vessels, voyages, aisPositions, fuelDeliveries, fuelTypes, marineTraffic };
+  return { vessels, voyages, aisPositions, fuelDeliveries, fuelTypes, fuelEuRecords, marineTraffic };
 }
 
 export function createApiDeps(
@@ -41,6 +45,7 @@ export function createApiDeps(
     aisPositions: overrides.aisPositions ?? createAisPositionsRepository(),
     fuelDeliveries: overrides.fuelDeliveries ?? createFuelDeliveryRepository(),
     fuelTypes: overrides.fuelTypes ?? createFuelTypeRepository(),
+    fuelEuRecords: overrides.fuelEuRecords ?? createFuelEuRecordRepository(),
     marineTraffic: overrides.marineTraffic ?? createMarineTrafficClient(),
   };
 }

@@ -56,6 +56,12 @@ export type {
   ReconciliationLogInsert,
 } from "./types";
 
+// FuelEU domain row types + insert payloads.
+export type {
+  FuelEuRecordRow,
+  FuelEuRecordInsert,
+} from "./types";
+
 // Document domain row types + insert payloads.
 export type {
   DocumentRow,
@@ -189,6 +195,10 @@ export type {
   FuelTypeRepository,
   CreateFuelDeliveryRepositoryOptions,
 } from "./repositories/fuel_deliveries";
+
+// FuelEU repository.
+export { createFuelEuRecordRepository } from "./repositories/fuel_eu_records";
+export type { FuelEuRecordRepository } from "./repositories/fuel_eu_records";
 
 // Zod validation schemas.
 export {

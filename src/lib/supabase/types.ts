@@ -521,6 +521,61 @@ export type FuelDeliveryInsert = {
   readonly notes?: string | null;
 };
 
+// ── 1h. FUEL EU RECORDS ROW TYPES (1:1 with migration 0007) ───────────────────
+
+/** One row of the `fuel_eu_records` table. */
+export type FuelEuRecordRow = {
+  readonly id: string;
+  readonly vessel_id: string;
+  readonly reporting_year: number;
+  readonly calculation_version: string;
+  readonly status: string;
+  readonly energy_input_mj: number;
+  readonly total_wtw_emissions_gco2e: number;
+  readonly ghg_intensity_gco2e_per_mj: number;
+  readonly target_gco2e_per_mj: number;
+  readonly compliance_balance: number;
+  readonly surplus_or_deficit: string;
+  readonly penalty_exposure_estimate: number | null;
+  readonly penalty_formula_version: string | null;
+  readonly biofuel_energy_mj: number;
+  readonly fossil_energy_mj: number;
+  readonly iscc_missing_flag: boolean;
+  readonly iscc_missing_details: unknown;
+  readonly ops_energy_mj: number;
+  readonly ops_data_available: boolean;
+  readonly parameter_version: string;
+  readonly calculation_details: Record<string, unknown>;
+  readonly calculated_at: string;
+  readonly created_at: string;
+  readonly updated_at: string;
+};
+
+/** Payload for inserting a FuelEU record. id/created_at/updated_at are server-defaulted. */
+export type FuelEuRecordInsert = {
+  readonly vessel_id: string;
+  readonly reporting_year: number;
+  readonly calculation_version: string;
+  readonly status?: string;
+  readonly energy_input_mj: number;
+  readonly total_wtw_emissions_gco2e: number;
+  readonly ghg_intensity_gco2e_per_mj: number;
+  readonly target_gco2e_per_mj: number;
+  readonly compliance_balance: number;
+  readonly surplus_or_deficit: string;
+  readonly penalty_exposure_estimate?: number | null;
+  readonly penalty_formula_version?: string | null;
+  readonly biofuel_energy_mj: number;
+  readonly fossil_energy_mj: number;
+  readonly iscc_missing_flag: boolean;
+  readonly iscc_missing_details?: unknown;
+  readonly ops_energy_mj: number;
+  readonly ops_data_available: boolean;
+  readonly parameter_version: string;
+  readonly calculation_details: Record<string, unknown>;
+  readonly calculated_at?: string;
+};
+
 /** One row of the `reconciliation_log` table. */
 export type ReconciliationLogRow = {
   readonly id: string;
@@ -723,6 +778,12 @@ export type Database = {
         Row: ReconciliationLogRow;
         Insert: ReconciliationLogInsert;
         Update: Partial<ReconciliationLogInsert>;
+        Relationships: Relationships;
+      };
+      fuel_eu_records: {
+        Row: FuelEuRecordRow;
+        Insert: FuelEuRecordInsert;
+        Update: Partial<FuelEuRecordInsert>;
         Relationships: Relationships;
       };
     };

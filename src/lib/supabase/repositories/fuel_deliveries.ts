@@ -14,6 +14,7 @@ export interface FuelDeliveryRepository {
   findById(id: string): Promise<FuelDeliveryRow | null>;
   findByDocumentId(documentId: string): Promise<FuelDeliveryRow[]>;
   findByVesselId(vesselId: string): Promise<FuelDeliveryRow[]>;
+  findByVesselAndYear(vesselId: string, year: number): Promise<FuelDeliveryRow[]>;
   findByVoyageId(voyageId: string): Promise<FuelDeliveryRow[]>;
   listAll(): Promise<FuelDeliveryRow[]>;
   updateStatus(id: string, status: string): Promise<FuelDeliveryRow>;
@@ -102,6 +103,26 @@ export function createFuelDeliveryRepository(
         return (data as FuelDeliveryRow[]) ?? [];
       } catch (e) {
         throw mapError("find fuel deliveries by vessel", e);
+      }
+    },
+
+    async findByVesselAndYear(vesselId: string, year: number): Promise<FuelDeliveryRow[]> {
+      try {
+        const client = getClient();
+        const start = `${year}-01-01T00:00:00.000Z`;
+        const end = `${year}-12-31T23:59:59.999Z`;
+        const { data, error } = await client
+          .from("fuel_deliveries")
+          .select()
+          .eq("vessel_id", vesselId)
+          .gte("delivery_date", start)
+          .lte("delivery_date", end)
+          .order("delivery_date", { ascending: false });
+
+        if (error) throw error;
+        return (data as FuelDeliveryRow[]) ?? [];
+      } catch (e) {
+        throw mapError("find fuel deliveries by vessel and year", e);
       }
     },
 
