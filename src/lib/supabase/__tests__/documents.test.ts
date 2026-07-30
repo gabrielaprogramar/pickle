@@ -32,6 +32,7 @@ function makeDocumentRow(
     vessel_id: overrides.vessel_id ?? null,
     document_type: overrides.document_type ?? "certificate",
     status: overrides.status ?? "uploaded",
+    source_channel: overrides.source_channel ?? "MANUAL",
     title: overrides.title ?? "ISPS Certificate",
     filename: overrides.filename ?? "isps_cert.pdf",
     mime_type: overrides.mime_type ?? "application/pdf",

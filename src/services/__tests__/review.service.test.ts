@@ -18,6 +18,7 @@ function makeDoc(): DocumentRow {
     filename: "test-report.pdf",
     document_type: "report",
     status: "extracted" as DocumentStatus,
+    source_channel: "MANUAL",
     mime_type: "application/pdf",
     file_size: null,
     storage_path: "/test/test-report.pdf",

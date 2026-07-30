@@ -114,6 +114,9 @@ export type DocumentType =
   | "logbook"
   | "other";
 
+/** Document source channel. Controlled by documents_source_channel_check. */
+export type DocumentSourceChannel = "MANUAL" | "EMAIL";
+
 /** Document processing lifecycle status. Controlled by documents_status_check. */
 export type DocumentStatus =
   | "uploaded"
@@ -180,6 +183,7 @@ export type DocumentRow = {
   readonly vessel_id: string | null;
   readonly document_type: DocumentType;
   readonly status: DocumentStatus;
+  readonly source_channel: DocumentSourceChannel;
   readonly title: string;
   readonly filename: string;
   readonly mime_type: string;
@@ -195,6 +199,7 @@ export type DocumentInsert = {
   readonly vessel_id?: string | null;
   readonly document_type: DocumentType;
   readonly status?: DocumentStatus;
+  readonly source_channel?: DocumentSourceChannel;
   readonly title: string;
   readonly filename: string;
   readonly mime_type: string;
@@ -450,6 +455,47 @@ export type ValidationReportInsert = {
 
 /** Add "bdn" to the document type union. */
 export type BdnDocumentType = "bdn";
+
+// ── 1p. EMAIL INGESTION LOG ROW TYPES (1:1 with migration 0010) ─────────────
+
+/** Email ingestion event type. Controlled by email_ingestion_log_event_check. */
+export type EmailIngestionEvent =
+  | "EMAIL_RECEIVED"
+  | "ATTACHMENT_ACCEPTED"
+  | "ATTACHMENT_REJECTED"
+  | "DUPLICATE_DETECTED"
+  | "DOCUMENT_CREATED"
+  | "PROCESSING_QUEUED"
+  | "PROCESSING_STARTED"
+  | "PROCESSING_FAILED";
+
+/** One row of the `email_ingestion_log` table. */
+export type EmailIngestionLogRow = {
+  readonly id: string;
+  readonly message_id: string;
+  readonly sender: string;
+  readonly recipient: string;
+  readonly subject: string | null;
+  readonly imo: string | null;
+  readonly vessel_id: string | null;
+  readonly document_id: string | null;
+  readonly event: EmailIngestionEvent;
+  readonly details: Record<string, unknown> | null;
+  readonly created_at: string;
+};
+
+/** Payload for inserting an email ingestion log entry. id/created_at are server-defaulted. */
+export type EmailIngestionLogInsert = {
+  readonly message_id: string;
+  readonly sender: string;
+  readonly recipient: string;
+  readonly subject?: string | null;
+  readonly imo?: string | null;
+  readonly vessel_id?: string | null;
+  readonly document_id?: string | null;
+  readonly event: EmailIngestionEvent;
+  readonly details?: Record<string, unknown> | null;
+};
 
 // ── 1g. FUEL DELIVERY ROW TYPES (1:1 with migration 0006) ───────────────────
 
@@ -1099,6 +1145,12 @@ export type Database = {
         Row: MapConfigRow;
         Insert: MapConfigInsert;
         Update: Partial<MapConfigInsert>;
+        Relationships: Relationships;
+      };
+      email_ingestion_log: {
+        Row: EmailIngestionLogRow;
+        Insert: EmailIngestionLogInsert;
+        Update: Partial<EmailIngestionLogInsert>;
         Relationships: Relationships;
       };
     };

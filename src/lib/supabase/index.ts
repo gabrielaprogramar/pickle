@@ -234,6 +234,21 @@ export type { EuEtsRecordRepository } from "./repositories/eu_ets_records";
 export { createMrvReportRepository } from "./repositories/mrv_reports";
 export type { MrvReportRepository } from "./repositories/mrv_reports";
 
+// Email ingestion types.
+export type {
+  EmailIngestionLogRow,
+  EmailIngestionLogInsert,
+  EmailIngestionEvent,
+  DocumentSourceChannel,
+} from "./types";
+
+// Email ingestion log repository.
+export { createEmailIngestionLogRepository } from "./repositories/email_ingestion_log";
+export type {
+  EmailIngestionLogRepository,
+  CreateEmailIngestionLogRepositoryOptions,
+} from "./repositories/email_ingestion_log";
+
 // Zod validation schemas.
 export {
   DocumentTypeSchema,

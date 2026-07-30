@@ -19,6 +19,10 @@ export const MISSING_DOCUMENT_TYPE = "MISSING_DOCUMENT_TYPE" as const;
 export const INVALID_DOCUMENT_TYPE = "INVALID_DOCUMENT_TYPE" as const;
 export const FILE_TOO_LARGE = "FILE_TOO_LARGE" as const;
 export const FUEL_DELIVERY_NOT_FOUND = "FUEL_DELIVERY_NOT_FOUND" as const;
+export const INVALID_EMAIL_PAYLOAD = "INVALID_EMAIL_PAYLOAD" as const;
+export const UNSUPPORTED_ATTACHMENT = "UNSUPPORTED_ATTACHMENT" as const;
+export const DUPLICATE_ATTACHMENT = "DUPLICATE_ATTACHMENT" as const;
+export const WEBHOOK_AUTH_FAILED = "WEBHOOK_AUTH_FAILED" as const;
 
 export type ErrorCode =
   | typeof INVALID_JSON
@@ -34,6 +38,10 @@ export type ErrorCode =
   | typeof INVALID_DOCUMENT_TYPE
   | typeof FILE_TOO_LARGE
   | typeof FUEL_DELIVERY_NOT_FOUND
+  | typeof INVALID_EMAIL_PAYLOAD
+  | typeof UNSUPPORTED_ATTACHMENT
+  | typeof DUPLICATE_ATTACHMENT
+  | typeof WEBHOOK_AUTH_FAILED
   | typeof INTEGRITY_ERROR
   | typeof RATE_LIMITED
   | typeof UPSTREAM_ERROR
