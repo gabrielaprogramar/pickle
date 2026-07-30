@@ -54,6 +54,11 @@ export interface VoyageRepository {
     imo: string,
     pagination?: Partial<PaginationOptions>,
   ): Promise<Page<VoyageRow>>;
+  /** List all voyages for a vessel in a given reporting year. */
+  findByVesselAndYear(
+    vesselId: string,
+    year: number,
+  ): Promise<ReadonlyArray<VoyageRow>>;
 }
 
 export interface CreateVoyageRepositoryOptions {
@@ -147,6 +152,29 @@ export function createVoyageRepository(
         };
       } catch (e) {
         throw mapError("find voyages by IMO", e);
+      }
+    },
+
+    async findByVesselAndYear(
+      vesselId: string,
+      year: number,
+    ): Promise<ReadonlyArray<VoyageRow>> {
+      try {
+        const client = getClient();
+        const yearStart = `${year}-01-01`;
+        const yearEnd = `${year + 1}-01-01`;
+        const { data, error } = await client
+          .from("voyages")
+          .select("*")
+          .eq("vessel_id", vesselId)
+          .gte("departure_time", yearStart)
+          .lt("departure_time", yearEnd)
+          .order("departure_time", { ascending: false });
+
+        if (error) throw error;
+        return (data ?? []) as VoyageRow[];
+      } catch (e) {
+        throw mapError("find voyages by vessel and year", e);
       }
     },
   };

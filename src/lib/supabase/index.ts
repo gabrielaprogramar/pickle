@@ -62,6 +62,18 @@ export type {
   FuelEuRecordInsert,
 } from "./types";
 
+// EU ETS domain row types + insert payloads.
+export type {
+  EuEtsRecordRow,
+  EuEtsRecordInsert,
+} from "./types";
+
+// MRV domain row types + insert payloads.
+export type {
+  MrvReportRow,
+  MrvReportInsert,
+} from "./types";
+
 // Document domain row types + insert payloads.
 export type {
   DocumentRow,
@@ -199,6 +211,14 @@ export type {
 // FuelEU repository.
 export { createFuelEuRecordRepository } from "./repositories/fuel_eu_records";
 export type { FuelEuRecordRepository } from "./repositories/fuel_eu_records";
+
+// EU ETS repository.
+export { createEuEtsRecordRepository } from "./repositories/eu_ets_records";
+export type { EuEtsRecordRepository } from "./repositories/eu_ets_records";
+
+// MRV repository.
+export { createMrvReportRepository } from "./repositories/mrv_reports";
+export type { MrvReportRepository } from "./repositories/mrv_reports";
 
 // Zod validation schemas.
 export {

@@ -44,6 +44,7 @@ function makeVesselRow(overrides: Partial<VesselRow> = {}): VesselRow {
     name: overrides.name ?? "Aurelia",
     mmsi: overrides.mmsi ?? null,
     ship_id: overrides.ship_id ?? null,
+    gross_tonnage: overrides.gross_tonnage ?? null,
     created_at: overrides.created_at ?? NOW,
     updated_at: overrides.updated_at ?? NOW,
   };

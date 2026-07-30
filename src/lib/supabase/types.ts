@@ -31,6 +31,7 @@ export type VesselRow = {
   readonly name: string;
   readonly mmsi: string | null;
   readonly ship_id: string | null;
+  readonly gross_tonnage: number | null;
   readonly created_at: string;
   readonly updated_at: string;
 };
@@ -41,6 +42,7 @@ export type VesselInsert = {
   readonly name: string;
   readonly mmsi?: string | null;
   readonly ship_id?: string | null;
+  readonly gross_tonnage?: number | null;
 };
 
 /** One row of the `voyages` table. */
@@ -604,6 +606,120 @@ export type ReconciliationLogInsert = {
   readonly details?: Record<string, unknown> | null;
 };
 
+// ── 1i. EU ETS RECORDS ROW TYPES (1:1 with migration 0008) ────────────────────
+
+/** One row of the `eu_ets_records` table. */
+export type EuEtsRecordRow = {
+  readonly id: string;
+  readonly vessel_id: string;
+  readonly reporting_year: number;
+  readonly calculation_version: string;
+  readonly gt: number | null;
+  readonly ets_scope: string;
+  readonly mrv_scope: string;
+  readonly total_ttw_co2_tonnes: number;
+  readonly covered_co2_tonnes: number;
+  readonly coverage_rate: number;
+  readonly coverage_rate_version: string;
+  readonly eua_obligation_tonnes: number;
+  readonly eua_price_eur: number | null;
+  readonly eua_price_available: boolean;
+  readonly estimated_cost_eur: number | null;
+  readonly surrender_deadline: string | null;
+  readonly surrender_status: string | null;
+  readonly mrv_deadline: string | null;
+  readonly mrv_deadline_status: string | null;
+  readonly parameter_version: string;
+  readonly calculation_details: Record<string, unknown>;
+  readonly calculated_at: string;
+  readonly created_at: string;
+  readonly updated_at: string;
+};
+
+/** Payload for inserting an EU ETS record. id/created_at/updated_at are server-defaulted. */
+export type EuEtsRecordInsert = {
+  readonly vessel_id: string;
+  readonly reporting_year: number;
+  readonly calculation_version: string;
+  readonly gt?: number | null;
+  readonly ets_scope: string;
+  readonly mrv_scope: string;
+  readonly total_ttw_co2_tonnes: number;
+  readonly covered_co2_tonnes: number;
+  readonly coverage_rate: number;
+  readonly coverage_rate_version: string;
+  readonly eua_obligation_tonnes: number;
+  readonly eua_price_eur?: number | null;
+  readonly eua_price_available: boolean;
+  readonly estimated_cost_eur?: number | null;
+  readonly surrender_deadline?: string | null;
+  readonly surrender_status?: string | null;
+  readonly mrv_deadline?: string | null;
+  readonly mrv_deadline_status?: string | null;
+  readonly parameter_version: string;
+  readonly calculation_details: Record<string, unknown>;
+  readonly calculated_at?: string;
+};
+
+// ── 1j. MRV REPORTS ROW TYPES (1:1 with migration 0008) ───────────────────────
+
+/** One row of the `mrv_reports` table. */
+export type MrvReportRow = {
+  readonly id: string;
+  readonly vessel_id: string;
+  readonly reporting_year: number;
+  readonly status: string;
+  readonly completeness_status: string;
+  readonly completeness_checks: unknown[];
+  readonly blocking_issues: unknown[];
+  readonly warnings: unknown[];
+  readonly checklist_status: string | null;
+  readonly checklist_details: Record<string, unknown> | null;
+  readonly export_format: string | null;
+  readonly export_generated_at: string | null;
+  readonly export_content_hash: string | null;
+  readonly export_file_path: string | null;
+  readonly report_data: Record<string, unknown>;
+  readonly total_voyages: number;
+  readonly total_fuel_mt: number;
+  readonly total_co2_tonnes: number;
+  readonly monitoring_plan_version: string | null;
+  readonly methodology: string;
+  readonly calculation_version: string;
+  readonly parameter_version: string;
+  readonly ets_record_id: string | null;
+  readonly generated_at: string;
+  readonly created_at: string;
+  readonly updated_at: string;
+};
+
+/** Payload for inserting an MRV report. id/created_at/updated_at are server-defaulted. */
+export type MrvReportInsert = {
+  readonly vessel_id: string;
+  readonly reporting_year: number;
+  readonly status?: string;
+  readonly completeness_status: string;
+  readonly completeness_checks?: unknown[];
+  readonly blocking_issues?: unknown[];
+  readonly warnings?: unknown[];
+  readonly checklist_status?: string | null;
+  readonly checklist_details?: Record<string, unknown> | null;
+  readonly export_format?: string | null;
+  readonly export_generated_at?: string | null;
+  readonly export_content_hash?: string | null;
+  readonly export_file_path?: string | null;
+  readonly report_data: Record<string, unknown>;
+  readonly total_voyages: number;
+  readonly total_fuel_mt: number;
+  readonly total_co2_tonnes: number;
+  readonly monitoring_plan_version?: string | null;
+  readonly methodology?: string;
+  readonly calculation_version: string;
+  readonly parameter_version: string;
+  readonly ets_record_id?: string | null;
+  readonly generated_at?: string;
+};
+
 // ── 1f. REVIEW AUDIT LOG ROW TYPES (1:1 with migration 0005) ────────────────
 
 /** One row of the `review_audit_log` table. */
@@ -784,6 +900,18 @@ export type Database = {
         Row: FuelEuRecordRow;
         Insert: FuelEuRecordInsert;
         Update: Partial<FuelEuRecordInsert>;
+        Relationships: Relationships;
+      };
+      eu_ets_records: {
+        Row: EuEtsRecordRow;
+        Insert: EuEtsRecordInsert;
+        Update: Partial<EuEtsRecordInsert>;
+        Relationships: Relationships;
+      };
+      mrv_reports: {
+        Row: MrvReportRow;
+        Insert: MrvReportInsert;
+        Update: Partial<MrvReportInsert>;
         Relationships: Relationships;
       };
     };

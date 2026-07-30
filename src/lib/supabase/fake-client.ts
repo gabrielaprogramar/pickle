@@ -389,6 +389,7 @@ class FakeQueryBuilder {
     if (this.state.table === "vessels") {
       if (row.mmsi === undefined) row.mmsi = null;
       if (row.ship_id === undefined) row.ship_id = null;
+      if (row.gross_tonnage === undefined) row.gross_tonnage = null;
       if (row.updated_at === undefined) {
         row.updated_at = isUpdate
           ? new Date().toISOString()
@@ -542,6 +543,36 @@ class FakeQueryBuilder {
       if (row.penalty_exposure_estimate === undefined) row.penalty_exposure_estimate = null;
       if (row.penalty_formula_version === undefined) row.penalty_formula_version = null;
       if (row.iscc_missing_details === undefined) row.iscc_missing_details = null;
+      if (row.updated_at === undefined) row.updated_at = row.created_at;
+    }
+
+    if (this.state.table === "eu_ets_records") {
+      if (row.gt === undefined) row.gt = null;
+      if (row.eua_price_eur === undefined) row.eua_price_eur = null;
+      if (row.estimated_cost_eur === undefined) row.estimated_cost_eur = null;
+      if (row.surrender_deadline === undefined) row.surrender_deadline = null;
+      if (row.surrender_status === undefined) row.surrender_status = null;
+      if (row.mrv_deadline === undefined) row.mrv_deadline = null;
+      if (row.mrv_deadline_status === undefined) row.mrv_deadline_status = null;
+      if (row.calculation_details === undefined) row.calculation_details = {};
+      if (row.updated_at === undefined) row.updated_at = row.created_at;
+    }
+
+    if (this.state.table === "mrv_reports") {
+      if (row.status === undefined) row.status = "draft";
+      if (row.completeness_status === undefined) row.completeness_status = "BLOCKED";
+      if (row.completeness_checks === undefined) row.completeness_checks = [];
+      if (row.blocking_issues === undefined) row.blocking_issues = [];
+      if (row.warnings === undefined) row.warnings = [];
+      if (row.checklist_status === undefined) row.checklist_status = null;
+      if (row.checklist_details === undefined) row.checklist_details = null;
+      if (row.export_format === undefined) row.export_format = null;
+      if (row.export_generated_at === undefined) row.export_generated_at = null;
+      if (row.export_content_hash === undefined) row.export_content_hash = null;
+      if (row.export_file_path === undefined) row.export_file_path = null;
+      if (row.report_data === undefined) row.report_data = {};
+      if (row.monitoring_plan_version === undefined) row.monitoring_plan_version = null;
+      if (row.ets_record_id === undefined) row.ets_record_id = null;
       if (row.updated_at === undefined) row.updated_at = row.created_at;
     }
 
