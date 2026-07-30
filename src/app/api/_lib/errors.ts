@@ -12,6 +12,14 @@ export const CONFIGURATION_ERROR = "CONFIGURATION_ERROR" as const;
 export const REPOSITORY_UNAVAILABLE = "REPOSITORY_UNAVAILABLE" as const;
 export const INTERNAL_ERROR = "INTERNAL_ERROR" as const;
 
+export const DOCUMENT_NOT_FOUND = "DOCUMENT_NOT_FOUND" as const;
+export const MISSING_FILE = "MISSING_FILE" as const;
+export const MISSING_TITLE = "MISSING_TITLE" as const;
+export const MISSING_DOCUMENT_TYPE = "MISSING_DOCUMENT_TYPE" as const;
+export const INVALID_DOCUMENT_TYPE = "INVALID_DOCUMENT_TYPE" as const;
+export const FILE_TOO_LARGE = "FILE_TOO_LARGE" as const;
+export const FUEL_DELIVERY_NOT_FOUND = "FUEL_DELIVERY_NOT_FOUND" as const;
+
 export type ErrorCode =
   | typeof INVALID_JSON
   | typeof VALIDATION_ERROR
@@ -19,6 +27,13 @@ export type ErrorCode =
   | typeof INVALID_IMO
   | typeof VESSEL_NOT_FOUND
   | typeof NOT_FOUND
+  | typeof DOCUMENT_NOT_FOUND
+  | typeof MISSING_FILE
+  | typeof MISSING_TITLE
+  | typeof MISSING_DOCUMENT_TYPE
+  | typeof INVALID_DOCUMENT_TYPE
+  | typeof FILE_TOO_LARGE
+  | typeof FUEL_DELIVERY_NOT_FOUND
   | typeof INTEGRITY_ERROR
   | typeof RATE_LIMITED
   | typeof UPSTREAM_ERROR

@@ -141,6 +141,7 @@ const UNKNOWN_EXTRACTION: AiExtractionResult = {
 };
 
 const FIXTURE_MAP: Record<DocumentType, AiExtractionResult> = {
+  bdn: BDN_EXTRACTION,
   imo_dcs: BDN_EXTRACTION,
   eu_mrv: EU_ETS_EXTRACTION,
   certificate: UNKNOWN_EXTRACTION,

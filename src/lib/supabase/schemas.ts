@@ -23,6 +23,7 @@ import { z } from "zod";
 // ── Enum literals (mirror CHECK constraints in migration 0002) ───────────────
 
 export const DocumentTypeSchema = z.enum([
+  "bdn",
   "imo_dcs",
   "eu_mrv",
   "certificate",
@@ -246,3 +247,40 @@ export type ReviewTaskInsertInput = z.infer<typeof ReviewTaskInsertSchema>;
 export type DocumentRelationshipInsertInput = z.infer<typeof DocumentRelationshipInsertSchema>;
 export type AiExtractionInsertInput = z.infer<typeof AiExtractionInsertSchema>;
 export type ValidationReportInsertInput = z.infer<typeof ValidationReportInsertSchema>;
+
+// ── Fuel Delivery insert schema ─────────────────────────────────────────────
+
+export const FuelDeliveryInsertSchema = z.object({
+  document_id: z.string().uuid(),
+  ocr_result_id: z.string().uuid().nullable().optional(),
+  ai_extraction_id: z.string().uuid().nullable().optional(),
+  vessel_id: z.string().uuid(),
+  supplier: z.string().min(1).max(512),
+  delivery_port: z.string().min(1).max(256),
+  delivery_date: z.string(),
+  fuel_type: z.string().min(1).max(128),
+  quantity_mt: z.number().positive(),
+  density_kgm3: z.number().positive().nullable().optional(),
+  sulphur_content_pct: z.number().min(0).max(10).nullable().optional(),
+  bdn_reference: z.string().max(256).nullable().optional(),
+  status: z.enum(["pending", "verified", "reconciled", "disputed", "rejected"]).optional(),
+  reconciled_voyage_id: z.string().uuid().nullable().optional(),
+  reconciled_at: z.string().nullable().optional(),
+  notes: z.string().max(4096).nullable().optional(),
+});
+
+export type FuelDeliveryInsertInput = z.infer<typeof FuelDeliveryInsertSchema>;
+
+export const ReconciliationLogInsertSchema = z.object({
+  fuel_delivery_id: z.string().uuid(),
+  voyage_id: z.string().uuid().nullable().optional(),
+  match_type: z.enum(["auto", "manual", "override", "break"]),
+  match_confidence: z.number().min(0).max(100).nullable().optional(),
+  match_reason: z.string().min(1).max(2048),
+  matched_by: z.string().max(256).optional(),
+  previous_status: z.string().min(1),
+  new_status: z.string().min(1),
+  details: z.record(z.string(), z.unknown()).nullable().optional(),
+});
+
+export type ReconciliationLogInsertInput = z.infer<typeof ReconciliationLogInsertSchema>;

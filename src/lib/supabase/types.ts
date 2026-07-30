@@ -103,6 +103,7 @@ export type AisPositionInsert = {
 
 /** Document type classification. Controlled by documents_type_check in the DB. */
 export type DocumentType =
+  | "bdn"
   | "imo_dcs"
   | "eu_mrv"
   | "certificate"
@@ -443,6 +444,111 @@ export type ValidationReportInsert = {
   readonly latency_ms?: number | null;
 };
 
+// ── 1f. DOCUMENT ENUM EXTENSION ─────────────────────────────────────────────
+
+/** Add "bdn" to the document type union. */
+export type BdnDocumentType = "bdn";
+
+// ── 1g. FUEL DELIVERY ROW TYPES (1:1 with migration 0006) ───────────────────
+
+/** One row of the `fuel_types` reference table. */
+export type FuelTypeRow = {
+  readonly id: string;
+  readonly display_name: string;
+  readonly category: string;
+  readonly description: string | null;
+  readonly co2_factor: number;
+  readonly sox_factor: number;
+  readonly pm_factor: number;
+  readonly density_default: number | null;
+  readonly is_drop_in: boolean;
+  readonly created_at: string;
+};
+
+/** Payload for inserting a fuel type. id/created_at are server-defaulted. */
+export type FuelTypeInsert = {
+  readonly id: string;
+  readonly display_name: string;
+  readonly category: string;
+  readonly description?: string | null;
+  readonly co2_factor: number;
+  readonly sox_factor?: number;
+  readonly pm_factor?: number;
+  readonly density_default?: number | null;
+  readonly is_drop_in?: boolean;
+};
+
+/** One row of the `fuel_deliveries` table. */
+export type FuelDeliveryRow = {
+  readonly id: string;
+  readonly document_id: string;
+  readonly ocr_result_id: string | null;
+  readonly ai_extraction_id: string | null;
+  readonly vessel_id: string;
+  readonly supplier: string;
+  readonly delivery_port: string;
+  readonly delivery_date: string;
+  readonly fuel_type: string;
+  readonly quantity_mt: number;
+  readonly density_kgm3: number | null;
+  readonly sulphur_content_pct: number | null;
+  readonly bdn_reference: string | null;
+  readonly status: string;
+  readonly reconciled_voyage_id: string | null;
+  readonly reconciled_at: string | null;
+  readonly notes: string | null;
+  readonly created_at: string;
+  readonly updated_at: string;
+};
+
+/** Payload for inserting a fuel delivery. id/created_at/updated_at are server-defaulted. */
+export type FuelDeliveryInsert = {
+  readonly document_id: string;
+  readonly ocr_result_id?: string | null;
+  readonly ai_extraction_id?: string | null;
+  readonly vessel_id: string;
+  readonly supplier: string;
+  readonly delivery_port: string;
+  readonly delivery_date: string;
+  readonly fuel_type: string;
+  readonly quantity_mt: number;
+  readonly density_kgm3?: number | null;
+  readonly sulphur_content_pct?: number | null;
+  readonly bdn_reference?: string | null;
+  readonly status?: string;
+  readonly reconciled_voyage_id?: string | null;
+  readonly reconciled_at?: string | null;
+  readonly notes?: string | null;
+};
+
+/** One row of the `reconciliation_log` table. */
+export type ReconciliationLogRow = {
+  readonly id: string;
+  readonly fuel_delivery_id: string;
+  readonly voyage_id: string | null;
+  readonly match_type: string;
+  readonly match_confidence: number | null;
+  readonly match_reason: string;
+  readonly matched_by: string;
+  readonly previous_status: string;
+  readonly new_status: string;
+  readonly details: Record<string, unknown> | null;
+  readonly created_at: string;
+};
+
+/** Payload for inserting a reconciliation log entry. id/created_at are server-defaulted. */
+export type ReconciliationLogInsert = {
+  readonly fuel_delivery_id: string;
+  readonly voyage_id?: string | null;
+  readonly match_type: string;
+  readonly match_confidence?: number | null;
+  readonly match_reason: string;
+  readonly matched_by?: string;
+  readonly previous_status: string;
+  readonly new_status: string;
+  readonly details?: Record<string, unknown> | null;
+};
+
 // ── 1f. REVIEW AUDIT LOG ROW TYPES (1:1 with migration 0005) ────────────────
 
 /** One row of the `review_audit_log` table. */
@@ -599,6 +705,24 @@ export type Database = {
         Row: ReviewAuditLogRow;
         Insert: ReviewAuditLogInsert;
         Update: Partial<ReviewAuditLogInsert>;
+        Relationships: Relationships;
+      };
+      fuel_types: {
+        Row: FuelTypeRow;
+        Insert: FuelTypeInsert;
+        Update: Partial<FuelTypeInsert>;
+        Relationships: Relationships;
+      };
+      fuel_deliveries: {
+        Row: FuelDeliveryRow;
+        Insert: FuelDeliveryInsert;
+        Update: Partial<FuelDeliveryInsert>;
+        Relationships: Relationships;
+      };
+      reconciliation_log: {
+        Row: ReconciliationLogRow;
+        Insert: ReconciliationLogInsert;
+        Update: Partial<ReconciliationLogInsert>;
         Relationships: Relationships;
       };
     };

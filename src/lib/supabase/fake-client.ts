@@ -507,6 +507,36 @@ class FakeQueryBuilder {
       if (row.notes === undefined) row.notes = null;
     }
 
+    if (this.state.table === "fuel_deliveries") {
+      if (row.ocr_result_id === undefined) row.ocr_result_id = null;
+      if (row.ai_extraction_id === undefined) row.ai_extraction_id = null;
+      if (row.density_kgm3 === undefined) row.density_kgm3 = null;
+      if (row.sulphur_content_pct === undefined) row.sulphur_content_pct = null;
+      if (row.bdn_reference === undefined) row.bdn_reference = null;
+      if (row.status === undefined) row.status = "pending";
+      if (row.reconciled_voyage_id === undefined) row.reconciled_voyage_id = null;
+      if (row.reconciled_at === undefined) row.reconciled_at = null;
+      if (row.notes === undefined) row.notes = null;
+      if (row.updated_at === undefined) {
+        row.updated_at = row.created_at;
+      }
+    }
+
+    if (this.state.table === "fuel_types") {
+      if (row.description === undefined) row.description = null;
+      if (row.sox_factor === undefined) row.sox_factor = 0;
+      if (row.pm_factor === undefined) row.pm_factor = 0;
+      if (row.density_default === undefined) row.density_default = null;
+      if (row.is_drop_in === undefined) row.is_drop_in = true;
+    }
+
+    if (this.state.table === "reconciliation_log") {
+      if (row.voyage_id === undefined) row.voyage_id = null;
+      if (row.match_confidence === undefined) row.match_confidence = null;
+      if (row.matched_by === undefined) row.matched_by = "system";
+      if (row.details === undefined) row.details = null;
+    }
+
     return row;
   }
 }

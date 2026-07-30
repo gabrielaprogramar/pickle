@@ -144,6 +144,7 @@ interface FixtureEntry {
 }
 
 const FIXTURES: Record<DocumentType, FixtureEntry> = {
+  bdn: { rawText: BDN_RAW_TEXT, extractedData: BDN_FIXTURE as unknown as Record<string, unknown>, confidence: 0.95 },
   imo_dcs: { rawText: BDN_RAW_TEXT, extractedData: BDN_FIXTURE as unknown as Record<string, unknown>, confidence: 0.95 },
   eu_mrv: { rawText: EU_ETS_RAW_TEXT, extractedData: EU_ETS_FIXTURE as unknown as Record<string, unknown>, confidence: 0.92 },
   certificate: { rawText: "Certificate text placeholder", extractedData: {}, confidence: 0.88 },

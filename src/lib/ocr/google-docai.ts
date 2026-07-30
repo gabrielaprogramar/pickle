@@ -399,6 +399,7 @@ const SUPPORTED_MIME_TYPES: ReadonlySet<string> = new Set([
 
 function getDocumentTypeLabel(documentType: DocumentType): string {
   const labels: Record<DocumentType, string> = {
+    bdn: "bdn",
     imo_dcs: "imo_dcs",
     eu_mrv: "eu_mrv",
     certificate: "certificate",

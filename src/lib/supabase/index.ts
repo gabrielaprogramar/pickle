@@ -46,6 +46,16 @@ export type {
   DocumentEntityType,
 } from "./types";
 
+// Fuel delivery domain row types + insert payloads.
+export type {
+  FuelTypeRow,
+  FuelTypeInsert,
+  FuelDeliveryRow,
+  FuelDeliveryInsert,
+  ReconciliationLogRow,
+  ReconciliationLogInsert,
+} from "./types";
+
 // Document domain row types + insert payloads.
 export type {
   DocumentRow,
@@ -171,6 +181,14 @@ export type {
   ReviewAuditLogRepository,
   CreateReviewAuditLogRepositoryOptions,
 } from "./repositories/review_audit_log";
+
+// Fuel Delivery repositories.
+export { createFuelDeliveryRepository, createFuelTypeRepository } from "./repositories/fuel_deliveries";
+export type {
+  FuelDeliveryRepository,
+  FuelTypeRepository,
+  CreateFuelDeliveryRepositoryOptions,
+} from "./repositories/fuel_deliveries";
 
 // Zod validation schemas.
 export {
