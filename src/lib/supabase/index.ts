@@ -249,6 +249,22 @@ export type {
   CreateEmailIngestionLogRepositoryOptions,
 } from "./repositories/email_ingestion_log";
 
+// Phase 2C.6 types.
+export type {
+  ReportType,
+  ReportStatus,
+  ReportRow,
+  ReportInsert,
+  VerifierPackageStatus,
+  VerifierPackageRow,
+  VerifierPackageInsert,
+  NotificationSeverity,
+  NotificationRow,
+  NotificationInsert,
+  NotificationPreferenceRow,
+  NotificationPreferenceInsert,
+} from "./types";
+
 // Zod validation schemas.
 export {
   DocumentTypeSchema,
@@ -271,7 +287,40 @@ export {
   AiExtractionInsertSchema,
   ValidationReportInsertSchema,
   ReviewAuditLogInsertSchema,
+  ReportTypeSchema,
+  ReportStatusSchema,
+  ReportInsertSchema,
+  VerifierPackageStatusSchema,
+  VerifierPackageInsertSchema,
+  NotificationSeveritySchema,
+  NotificationInsertSchema,
+  NotificationPreferenceInsertSchema,
 } from "./schemas";
+
+// Phase 2C.6 repositories.
+export { createComplianceReportRepository } from "./repositories/compliance_reports";
+export type {
+  ComplianceReportRepository,
+  CreateComplianceReportRepositoryOptions,
+} from "./repositories/compliance_reports";
+
+export { createVerifierPackageRepository } from "./repositories/verifier_packages";
+export type {
+  VerifierPackageRepository,
+  CreateVerifierPackageRepositoryOptions,
+} from "./repositories/verifier_packages";
+
+export { createNotificationRepository } from "./repositories/notifications";
+export type {
+  NotificationRepository,
+  CreateNotificationRepositoryOptions,
+} from "./repositories/notifications";
+
+export { createNotificationPreferenceRepository } from "./repositories/notification_preferences";
+export type {
+  NotificationPreferenceRepository,
+  CreateNotificationPreferenceRepositoryOptions,
+} from "./repositories/notification_preferences";
 
 // Mapper (re-exported so the orchestration layer can build payloads directly if
 // it ever needs to — e.g. a batch importer).

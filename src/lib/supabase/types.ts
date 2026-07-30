@@ -986,6 +986,172 @@ export function normalizePagination(
  * Enums/Functions/RPCs are omitted intentionally — Phase 1B uses plain tables.
  */
 /**
+// ── 1h. REPORTING + NOTIFICATION ROW TYPES (1:1 with migration 0011) ────────
+
+/** Report type classification. Controlled by compliance_reports_type_check. */
+export type ReportType =
+  | "thetis_mrv"
+  | "fueleu"
+  | "green_zone"
+  | "fleet_summary"
+  | "esg_package";
+
+/** Report lifecycle status. Controlled by compliance_reports_status_check. */
+export type ReportStatus =
+  | "DRAFT"
+  | "READY"
+  | "GENERATED"
+  | "SUBMITTED"
+  | "VERIFIED"
+  | "REJECTED"
+  | "FAILED";
+
+/** One row of the `compliance_reports` table. */
+export type ReportRow = {
+  readonly id: string;
+  readonly report_type: ReportType;
+  readonly vessel_id: string | null;
+  readonly vessel_ids: Record<string, unknown> | null;
+  readonly title: string;
+  readonly reporting_year: number;
+  readonly season: string | null;
+  readonly status: ReportStatus;
+  readonly calculation_version: string | null;
+  readonly source_data_refs: Record<string, unknown> | null;
+  readonly storage_path: string | null;
+  readonly file_size: number | null;
+  readonly checksum: string | null;
+  readonly content: Record<string, unknown> | null;
+  readonly generated_at: string | null;
+  readonly generated_by: string | null;
+  readonly submitted_at: string | null;
+  readonly verified_at: string | null;
+  readonly verification_notes: string | null;
+  readonly metadata: Record<string, unknown>;
+  readonly created_at: string;
+  readonly updated_at: string;
+};
+
+/** Payload for inserting a compliance report. id/created_at/updated_at are server-defaulted. */
+export type ReportInsert = {
+  readonly report_type: ReportType;
+  readonly vessel_id?: string | null;
+  readonly vessel_ids?: Record<string, unknown> | null;
+  readonly title: string;
+  readonly reporting_year: number;
+  readonly season?: string | null;
+  readonly status?: ReportStatus;
+  readonly calculation_version?: string | null;
+  readonly source_data_refs?: Record<string, unknown> | null;
+  readonly storage_path?: string | null;
+  readonly file_size?: number | null;
+  readonly checksum?: string | null;
+  readonly content?: Record<string, unknown> | null;
+  readonly generated_at?: string | null;
+  readonly generated_by?: string | null;
+  readonly submitted_at?: string | null;
+  readonly verified_at?: string | null;
+  readonly verification_notes?: string | null;
+  readonly metadata?: Record<string, unknown>;
+};
+
+/** Verifier package lifecycle status. Controlled by verifier_packages_status_check. */
+export type VerifierPackageStatus = "DRAFT" | "GENERATING" | "GENERATED" | "FAILED";
+
+/** One row of the `verifier_packages` table. */
+export type VerifierPackageRow = {
+  readonly id: string;
+  readonly vessel_id: string | null;
+  readonly reporting_year: number;
+  readonly status: VerifierPackageStatus;
+  readonly title: string;
+  readonly manifest: Record<string, unknown>;
+  readonly storage_path: string | null;
+  readonly file_size: number | null;
+  readonly checksum: string | null;
+  readonly package_version: string;
+  readonly validation_result: Record<string, unknown> | null;
+  readonly generated_at: string | null;
+  readonly generated_by: string | null;
+  readonly created_at: string;
+  readonly updated_at: string;
+};
+
+/** Payload for inserting a verifier package. id/created_at/updated_at are server-defaulted. */
+export type VerifierPackageInsert = {
+  readonly vessel_id?: string | null;
+  readonly reporting_year: number;
+  readonly status?: VerifierPackageStatus;
+  readonly title: string;
+  readonly manifest?: Record<string, unknown>;
+  readonly storage_path?: string | null;
+  readonly file_size?: number | null;
+  readonly checksum?: string | null;
+  readonly package_version?: string;
+  readonly validation_result?: Record<string, unknown> | null;
+  readonly generated_at?: string | null;
+  readonly generated_by?: string | null;
+};
+
+/** Notification severity level. Controlled by notifications_severity_check. */
+export type NotificationSeverity = "INFO" | "MEDIUM" | "HIGH" | "CRITICAL";
+
+/** One row of the `notifications` table. */
+export type NotificationRow = {
+  readonly id: string;
+  readonly recipient_id: string;
+  readonly notification_type: string;
+  readonly severity: NotificationSeverity;
+  readonly vessel_id: string | null;
+  readonly organization_id: string | null;
+  readonly title: string;
+  readonly message: string;
+  readonly payload: Record<string, unknown> | null;
+  readonly is_read: boolean;
+  readonly read_at: string | null;
+  readonly source_event: string | null;
+  readonly source_id: string | null;
+  readonly created_at: string;
+};
+
+/** Payload for inserting a notification. id/created_at are server-defaulted. */
+export type NotificationInsert = {
+  readonly recipient_id: string;
+  readonly notification_type: string;
+  readonly severity: NotificationSeverity;
+  readonly vessel_id?: string | null;
+  readonly organization_id?: string | null;
+  readonly title: string;
+  readonly message: string;
+  readonly payload?: Record<string, unknown> | null;
+  readonly is_read?: boolean;
+  readonly read_at?: string | null;
+  readonly source_event?: string | null;
+  readonly source_id?: string | null;
+};
+
+/** One row of the `notification_preferences` table. */
+export type NotificationPreferenceRow = {
+  readonly id: string;
+  readonly recipient_id: string;
+  readonly notification_type: string | null;
+  readonly enabled: boolean;
+  readonly email_enabled: boolean;
+  readonly in_app_enabled: boolean;
+  readonly created_at: string;
+  readonly updated_at: string;
+};
+
+/** Payload for inserting a notification preference. id/created_at/updated_at are server-defaulted. */
+export type NotificationPreferenceInsert = {
+  readonly recipient_id: string;
+  readonly notification_type?: string | null;
+  readonly enabled?: boolean;
+  readonly email_enabled?: boolean;
+  readonly in_app_enabled?: boolean;
+};
+
+/**
  * Empty Relationships array placeholder. Every table in a generated Database
  * interface declares its foreign-key relationships; postgrest-js's GenericTable
  * type requires this field. Phase 1B declares the FKs in SQL (ON DELETE
@@ -1151,6 +1317,30 @@ export type Database = {
         Row: EmailIngestionLogRow;
         Insert: EmailIngestionLogInsert;
         Update: Partial<EmailIngestionLogInsert>;
+        Relationships: Relationships;
+      };
+      compliance_reports: {
+        Row: ReportRow;
+        Insert: ReportInsert;
+        Update: Partial<ReportInsert>;
+        Relationships: Relationships;
+      };
+      verifier_packages: {
+        Row: VerifierPackageRow;
+        Insert: VerifierPackageInsert;
+        Update: Partial<VerifierPackageInsert>;
+        Relationships: Relationships;
+      };
+      notifications: {
+        Row: NotificationRow;
+        Insert: NotificationInsert;
+        Update: Partial<NotificationInsert>;
+        Relationships: Relationships;
+      };
+      notification_preferences: {
+        Row: NotificationPreferenceRow;
+        Insert: NotificationPreferenceInsert;
+        Update: Partial<NotificationPreferenceInsert>;
         Relationships: Relationships;
       };
     };

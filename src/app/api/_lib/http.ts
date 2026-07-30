@@ -81,6 +81,24 @@ export function httpStatusForError(err: unknown): ErrorMapping {
     if (name === "RepositoryError") {
       return { code: REPOSITORY_UNAVAILABLE, status: 503 };
     }
+    if (name === "ReportNotFoundError") {
+      return { code: NOT_FOUND, status: 404 };
+    }
+    if (name === "ReportGenerationError") {
+      return { code: INTERNAL_ERROR, status: 500 };
+    }
+    if (name === "PackageNotFoundError") {
+      return { code: NOT_FOUND, status: 404 };
+    }
+    if (name === "PackageGenerationError") {
+      return { code: INTERNAL_ERROR, status: 500 };
+    }
+    if (name === "NotificationNotFoundError") {
+      return { code: NOT_FOUND, status: 404 };
+    }
+    if (name === "PackageValidationError") {
+      return { code: VALIDATION_ERROR, status: 400 };
+    }
   }
 
   return { code: INTERNAL_ERROR, status: 500 };

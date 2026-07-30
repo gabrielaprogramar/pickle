@@ -284,3 +284,85 @@ export const ReconciliationLogInsertSchema = z.object({
 });
 
 export type ReconciliationLogInsertInput = z.infer<typeof ReconciliationLogInsertSchema>;
+
+// ── Phase 2C.6 Reporting & Notification schemas ──────────────────────────────
+
+export const ReportTypeSchema = z.enum([
+  "thetis_mrv", "fueleu", "green_zone", "fleet_summary", "esg_package",
+]);
+
+export const ReportStatusSchema = z.enum([
+  "DRAFT", "READY", "GENERATED", "SUBMITTED", "VERIFIED", "REJECTED", "FAILED",
+]);
+
+export const ReportInsertSchema = z.object({
+  report_type: ReportTypeSchema,
+  vessel_id: z.string().uuid().nullable().optional(),
+  vessel_ids: z.record(z.string(), z.unknown()).nullable().optional(),
+  title: z.string().min(1).max(1024),
+  reporting_year: z.number().int().min(2000).max(2100),
+  season: z.string().max(64).nullable().optional(),
+  status: ReportStatusSchema.optional(),
+  calculation_version: z.string().max(64).nullable().optional(),
+  source_data_refs: z.record(z.string(), z.unknown()).nullable().optional(),
+  storage_path: z.string().max(2048).nullable().optional(),
+  file_size: z.number().int().nonnegative().nullable().optional(),
+  checksum: z.string().max(128).nullable().optional(),
+  content: z.record(z.string(), z.unknown()).nullable().optional(),
+  generated_at: z.string().nullable().optional(),
+  generated_by: z.string().max(255).nullable().optional(),
+  submitted_at: z.string().nullable().optional(),
+  verified_at: z.string().nullable().optional(),
+  verification_notes: z.string().max(4096).nullable().optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
+});
+
+export type ReportInsertInput = z.infer<typeof ReportInsertSchema>;
+
+export const VerifierPackageStatusSchema = z.enum(["DRAFT", "GENERATING", "GENERATED", "FAILED"]);
+
+export const VerifierPackageInsertSchema = z.object({
+  vessel_id: z.string().uuid().nullable().optional(),
+  reporting_year: z.number().int().min(2000).max(2100),
+  status: VerifierPackageStatusSchema.optional(),
+  title: z.string().min(1).max(1024),
+  manifest: z.record(z.string(), z.unknown()).optional(),
+  storage_path: z.string().max(2048).nullable().optional(),
+  file_size: z.number().int().nonnegative().nullable().optional(),
+  checksum: z.string().max(128).nullable().optional(),
+  package_version: z.string().max(64).optional(),
+  validation_result: z.record(z.string(), z.unknown()).nullable().optional(),
+  generated_at: z.string().nullable().optional(),
+  generated_by: z.string().max(255).nullable().optional(),
+});
+
+export type VerifierPackageInsertInput = z.infer<typeof VerifierPackageInsertSchema>;
+
+export const NotificationSeveritySchema = z.enum(["INFO", "MEDIUM", "HIGH", "CRITICAL"]);
+
+export const NotificationInsertSchema = z.object({
+  recipient_id: z.string().min(1).max(255),
+  notification_type: z.string().min(1).max(128),
+  severity: NotificationSeveritySchema,
+  vessel_id: z.string().uuid().nullable().optional(),
+  organization_id: z.string().max(255).nullable().optional(),
+  title: z.string().min(1).max(512),
+  message: z.string().min(1).max(4096),
+  payload: z.record(z.string(), z.unknown()).nullable().optional(),
+  is_read: z.boolean().optional(),
+  read_at: z.string().nullable().optional(),
+  source_event: z.string().max(128).nullable().optional(),
+  source_id: z.string().max(255).nullable().optional(),
+});
+
+export type NotificationInsertInput = z.infer<typeof NotificationInsertSchema>;
+
+export const NotificationPreferenceInsertSchema = z.object({
+  recipient_id: z.string().min(1).max(255),
+  notification_type: z.string().max(128).nullable().optional(),
+  enabled: z.boolean().optional(),
+  email_enabled: z.boolean().optional(),
+  in_app_enabled: z.boolean().optional(),
+});
+
+export type NotificationPreferenceInsertInput = z.infer<typeof NotificationPreferenceInsertSchema>;
