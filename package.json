@@ -69,7 +69,12 @@
     "test:assistant_conversation": "tsx src/lib/assistant/__tests__/conversation-service.test.ts",
     "test:assistant_evaluation": "tsx src/lib/assistant/__tests__/evaluation.test.ts",
     "test:assistant_regression": "tsx src/lib/assistant/__tests__/no-math-leak-regression.test.ts",
-    "test:assistant": "npm run test:assistant_mock_knowledge && npm run test:assistant_citations && npm run test:assistant_search && npm run test:assistant_tools && npm run test:assistant_gateway && npm run test:assistant_safety && npm run test:assistant_llm && npm run test:assistant_router && npm run test:assistant_conversation && npm run test:assistant_evaluation && npm run test:assistant_regression"
+    "test:assistant": "npm run test:assistant_mock_knowledge && npm run test:assistant_citations && npm run test:assistant_search && npm run test:assistant_tools && npm run test:assistant_gateway && npm run test:assistant_safety && npm run test:assistant_llm && npm run test:assistant_router && npm run test:assistant_conversation && npm run test:assistant_evaluation && npm run test:assistant_regression",
+    "test:compliance_system_prompt": "tsx src/lib/compliance-assistant/__tests__/compliance-system-prompt.test.ts",
+    "test:compliance_templates": "tsx src/lib/compliance-assistant/__tests__/response-templates.test.ts",
+    "test:compliance_handoff": "tsx src/lib/compliance-assistant/__tests__/handoff.test.ts",
+    "test:compliance_service": "tsx src/lib/compliance-assistant/__tests__/compliance-service.test.ts",
+    "test:compliance": "npm run test:compliance_system_prompt && npm run test:compliance_templates && npm run test:compliance_handoff && npm run test:compliance_service"
   },
   "dependencies": {
     "@google-cloud/documentai": "^9.6.2",
@@ -101,6 +106,7 @@
     "postcss": "^8.4.39",
     "tailwindcss": "^3.4.6",
     "tsx": "^4.16.2",
-    "typescript": "^5.5.3"
+    "typescript": "^5.5.3",
+    "vitest": "^4.1.10"
   }
 }

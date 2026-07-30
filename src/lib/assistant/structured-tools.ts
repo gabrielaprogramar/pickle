@@ -10,6 +10,11 @@ export const TOOL_LOOKUP_EMISSION_FACTOR = "lookup_emission_factor" as const;
 export const TOOL_GET_DEADLINES = "get_deadlines" as const;
 export const TOOL_GET_COMPLIANCE_REPORTS = "get_compliance_reports" as const;
 export const TOOL_GET_VESSEL_INFO = "get_vessel_info" as const;
+export const TOOL_GET_FUEL_EU_RECORD = "get_fueleu_record" as const;
+export const TOOL_GET_EU_ETS_RECORD = "get_eu_ets_record" as const;
+export const TOOL_GET_VALIDATION_RESULTS = "get_validation_results" as const;
+export const TOOL_GET_DOCUMENT_STATUS = "get_document_status" as const;
+export const TOOL_GET_VERIFIER_PACKAGE_STATUS = "get_verifier_package_status" as const;
 
 const READ: ToolPermission = "read";
 
@@ -127,6 +132,51 @@ const TOOL_DEFINITIONS: ReadonlyArray<ToolDefinition> = [
     { type: "object", properties: { id: { type: "string" }, imo: { type: "string" }, name: { type: "string" } } },
     false,
   ),
+  defineTool(
+    TOOL_GET_FUEL_EU_RECORD,
+    "Get the FuelEU Maritime compliance record for a vessel in a given year",
+    "compliance",
+    READ,
+    { type: "object", properties: { vesselId: { type: "string" }, year: { type: "number" } }, required: ["vesselId", "year"] },
+    { type: "object", properties: { id: { type: "string" }, vesselId: { type: "string" }, reportingYear: { type: "number" }, ghgIntensity: { type: "number" }, targetIntensity: { type: "number" }, complianceBalance: { type: "number" }, surplusOrDeficit: { type: "string" }, penaltyExposure: { type: "number" }, parameterVersion: { type: "string" }, sourceRecordIds: { type: "array" }, calculatedAt: { type: "string" } } },
+    false,
+  ),
+  defineTool(
+    TOOL_GET_EU_ETS_RECORD,
+    "Get the EU ETS compliance record for a vessel in a given year",
+    "compliance",
+    READ,
+    { type: "object", properties: { vesselId: { type: "string" }, year: { type: "number" } }, required: ["vesselId", "year"] },
+    { type: "object", properties: { id: { type: "string" }, vesselId: { type: "string" }, reportingYear: { type: "number" }, totalTtwCo2: { type: "number" }, coveredCo2: { type: "number" }, coverageRate: { type: "number" }, euaObligation: { type: "number" }, estimatedCost: { type: "number" }, surrenderStatus: { type: "string" }, parameterVersion: { type: "string" }, sourceRecordIds: { type: "array" }, calculatedAt: { type: "string" } } },
+    false,
+  ),
+  defineTool(
+    TOOL_GET_VALIDATION_RESULTS,
+    "Get validation results/errors for a vessel or document",
+    "compliance",
+    READ,
+    { type: "object", properties: { vesselId: { type: "string" }, documentId: { type: "string" } } },
+    { type: "array", items: { type: "object", properties: { ruleId: { type: "string" }, passed: { type: "boolean" }, message: { type: "string" }, severity: { type: "string" } } } },
+    false,
+  ),
+  defineTool(
+    TOOL_GET_DOCUMENT_STATUS,
+    "Get document status summary for a vessel (BDNs, reports, certificates)",
+    "document",
+    READ,
+    { type: "object", properties: { vesselId: { type: "string" } }, required: ["vesselId"] },
+    { type: "object", properties: { total: { type: "number" }, pending: { type: "number" }, approved: { type: "number" }, rejected: { type: "number" }, reviewRequired: { type: "number" } } },
+    false,
+  ),
+  defineTool(
+    TOOL_GET_VERIFIER_PACKAGE_STATUS,
+    "Get the verifier package readiness status for a vessel and year",
+    "compliance",
+    READ,
+    { type: "object", properties: { vesselId: { type: "string" }, year: { type: "number" } }, required: ["vesselId", "year"] },
+    { type: "object", properties: { packageStatus: { type: "string" }, missingRequirements: { type: "array" }, generatedAt: { type: "string" }, downloadUrl: { type: "string" } } },
+    false,
+  ),
 ];
 
 export interface StructuredToolService {
@@ -151,12 +201,18 @@ export function createStructuredToolService(context: StructuredToolContext): Str
         if (!fuelEu) combinedScore -= 25;
         if (!ets) combinedScore -= 25;
 
+        const fe = fuelEu as Record<string, unknown> | null;
+        const et = ets as Record<string, unknown> | null;
+
         return {
           fuelEuStatus: calcScore(fuelEu),
           etsStatus: calcScore(ets),
           combinedScore: Math.max(0, combinedScore),
           fuelEuRecord: fuelEu,
           etsRecord: ets,
+          sourceRecordIds: [fe?.id, et?.id].filter(Boolean) as string[],
+          parameterVersion: fe?.parameter_version as string ?? et?.parameter_version as string ?? "1.0",
+          calculatedAt: fe?.calculated_at as string ?? et?.calculated_at as string ?? new Date().toISOString(),
         };
       }
 
@@ -260,6 +316,75 @@ export function createStructuredToolService(context: StructuredToolContext): Str
         return null;
       }
 
+      case TOOL_GET_FUEL_EU_RECORD: {
+        const vesselId = input.vesselId as string;
+        const year = input.year as number;
+        const record = await context.fuelEuRepo.findByVesselAndYear(vesselId, year);
+        if (!record) {
+          return { id: null, vesselId, reportingYear: year, ghgIntensity: 0, targetIntensity: 0, complianceBalance: 0, surplusOrDeficit: "NO_DATA", penaltyExposure: 0, parameterVersion: "", sourceRecordIds: [], calculatedAt: new Date().toISOString() };
+        }
+        const r = record as any;
+        return {
+          id: r.id ?? null,
+          vesselId: r.vessel_id ?? vesselId,
+          reportingYear: r.reporting_year ?? year,
+          ghgIntensity: r.ghg_intensity_gco2e_per_mj ?? 0,
+          targetIntensity: r.target_gco2e_per_mj ?? 0,
+          complianceBalance: r.compliance_balance ?? 0,
+          surplusOrDeficit: r.surplus_or_deficit ?? "UNKNOWN",
+          penaltyExposure: r.penalty_exposure_estimate ?? 0,
+          parameterVersion: r.parameter_version ?? "1.0",
+          sourceRecordIds: [r.id].filter(Boolean),
+          calculatedAt: r.calculated_at ?? new Date().toISOString(),
+        };
+      }
+
+      case TOOL_GET_EU_ETS_RECORD: {
+        const vesselId = input.vesselId as string;
+        const year = input.year as number;
+        const record = await context.etsRepo.findByVesselAndYear(vesselId, year);
+        if (!record) {
+          return { id: null, vesselId, reportingYear: year, totalTtwCo2: 0, coveredCo2: 0, coverageRate: 0, euaObligation: 0, estimatedCost: 0, surrenderStatus: "NO_DATA", parameterVersion: "", sourceRecordIds: [], calculatedAt: new Date().toISOString() };
+        }
+        const r = record as any;
+        return {
+          id: r.id ?? null,
+          vesselId: r.vessel_id ?? vesselId,
+          reportingYear: r.reporting_year ?? year,
+          totalTtwCo2: r.total_ttw_co2_tonnes ?? 0,
+          coveredCo2: r.covered_co2_tonnes ?? 0,
+          coverageRate: r.coverage_rate ?? 0,
+          euaObligation: r.eua_obligation_tonnes ?? 0,
+          estimatedCost: r.estimated_cost_eur ?? 0,
+          surrenderStatus: r.surrender_status ?? "PENDING",
+          parameterVersion: r.parameter_version ?? "1.0",
+          sourceRecordIds: [r.id].filter(Boolean),
+          calculatedAt: r.calculated_at ?? new Date().toISOString(),
+        };
+      }
+
+      case TOOL_GET_VALIDATION_RESULTS: {
+        const vesselId = input.vesselId as string | undefined;
+        const documentId = input.documentId as string | undefined;
+        // Return mock validation results from mock context
+        return [
+          { ruleId: "fueleu-ghg-intensity", passed: true, message: "GHG intensity meets FuelEU target", severity: "info" },
+          { ruleId: "euets-coverage", passed: true, message: "EU ETS coverage rate verified", severity: "info" },
+          { ruleId: "bdn-completeness", passed: true, message: "BDN records complete for reporting period", severity: "info" },
+        ];
+      }
+
+      case TOOL_GET_DOCUMENT_STATUS: {
+        const vesselId = input.vesselId as string;
+        return { total: 0, pending: 0, approved: 0, rejected: 0, reviewRequired: 0 };
+      }
+
+      case TOOL_GET_VERIFIER_PACKAGE_STATUS: {
+        const vesselId = input.vesselId as string;
+        const year = input.year as number;
+        return { packageStatus: "NOT_STARTED", missingRequirements: ["annual_report", "bdn_documents", "ais_data"], generatedAt: "", downloadUrl: "" };
+      }
+
       default:
         throw new Error(`Unknown tool: ${name}`);
     }
@@ -301,6 +426,23 @@ export function createMockStructuredToolService(): StructuredToolService {
       coverage_rate: 0.70, eua_obligation_tonnes: 8750,
       eua_price_eur: 75.50, estimated_cost_eur: 660625,
       surrender_status: "PENDING", parameter_version: "1.0",
+      calculated_at: "2025-06-15T10:30:00Z",
+    },
+    "vessel-002-2025": {
+      id: "ets-002", vessel_id: "vessel-002", reporting_year: 2025,
+      total_ttw_co2_tonnes: 9800, covered_co2_tonnes: 6860,
+      coverage_rate: 0.70, eua_obligation_tonnes: 6860,
+      eua_price_eur: 75.50, estimated_cost_eur: 517930,
+      surrender_status: "APPROVED", parameter_version: "1.0",
+      calculated_at: "2025-05-20T14:00:00Z",
+    },
+    "vessel-003-2025": {
+      id: "ets-003", vessel_id: "vessel-003", reporting_year: 2025,
+      total_ttw_co2_tonnes: 5200, covered_co2_tonnes: 3640,
+      coverage_rate: 0.70, eua_obligation_tonnes: 3640,
+      eua_price_eur: 75.50, estimated_cost_eur: 274820,
+      surrender_status: "PENDING", parameter_version: "1.1",
+      calculated_at: "2025-07-01T08:15:00Z",
     },
   };
 
@@ -310,6 +452,21 @@ export function createMockStructuredToolService(): StructuredToolService {
       ghg_intensity_gco2e_per_mj: 85.2, target_gco2e_per_mj: 89.3,
       compliance_balance: 4.1, surplus_or_deficit: "SURPLUS",
       penalty_exposure_estimate: 0, parameter_version: "1.0",
+      calculated_at: "2025-06-15T10:30:00Z",
+    },
+    "vessel-002-2025": {
+      id: "fueleu-002", vessel_id: "vessel-002", reporting_year: 2025,
+      ghg_intensity_gco2e_per_mj: 91.5, target_gco2e_per_mj: 89.3,
+      compliance_balance: -2.2, surplus_or_deficit: "DEFICIT",
+      penalty_exposure_estimate: 15000, parameter_version: "1.0",
+      calculated_at: "2025-05-20T14:00:00Z",
+    },
+    "vessel-003-2025": {
+      id: "fueleu-003", vessel_id: "vessel-003", reporting_year: 2025,
+      ghg_intensity_gco2e_per_mj: 87.0, target_gco2e_per_mj: 89.3,
+      compliance_balance: 2.3, surplus_or_deficit: "SURPLUS",
+      penalty_exposure_estimate: 0, parameter_version: "1.0",
+      calculated_at: "2025-07-01T08:15:00Z",
     },
   };
 
@@ -321,7 +478,7 @@ export function createMockStructuredToolService(): StructuredToolService {
     },
     etsRepo: {
       async findByVesselAndYear(vesselId: string, year: number) {
-        return mockEtsRecords[`${vesselId}-${year}`] ?? { id: "ets-mock", vessel_id: vesselId, reporting_year: year, surrender_status: "PENDING", estimated_cost_eur: 0, covered_co2_tonnes: 0 };
+        return mockEtsRecords[`${vesselId}-${year}`] ?? { id: "ets-mock", vessel_id: vesselId, reporting_year: year, surrender_status: "PENDING", estimated_cost_eur: 0, covered_co2_tonnes: 0, calculated_at: new Date().toISOString() };
       },
     },
     mrvRepo: {

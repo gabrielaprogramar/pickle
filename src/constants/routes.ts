@@ -16,4 +16,5 @@ export const ROUTES = {
   analytics: "/analytics",
   settings: "/settings",
   assistant: "/assistant",
+  complianceAssistant: "/compliance-assistant",
 } as const;

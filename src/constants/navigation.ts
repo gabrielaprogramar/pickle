@@ -58,6 +58,11 @@ export const NAVIGATION: readonly NavSection[] = [
         icon: Bot,
       },
       {
+        label: "Compliance Assistant",
+        href: ROUTES.complianceAssistant,
+        icon: ShieldCheck,
+      },
+      {
         label: "MarineTraffic",
         href: ROUTES.marinetraffic,
         icon: Anchor,

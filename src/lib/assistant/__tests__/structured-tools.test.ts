@@ -2,10 +2,10 @@ import { describe, it, expect, run } from "@/lib/marinetraffic/__tests__/_testRu
 import { createMockStructuredToolService, TOOL_GET_VESSEL_COMPLIANCE_SCORE, TOOL_GET_FLEET_ETS_SUMMARY, TOOL_GET_OPEN_VIOLATIONS, TOOL_GET_FUEL_DELIVERIES, TOOL_GET_VOYAGE_LOG, TOOL_GET_MONITORING_PLAN_GAPS, TOOL_LOOKUP_EMISSION_FACTOR, TOOL_GET_DEADLINES } from "../structured-tools";
 
 describe("StructuredToolService", () => {
-  it("returns 10 tool definitions", async () => {
+  it("returns 15 tool definitions", async () => {
     const svc = createMockStructuredToolService();
     const defs = svc.getToolDefinitions();
-    expect(defs.length).toBe(10);
+    expect(defs.length).toBe(15);
   });
 
   it("get_vessel_compliance_score returns compliance data", async () => {

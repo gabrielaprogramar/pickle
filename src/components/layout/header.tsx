@@ -27,6 +27,7 @@ const ROUTE_LABELS: Record<string, string> = {
   dnv: "DNV",
   analytics: "Analytics",
   settings: "Settings",
+  "compliance-assistant": "Compliance Assistant",
 };
 
 export function AppHeader() {

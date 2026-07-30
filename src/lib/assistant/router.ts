@@ -9,6 +9,7 @@ export interface RouterOptions {
 export interface Router {
   classify(input: RouterInput): Promise<RouterOutput>;
   getSupportedIntents(): ReadonlyArray<IntentType>;
+  detectHandoff(query: string, intent: IntentType): { target: string; confidence: number; reason: string };
 }
 
 const SUPPORTED_INTENTS: ReadonlyArray<IntentType> = [
@@ -64,6 +65,29 @@ export function createRouter(opts: Partial<RouterOptions> = {}): Router {
     };
   }
 
+  function detectHandoff(query: string, intent: IntentType): { target: string; confidence: number; reason: string } {
+    if (intent !== "COMPLIANCE" && intent !== "UNKNOWN" && intent !== "DOCUMENT") {
+      return { target: "none", confidence: 1.0, reason: "Intent already handled by current assistant" };
+    }
+
+    const lower = query.toLowerCase();
+    const triggers: Array<{ keywords: string[]; target: string; reason: string }> = [
+      { keywords: ["ais", "voyage data", "track", "position", "sailing", "route", "destination", "port call", "eta", "etd"], target: "voyage", reason: "Query relates to voyage/AIS data which is handled by the Voyage Assistant" },
+      { keywords: ["certificate", "survey", "inspection", "maintenance", "dry dock", "repair", "classification"], target: "maintenance", reason: "Query relates to certificates or maintenance which is handled by the Maintenance Assistant" },
+      { keywords: ["ocr", "extraction", "scan quality", "blurry", "illegible", "image quality"], target: "ocr", reason: "Query relates to document extraction quality which is handled by the OCR Assistant" },
+      { keywords: ["captain", "crew", "manning", "port readiness", "operational", "seafarer", "officer", "master"], target: "captain", reason: "Query relates to crew or operational readiness which is handled by the Captain Assistant" },
+    ];
+
+    for (const trigger of triggers) {
+      const matches = trigger.keywords.filter(kw => lower.includes(kw)).length;
+      if (matches > 0) {
+        return { target: trigger.target, confidence: Math.min(matches / trigger.keywords.length + 0.1, 1.0), reason: trigger.reason };
+      }
+    }
+
+    return { target: "none", confidence: 0, reason: "" };
+  }
+
   return {
     async classify(input: RouterInput): Promise<RouterOutput> {
       if (useMock) {
@@ -97,5 +121,7 @@ export function createRouter(opts: Partial<RouterOptions> = {}): Router {
     getSupportedIntents(): ReadonlyArray<IntentType> {
       return SUPPORTED_INTENTS;
     },
+
+    detectHandoff,
   };
 }
