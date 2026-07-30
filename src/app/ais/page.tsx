@@ -13,6 +13,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAisPositions } from "@/hooks/use-ais-positions";
+import { useEnvironmentalZones } from "@/hooks/use-environmental-zones";
+import { VesselMapView } from "@/components/map/vessel-map-view";
 import type { AisPositionRow } from "@/lib/supabase/types";
 
 const IMO_PATTERN = /^\d{7}$/;
@@ -109,10 +111,13 @@ export default function AisPage() {
     refetch,
   } = useAisPositions(activeImo, 25);
 
+  const { zones } = useEnvironmentalZones();
+
   const handleLookup = () => {
     const trimmed = imoInput.trim();
     if (IMO_PATTERN.test(trimmed)) {
       setActiveImo(trimmed);
+      setPage(1);
     }
   };
 
@@ -207,15 +212,22 @@ export default function AisPage() {
                   Position Map
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-center rounded-md border border-dashed border-border/50 bg-muted/20 h-48 text-center">
-                  <div>
-                    <Map className="h-6 w-6 mx-auto mb-1 text-muted-foreground/30" />
-                    <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-muted-foreground/50">
-                      Map integration in Phase 2
-                    </p>
-                  </div>
-                </div>
+              <CardContent className="p-2">
+                <VesselMapView
+                  trackPoints={positions.map((p) => ({
+                    lat: p.latitude,
+                    lng: p.longitude,
+                    ts: String(p.ts),
+                    sog: p.sog,
+                    cog: p.cog,
+                    heading: p.heading,
+                    navStatus: p.nav_status,
+                  }))}
+                  vesselPosition={latestPos ? { lat: latestPos.latitude, lng: latestPos.longitude } : null}
+                  vesselLabel={`IMO ${activeImo}`}
+                  zones={zones.map((z) => ({ id: z.id, name: z.name, category: z.category, geometryCoordinates: z.geometry_coordinates, description: z.description }))}
+                  height="h-64"
+                />
               </CardContent>
             </Card>
 

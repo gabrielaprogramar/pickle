@@ -47,6 +47,8 @@ export interface VoyageRepository {
    * then inserts the voyage row. Returns the stored voyage row.
    */
   insertFromDomain(voyage: Voyage): Promise<VoyageRow>;
+  /** Find a voyage by its UUID. Null if not found. */
+  findById(id: string): Promise<VoyageRow | null>;
   /** Look up the most recent voyage for a vessel (by IMO). Null if none. */
   findLatestByImo(imo: string): Promise<VoyageRow | null>;
   /** List a vessel's voyages newest-first as a paginated Page, resolved by IMO. */
@@ -95,6 +97,21 @@ export function createVoyageRepository(
         return data as VoyageRow;
       } catch (e) {
         throw mapError("insert voyage", e);
+      }
+    },
+
+    async findById(id: string): Promise<VoyageRow | null> {
+      try {
+        const client = getClient();
+        const { data, error } = await client
+          .from("voyages")
+          .select("*")
+          .eq("id", id)
+          .maybeSingle();
+        if (error) throw error;
+        return (data as VoyageRow | null) ?? null;
+      } catch (e) {
+        throw mapError("find voyage by id", e);
       }
     },
 

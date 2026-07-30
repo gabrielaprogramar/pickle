@@ -23,6 +23,10 @@ import { PageHeader } from "@/components/page-header";
 import { useVessel } from "@/hooks/use-vessel";
 import { useLatestVoyage } from "@/hooks/use-latest-voyage";
 import { useLatestAisPosition } from "@/hooks/use-latest-ais-position";
+import { useVesselTrack } from "@/hooks/use-vessel-track";
+import { useEnvironmentalZones } from "@/hooks/use-environmental-zones";
+import { VesselMapView } from "@/components/map/vessel-map-view";
+import { MAJOR_MED_PORTS } from "@/lib/geo/constants";
 import { ROUTES } from "@/constants/routes";
 
 function formatTs(iso: string | null): string {
@@ -79,6 +83,12 @@ export default function VesselDetailPage() {
     isLoading: positionLoading,
     error: positionError,
   } = useLatestAisPosition(vessel?.id ?? null);
+
+  const { track } = useVesselTrack(imo);
+  const { zones } = useEnvironmentalZones();
+
+  const depPort = latestVoyage ? MAJOR_MED_PORTS[latestVoyage.departure_port_name] ?? null : null;
+  const arrPort = latestVoyage ? MAJOR_MED_PORTS[latestVoyage.arrival_port_name] ?? null : null;
 
   return (
     <div>
@@ -320,6 +330,28 @@ export default function VesselDetailPage() {
                 Ingest from MarineTraffic
               </Button>
             </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="mt-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="font-mono text-[11px] font-medium uppercase tracking-[0.1em] flex items-center gap-1.5">
+              <Navigation className="h-3.5 w-3.5 text-primary" />
+              Voyage Map
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-2">
+            <VesselMapView
+              trackPoints={track?.points}
+              vesselPosition={latestPosition ? { lat: latestPosition.latitude, lng: latestPosition.longitude } : null}
+              vesselLabel={vessel?.name}
+              departurePort={depPort ? { lat: depPort.lat, lng: depPort.lng, name: latestVoyage!.departure_port_name } : null}
+              arrivalPort={arrPort ? { lat: arrPort.lat, lng: arrPort.lng, name: latestVoyage!.arrival_port_name } : null}
+              zones={zones.map((z) => ({ id: z.id, name: z.name, category: z.category, geometryCoordinates: z.geometry_coordinates, description: z.description }))}
+              height="h-80"
+            />
           </CardContent>
         </Card>
       </div>

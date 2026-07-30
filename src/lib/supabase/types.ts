@@ -720,6 +720,163 @@ export type MrvReportInsert = {
   readonly generated_at?: string;
 };
 
+// ── 1k. ENVIRONMENTAL ZONE ROW TYPES (1:1 with migration 0009) ─────────────
+
+export type EnvironmentalZoneRow = {
+  readonly id: string;
+  readonly code: string;
+  readonly name: string;
+  readonly category: string;
+  readonly geometry_type: string;
+  readonly geometry_coordinates: unknown;
+  readonly description: string | null;
+  readonly regulation_reference: string | null;
+  readonly geometry_version: string;
+  readonly jurisdiction: string | null;
+  readonly effective_from: string;
+  readonly effective_until: string | null;
+  readonly is_active: boolean;
+  readonly created_at: string;
+  readonly updated_at: string;
+};
+
+export type EnvironmentalZoneInsert = {
+  readonly code: string;
+  readonly name: string;
+  readonly category: string;
+  readonly geometry_type: string;
+  readonly geometry_coordinates: unknown;
+  readonly description?: string | null;
+  readonly regulation_reference?: string | null;
+  readonly geometry_version?: string;
+  readonly jurisdiction?: string | null;
+  readonly effective_from: string;
+  readonly effective_until?: string | null;
+  readonly is_active?: boolean;
+};
+
+// ── 1l. PORT CALL ROW TYPES (1:1 with migration 0009) ──────────────────────
+
+export type PortCallRow = {
+  readonly id: string;
+  readonly vessel_id: string;
+  readonly voyage_id: string | null;
+  readonly port_name: string;
+  readonly port_id: string | null;
+  readonly port_country: string | null;
+  readonly port_latitude: number | null;
+  readonly port_longitude: number | null;
+  readonly arr_ts: string | null;
+  readonly dep_ts: string | null;
+  readonly is_mock: boolean;
+  readonly source: string;
+  readonly source_fetched_at: string | null;
+  readonly created_at: string;
+};
+
+export type PortCallInsert = {
+  readonly vessel_id: string;
+  readonly voyage_id?: string | null;
+  readonly port_name: string;
+  readonly port_id?: string | null;
+  readonly port_country?: string | null;
+  readonly port_latitude?: number | null;
+  readonly port_longitude?: number | null;
+  readonly arr_ts?: string | null;
+  readonly dep_ts?: string | null;
+  readonly is_mock?: boolean;
+  readonly source?: string;
+  readonly source_fetched_at?: string | null;
+};
+
+// ── 1m. ZONE EVENT ROW TYPES (1:1 with migration 0009) ────────────────────
+
+export type ZoneEventRow = {
+  readonly id: string;
+  readonly vessel_id: string;
+  readonly zone_id: string;
+  readonly event_type: string;
+  readonly ais_position_id: string | null;
+  readonly detected_at: string;
+  readonly entry_ts: string | null;
+  readonly exit_ts: string | null;
+  readonly duration_minutes: number | null;
+  readonly coordinates: unknown;
+  readonly details: unknown;
+  readonly calculation_version: string;
+  readonly created_at: string;
+};
+
+export type ZoneEventInsert = {
+  readonly vessel_id: string;
+  readonly zone_id: string;
+  readonly event_type: string;
+  readonly ais_position_id?: string | null;
+  readonly detected_at: string;
+  readonly entry_ts?: string | null;
+  readonly exit_ts?: string | null;
+  readonly duration_minutes?: number | null;
+  readonly coordinates?: unknown;
+  readonly details?: unknown;
+  readonly calculation_version?: string;
+};
+
+// ── 1n. VESSEL TRACK ROW TYPES (1:1 with migration 0009) ───────────────────
+
+export type VesselTrackRow = {
+  readonly id: string;
+  readonly vessel_id: string;
+  readonly voyage_id: string | null;
+  readonly track: unknown;
+  readonly point_count: number;
+  readonly distance_nm: number | null;
+  readonly start_ts: string;
+  readonly end_ts: string;
+  readonly calculation_version: string;
+  readonly created_at: string;
+  readonly updated_at: string;
+};
+
+export type VesselTrackInsert = {
+  readonly vessel_id: string;
+  readonly voyage_id?: string | null;
+  readonly track: unknown;
+  readonly point_count: number;
+  readonly distance_nm?: number | null;
+  readonly start_ts: string;
+  readonly end_ts: string;
+  readonly calculation_version?: string;
+};
+
+// ── 1o. MAP CONFIG ROW TYPES (1:1 with migration 0009) ─────────────────────
+
+export type MapConfigRow = {
+  readonly id: string;
+  readonly provider: string;
+  readonly tile_url: string | null;
+  readonly tile_attribution: string | null;
+  readonly default_center_lat: number;
+  readonly default_center_lng: number;
+  readonly default_zoom: number;
+  readonly min_zoom: number;
+  readonly max_zoom: number;
+  readonly is_mock: boolean;
+  readonly created_at: string;
+  readonly updated_at: string;
+};
+
+export type MapConfigInsert = {
+  readonly provider?: string;
+  readonly tile_url?: string | null;
+  readonly tile_attribution?: string | null;
+  readonly default_center_lat?: number;
+  readonly default_center_lng?: number;
+  readonly default_zoom?: number;
+  readonly min_zoom?: number;
+  readonly max_zoom?: number;
+  readonly is_mock?: boolean;
+};
+
 // ── 1f. REVIEW AUDIT LOG ROW TYPES (1:1 with migration 0005) ────────────────
 
 /** One row of the `review_audit_log` table. */
@@ -912,6 +1069,36 @@ export type Database = {
         Row: MrvReportRow;
         Insert: MrvReportInsert;
         Update: Partial<MrvReportInsert>;
+        Relationships: Relationships;
+      };
+      environmental_zones: {
+        Row: EnvironmentalZoneRow;
+        Insert: EnvironmentalZoneInsert;
+        Update: Partial<EnvironmentalZoneInsert>;
+        Relationships: Relationships;
+      };
+      port_calls: {
+        Row: PortCallRow;
+        Insert: PortCallInsert;
+        Update: Partial<PortCallInsert>;
+        Relationships: Relationships;
+      };
+      zone_events: {
+        Row: ZoneEventRow;
+        Insert: ZoneEventInsert;
+        Update: Partial<ZoneEventInsert>;
+        Relationships: Relationships;
+      };
+      vessel_tracks: {
+        Row: VesselTrackRow;
+        Insert: VesselTrackInsert;
+        Update: Partial<VesselTrackInsert>;
+        Relationships: Relationships;
+      };
+      map_config: {
+        Row: MapConfigRow;
+        Insert: MapConfigInsert;
+        Update: Partial<MapConfigInsert>;
         Relationships: Relationships;
       };
     };

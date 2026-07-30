@@ -17,6 +17,11 @@ import { Separator } from "@/components/ui/separator";
 import { PageHeader } from "@/components/page-header";
 import { ROUTES } from "@/constants/routes";
 import Link from "next/link";
+import { useVoyageDetail } from "@/hooks/use-voyage-detail";
+import { useVesselTrack } from "@/hooks/use-vessel-track";
+import { useEnvironmentalZones } from "@/hooks/use-environmental-zones";
+import { VesselMapView } from "@/components/map/vessel-map-view";
+import { MAJOR_MED_PORTS } from "@/lib/geo/constants";
 
 function formatTs(iso: string | null): string {
   if (!iso) return "—";
@@ -54,11 +59,28 @@ export default function VoyageDetailPage() {
   const params = useParams();
   const voyageId = params.id as string;
 
+  const {
+    voyage,
+    isLoading: voyageLoading,
+    error: voyageError,
+    refetch,
+  } = useVoyageDetail(voyageId);
+
+  const voyageData = voyage as Record<string, unknown> | null;
+  const imo = (voyageData?.vessel_imo as string | undefined) ?? null;
+  const { track } = useVesselTrack(imo);
+  const { zones } = useEnvironmentalZones();
+
+  const depCoords = voyage ? (MAJOR_MED_PORTS[voyage.departure_port_name] ?? null) : null;
+  const arrCoords = voyage ? (MAJOR_MED_PORTS[voyage.arrival_port_name] ?? null) : null;
+  const depPort: { lat: number; lng: number; name: string } | null = depCoords ? { lat: depCoords.lat, lng: depCoords.lng, name: voyage!.departure_port_name } : null;
+  const arrPort: { lat: number; lng: number; name: string } | null = arrCoords ? { lat: arrCoords.lat, lng: arrCoords.lng, name: voyage!.arrival_port_name } : null;
+
   return (
     <div>
       <PageHeader
-        title="Voyage Detail"
-        description={`Voyage ID: ${voyageId}`}
+        title={voyageLoading ? "Loading…" : voyage ? `${voyage.departure_port_name} → ${voyage.arrival_port_name}` : "Voyage Detail"}
+        description={voyage ? `Voyage ${voyageId.slice(0, 8)}${voyageData?.vessel_name ? ` · ${String(voyageData.vessel_name)}` : ""}` : `Voyage ID: ${voyageId}`}
         actions={
           <Button variant="outline" size="sm" asChild>
             <Link href={ROUTES.voyages}>
@@ -69,8 +91,18 @@ export default function VoyageDetailPage() {
         }
       />
 
+      {voyageError && (
+        <div className="mb-4">
+          <ErrorBanner
+            message={voyageError.message}
+            code={"API_ERROR"}
+            onRetry={refetch}
+          />
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Card className="lg:col-span-2">
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="font-mono text-[11px] font-medium uppercase tracking-[0.1em] flex items-center gap-1.5">
               <Navigation className="h-3.5 w-3.5 text-primary" />
@@ -81,17 +113,69 @@ export default function VoyageDetailPage() {
             </Badge>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center justify-center py-8 text-xs text-muted-foreground">
-              <div className="text-center">
-                <Route className="h-8 w-8 mx-auto mb-2 text-muted-foreground/40" />
-                <p className="font-medium">Detailed voyage view</p>
-                <p className="mt-1 text-[10px]">
-                  A dedicated voyage endpoint (GET /api/voyages/[id]) will enable
-                  this page to display full voyage data. Currently, voyage
-                  information is visible in the Voyages list and Vessel Detail pages.
-                </p>
+            {voyageLoading ? (
+              <div className="space-y-3">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <Skeleton key={i} className="h-4 w-full" />
+                ))}
               </div>
-            </div>
+            ) : voyage ? (
+              <div>
+                <div className="flex items-start gap-3">
+                  <div className="flex flex-col items-center gap-1">
+                    <Anchor className="h-3.5 w-3.5 text-success" />
+                    <div className="w-px h-6 bg-border" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs font-medium">{voyage.departure_port_name}</p>
+                    <p className="text-[10px] text-muted-foreground font-mono-technical">
+                      {formatTs(voyage.departure_time ?? null)}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 mt-1">
+                  <div className="flex flex-col items-center gap-1">
+                    <MapPin className="h-3.5 w-3.5 text-destructive" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs font-medium">{voyage.arrival_port_name}</p>
+                    <p className="text-[10px] text-muted-foreground font-mono-technical">
+                      {formatTs(voyage.arrival_time ?? null)}
+                    </p>
+                  </div>
+                </div>
+                <Separator className="my-2" />
+                <InfoRow label="Distance" value={voyage.distance_nm != null ? `${voyage.distance_nm} nm` : "—"} mono />
+                <InfoRow label="IMO" value={voyageData?.vessel_imo != null ? String(voyageData.vessel_imo) : "—"} mono />
+                <InfoRow label="Vessel" value={voyageData?.vessel_name != null ? String(voyageData.vessel_name) : "—"} />
+                <InfoRow label="Fetched" value={formatTs(voyage.source_fetched_at)} />
+              </div>
+            ) : (
+              <div className="flex items-center justify-center py-6 text-xs text-muted-foreground">
+                <div className="text-center">
+                  <Route className="h-8 w-8 mx-auto mb-2 text-muted-foreground/40" />
+                  <p>Voyage not found</p>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="font-mono text-[11px] font-medium uppercase tracking-[0.1em] flex items-center gap-1.5">
+              <MapPin className="h-3.5 w-3.5 text-primary" />
+              Route Map
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-2">
+            <VesselMapView
+              trackPoints={track?.points}
+              departurePort={depPort}
+              arrivalPort={arrPort}
+              zones={zones.map((z) => ({ id: z.id, name: z.name, category: z.category, geometryCoordinates: z.geometry_coordinates, description: z.description }))}
+              height="h-64"
+            />
           </CardContent>
         </Card>
       </div>

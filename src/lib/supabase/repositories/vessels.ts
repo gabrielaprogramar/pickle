@@ -36,6 +36,8 @@ export interface VesselRepository {
   upsertByImo(input: VesselInsert): Promise<VesselRow>;
   /** Look up a vessel by IMO. Returns null when no vessel exists for it. */
   findByImo(imo: string): Promise<VesselRow | null>;
+  /** Look up a vessel by internal UUID. Returns null if not found. */
+  findById(id: string): Promise<VesselRow | null>;
   /** List vessels newest-first as a paginated Page. */
   findAll(pagination?: Partial<PaginationOptions>): Promise<Page<VesselRow>>;
 }
@@ -83,6 +85,22 @@ export function createVesselRepository(
         return (data as VesselRow | null) ?? null;
       } catch (e) {
         throw mapError("find vessel by IMO", e);
+      }
+    },
+
+    async findById(id: string): Promise<VesselRow | null> {
+      try {
+        const client = getClient();
+        const { data, error } = await client
+          .from("vessels")
+          .select()
+          .eq("id", id)
+          .maybeSingle();
+
+        if (error) throw error;
+        return (data as VesselRow | null) ?? null;
+      } catch (e) {
+        throw mapError("find vessel by id", e);
       }
     },
 

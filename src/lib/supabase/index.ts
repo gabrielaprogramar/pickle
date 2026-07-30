@@ -74,6 +74,20 @@ export type {
   MrvReportInsert,
 } from "./types";
 
+// Phase 2C.4 domain row types + insert payloads.
+export type {
+  EnvironmentalZoneRow,
+  EnvironmentalZoneInsert,
+  PortCallRow,
+  PortCallInsert,
+  ZoneEventRow,
+  ZoneEventInsert,
+  VesselTrackRow,
+  VesselTrackInsert,
+  MapConfigRow,
+  MapConfigInsert,
+} from "./types";
+
 // Document domain row types + insert payloads.
 export type {
   DocumentRow,
