@@ -26,7 +26,7 @@ export type {
 export { createValidator, assembleReport, VALIDATOR_VER } from "./validator";
 
 // Rules engine.
-export { runAllRules, ALL_RULES } from "./rules";
+export { runAllRules, ALL_RULES, RULE_REGISTRY, buildRuleRegistry } from "./rules";
 
 // Mock provider (exported for tests).
 export { createMockValidator, MOCK_VALIDATION_FIXTURES } from "./mock-validator";
@@ -34,3 +34,18 @@ export { createMockValidator, MOCK_VALIDATION_FIXTURES } from "./mock-validator"
 // Rule engine.
 export { RuleRegistry, createRule, toValidationContext } from "./rule-engine";
 export type { IRuleRegistry } from "./rule-engine";
+
+// Calculations.
+export {
+  calculateFuelTotals,
+  calculateEmissionsMetrics,
+  calculateVoyageMetrics,
+  calculateCiiMetrics,
+  calculateFuelEuMetrics,
+  checkEmissionsConsistency,
+} from "./calculations";
+export type { FuelTotals, EmissionsMetrics, VoyageMetrics, CiiMetrics, FuelEuMetrics, EmissionsConsistency } from "./calculations";
+
+// Cross-document validation.
+export { runCrossDocumentValidations, CROSS_DOCUMENT_RULES } from "./cross-document";
+export type { CrossDocumentValidationResult, CrossDocumentInput } from "./types";

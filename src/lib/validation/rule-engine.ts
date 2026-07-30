@@ -54,7 +54,7 @@ export function createRule(
   category: ValidationCategory,
   defaultSeverity: Exclude<import("./types").ValidationSeverity, null>,
   appliesTo: readonly string[],
-  validateFn: (ctx: ValidationContext) => Pick<ValidationRuleResult, "passed" | "message" | "field">,
+  validateFn: (ctx: ValidationContext) => Pick<ValidationRuleResult, "passed" | "message" | "field"> & Partial<Pick<ValidationRuleResult, "remediation" | "ruleConfidence">>,
 ): ValidationRule {
   return {
     id,
@@ -72,6 +72,8 @@ export function createRule(
         severity: result.passed ? null : defaultSeverity,
         message: result.message,
         field: result.field,
+        remediation: result.remediation,
+        ruleConfidence: result.ruleConfidence,
       };
     },
   };

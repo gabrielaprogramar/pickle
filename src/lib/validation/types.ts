@@ -49,6 +49,27 @@ export interface ValidationRuleResult {
   readonly message: string;
   /** Optional field name this finding relates to. */
   readonly field?: string;
+  /** Confidence score 0–1 for this specific rule result (optional). */
+  readonly ruleConfidence?: number;
+  /** Remediation guidance for fixing the issue (optional). */
+  readonly remediation?: string;
+}
+
+/** Input for cross-document validation. */
+export interface CrossDocumentInput {
+  readonly extractions: ValidationInput[];
+  readonly vesselImo?: string;
+}
+
+/** Result of a cross-document validation check. */
+export interface CrossDocumentValidationResult {
+  readonly ruleId: string;
+  readonly ruleName: string;
+  readonly passed: boolean;
+  readonly severity: ValidationSeverity;
+  readonly message: string;
+  readonly remediation?: string;
+  readonly ruleConfidence?: number;
 }
 
 // ── Validation Report ────────────────────────────────────────────────────────

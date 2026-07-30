@@ -376,6 +376,9 @@ const imoDcsRules: ValidationRule[] = [
         ? "All DCS required fields present"
         : `Missing DCS fields: ${missing.join(", ")}`,
       field: "imoNumber",
+      remediation: missing.length > 0
+        ? "Ensure the DCS document contains IMO number, vessel name, ship type, rating year, CII rating, and CII values. Re-run extraction if fields are missing."
+        : undefined,
     };
   }),
 
@@ -386,6 +389,7 @@ const imoDcsRules: ValidationRule[] = [
       passed: n > 0,
       message: n > 0 ? `Fuel total ${n} tonnes is positive` : `Fuel total ${n} must be > 0`,
       field: "quantityTonnes",
+      remediation: n <= 0 ? "Fuel total must be greater than zero. Verify the extracted value against the DCS document." : undefined,
     };
   }),
 
@@ -408,6 +412,7 @@ const imoDcsRules: ValidationRule[] = [
       passed,
       message: passed ? "Arrival date is after departure date" : "Arrival date must be after departure date",
       field: "arrivalDate",
+      remediation: !passed ? "Arrival date is before or equal to departure date. Verify both dates in the source document." : undefined,
     };
   }),
 
@@ -419,6 +424,7 @@ const imoDcsRules: ValidationRule[] = [
       passed,
       message: passed ? `CII rating "${s}" is valid` : `CII rating "${s}" must be a single letter A-E`,
       field: "ciiRating",
+      remediation: !passed ? "CII rating must be a single letter from A to E. Verify the extracted value." : undefined,
     };
   }),
 ];
@@ -435,6 +441,9 @@ const euMrvRules: ValidationRule[] = [
         ? "All MRV required fields present"
         : `Missing MRV fields: ${missing.join(", ")}`,
       field: "imoNumber",
+      remediation: missing.length > 0
+        ? "Ensure the EU MRV document contains IMO number, vessel name, reporting period, total CO₂ tonnes, and monitoring methodology. Re-run extraction if fields are missing."
+        : undefined,
     };
   }),
 
@@ -451,6 +460,9 @@ const euMrvRules: ValidationRule[] = [
         ? "All emissions values are non-negative"
         : `Negative emission values: ${issues.join(", ")}`,
       field: fields[0],
+      remediation: issues.length > 0
+        ? "Emissions values cannot be negative. Verify the extracted values in the MRV document."
+        : undefined,
     };
   }),
 
@@ -461,6 +473,7 @@ const euMrvRules: ValidationRule[] = [
       passed: n >= 0,
       message: n >= 0 ? `Allocated allowances ${n} is valid` : `Allocated allowances ${n} must be >= 0`,
       field: "allocatedAllowances",
+      remediation: n !== undefined && n < 0 ? "Allocated allowances must be a non-negative number." : undefined,
     };
   }),
 
@@ -470,6 +483,7 @@ const euMrvRules: ValidationRule[] = [
       passed: !!s && s.length > 0,
       message: s ? `Monitoring methodology: ${s}` : "Monitoring methodology is missing",
       field: "monitoringMethodology",
+      remediation: !s || s.length === 0 ? "Monitoring methodology is required for EU MRV compliance. Add the methodology (e.g., BDN, direct measurement)." : undefined,
     };
   }),
 ];
@@ -483,6 +497,7 @@ const bdnRules: ValidationRule[] = [
       passed: !!s && s.length > 0,
       message: s ? `Supplier: ${s}` : "Supplier is missing",
       field: "supplier",
+      remediation: !s || s.length === 0 ? "Supplier name is required on BDN. Verify the document image." : undefined,
     };
   }),
 
@@ -492,6 +507,7 @@ const bdnRules: ValidationRule[] = [
       passed: !!s && s.length > 0,
       message: s ? `Fuel grade: ${s}` : "Fuel grade is missing",
       field: "fuelType",
+      remediation: !s || s.length === 0 ? "Fuel grade/type is required on BDN. Verify the document image." : undefined,
     };
   }),
 
@@ -502,6 +518,7 @@ const bdnRules: ValidationRule[] = [
       passed: n > 0,
       message: n > 0 ? `Quantity ${n} tonnes > 0` : `Quantity ${n} must be > 0`,
       field: "quantityTonnes",
+      remediation: n <= 0 ? "Bunkered quantity must be greater than zero. Verify the extracted value." : undefined,
     };
   }),
 
@@ -511,6 +528,7 @@ const bdnRules: ValidationRule[] = [
       passed: !!s,
       message: s ? `Delivery date: ${s}` : "Delivery date is missing",
       field: "deliveryDate",
+      remediation: !s ? "Delivery date is required on BDN. Verify the document image." : undefined,
     };
   }),
 
@@ -520,6 +538,7 @@ const bdnRules: ValidationRule[] = [
       passed: !!s && s.length > 0,
       message: s ? `BDN reference: ${s}` : "BDN reference is missing",
       field: "bdnReference",
+      remediation: !s || s.length === 0 ? "BDN reference number may be required for audit trails. Verify the document image." : undefined,
     };
   }),
 ];
@@ -536,6 +555,9 @@ const noonReportRules: ValidationRule[] = [
         ? "All Noon Report required fields present"
         : `Missing Noon Report fields: ${missing.join(", ")}`,
       field: "imoNumber",
+      remediation: missing.length > 0
+        ? "Ensure the Noon Report contains IMO number, vessel name, report date, and position coordinates. Re-run extraction if fields are missing."
+        : undefined,
     };
   }),
 
@@ -547,6 +569,7 @@ const noonReportRules: ValidationRule[] = [
       passed,
       message: passed ? `RPM ${n} is within 0–500 range` : `RPM ${n} exceeds typical range (0–500)`,
       field: "engineRpm",
+      remediation: n !== undefined && !passed ? "RPM value exceeds typical marine engine range (0–500). Verify the extracted value." : undefined,
     };
   }),
 
@@ -558,6 +581,7 @@ const noonReportRules: ValidationRule[] = [
       passed,
       message: passed ? `Speed ${n} knots is within 0–60 range` : `Speed ${n} knots exceeds typical range (0–60)`,
       field: "speedKnots",
+      remediation: n !== undefined && !passed ? "Vessel speed exceeds typical maximum (60 knots). Verify the extracted value." : undefined,
     };
   }),
 
@@ -575,6 +599,7 @@ const noonReportRules: ValidationRule[] = [
         ? `Position (${lat}, ${lng}) is within valid ranges`
         : `Position (${lat}, ${lng}) is outside valid range (lat: ±90, lng: ±180)`,
       field: "positionLatitude",
+      remediation: !(latOk && lngOk) ? "Latitude must be between -90 and 90, longitude between -180 and 180. Verify coordinates." : undefined,
     };
   }),
 
@@ -588,6 +613,7 @@ const noonReportRules: ValidationRule[] = [
       passed: issues.length === 0,
       message: issues.length === 0 ? "Weather fields are reasonable" : issues.join("; "),
       field: "windSpeedKnots",
+      remediation: issues.length > 0 ? "Wind speed exceeds typical maximum (150 knots). Verify the extracted value." : undefined,
     };
   }),
 ];
@@ -604,6 +630,9 @@ const logbookRules: ValidationRule[] = [
         ? "All Logbook required fields present"
         : `Missing Logbook fields: ${missing.join(", ")}`,
       field: "imoNumber",
+      remediation: missing.length > 0
+        ? "Ensure the Logbook entry contains IMO number, vessel name, entry date, and entry type. Re-run extraction if fields are missing."
+        : undefined,
     };
   }),
 
@@ -621,6 +650,7 @@ const logbookRules: ValidationRule[] = [
         ? `Position (${lat}, ${lng}) is valid`
         : `Position (${lat}, ${lng}) is outside valid range`,
       field: "positionLatitude",
+      remediation: !(latOk && lngOk) ? "Latitude must be between -90 and 90, longitude between -180 and 180. Verify coordinates." : undefined,
     };
   }),
 
@@ -645,6 +675,125 @@ const logbookRules: ValidationRule[] = [
   }),
 ];
 
+// ── FuelEU Maritime Rule Group ───────────────────────────────────────────────
+
+const fuelEuRules: ValidationRule[] = [
+  createRule("fueleu.required_fields", "All FuelEU required fields present", "structural", "blocking", ["fuel_eu"], (ctx) => {
+    const required = ["imoNumber", "vesselName", "reportingPeriod", "totalEnergyMwh", "ghgIntensityWtw", "ghgIntensityTtw"];
+    const missing = required.filter((f) => !present(ctx, f));
+    return {
+      passed: missing.length === 0,
+      message: missing.length === 0
+        ? "All FuelEU required fields present"
+        : `Missing FuelEU fields: ${missing.join(", ")}`,
+      field: "imoNumber",
+      remediation: missing.length > 0
+        ? "Ensure the document contains IMO number, vessel name, reporting period, total energy (MWh), and GHG intensity values (WTW and TTW). Re-run extraction if fields are missing."
+        : undefined,
+    };
+  }),
+
+  createRule("fueleu.energy_positive", "Total energy is positive", "maritime", "error", ["fuel_eu"], (ctx) => {
+    const n = num(ctx, "totalEnergyMwh");
+    if (n === undefined) return { passed: true, message: "Total energy not provided", field: "totalEnergyMwh" };
+    return {
+      passed: n > 0,
+      message: n > 0 ? `Total energy ${n} MWh is positive` : `Total energy ${n} MWh must be > 0`,
+      field: "totalEnergyMwh",
+      remediation: n <= 0 ? "Total energy consumption must be greater than zero. Verify the extracted value." : undefined,
+    };
+  }),
+
+  createRule("fueleu.ghg_intensity_range", "GHG intensity values are within plausible range", "maritime", "warning", ["fuel_eu"], (ctx) => {
+    const wtw = num(ctx, "ghgIntensityWtw");
+    const ttw = num(ctx, "ghgIntensityTtw");
+    const issues: string[] = [];
+    if (wtw !== undefined && (wtw < 0 || wtw > 200)) issues.push(`WTW ${wtw} outside 0–200 range`);
+    if (ttw !== undefined && (ttw < 0 || ttw > 150)) issues.push(`TTW ${ttw} outside 0–150 range`);
+    return {
+      passed: issues.length === 0,
+      message: issues.length === 0
+        ? "GHG intensity values are within plausible ranges"
+        : `GHG intensity issues: ${issues.join("; ")}`,
+      field: "ghgIntensityWtw",
+      remediation: issues.length > 0
+        ? "GHG intensity values outside typical maritime fuel ranges. Verify the extracted values against the source document."
+        : undefined,
+      ruleConfidence: 0.85,
+    };
+  }),
+
+  createRule("fueleu.wtw_greater_than_ttw", "WTW intensity >= TTW intensity", "maritime", "error", ["fuel_eu"], (ctx) => {
+    const wtw = num(ctx, "ghgIntensityWtw");
+    const ttw = num(ctx, "ghgIntensityTtw");
+    if (wtw === undefined || ttw === undefined) {
+      return { passed: true, message: "Insufficient GHG data for WTW vs TTW comparison", field: "ghgIntensityWtw" };
+    }
+    const passed = wtw >= ttw;
+    return {
+      passed,
+      message: passed
+        ? `WTW (${wtw}) >= TTW (${ttw}) — consistent`
+        : `WTW (${wtw}) < TTW (${ttw}) — WTW should be >= TTW as it includes well-to-tank`,
+      field: "ghgIntensityWtw",
+      remediation: !passed
+        ? "Well-to-Wake intensity should be greater than or equal to Tank-to-Wake. This may indicate an extraction error."
+        : undefined,
+    };
+  }),
+
+  createRule("fueleu.compliance_status", "FuelEU compliance status is determinable", "maritime", "info", ["fuel_eu"], (ctx) => {
+    const isCompliant = val(ctx, "isCompliant");
+    if (isCompliant === undefined || isCompliant === null) {
+      return { passed: true, message: "Compliance status not provided", field: "isCompliant" };
+    }
+    const passed = typeof isCompliant === "boolean";
+    return {
+      passed,
+      message: passed
+        ? `Compliance status: ${isCompliant ? "Compliant" : "Non-compliant"}`
+        : "Compliance status must be a boolean value",
+      field: "isCompliant",
+    };
+  }),
+
+  createRule("fueleu.fuel_breakdown", "Fuel breakdown data is present when expected", "structural", "info", ["fuel_eu"], (ctx) => {
+    const breakdown = val(ctx, "fuelBreakdown");
+    if (breakdown === undefined || breakdown === null) {
+      return { passed: true, message: "Fuel breakdown not provided (optional)", field: "fuelBreakdown" };
+    }
+    const arr = Array.isArray(breakdown) ? breakdown : [breakdown];
+    const passed = arr.length > 0;
+    return {
+      passed,
+      message: passed
+        ? `Fuel breakdown with ${arr.length} fuel type(s) present`
+        : "Fuel breakdown is empty",
+      field: "fuelBreakdown",
+      remediation: !passed
+        ? "If the document contains fuel type data, re-run extraction. Otherwise, this is informational."
+        : undefined,
+    };
+  }),
+
+  createRule("fueleu.reduction_percentage", "GHG reduction percentage trend is valid", "maritime", "info", ["fuel_eu"], (ctx) => {
+    const reduction = num(ctx, "euRelativeGhgIntensity");
+    if (reduction === undefined) return { passed: true, message: "Reduction percentage not provided", field: "euRelativeGhgIntensity" };
+    const passed = reduction >= -100 && reduction <= 100;
+    return {
+      passed,
+      message: passed
+        ? `Relative GHG intensity ${reduction}% is within valid range`
+        : `Relative GHG intensity ${reduction}% is outside expected range (-100% to +100%)`,
+      field: "euRelativeGhgIntensity",
+      remediation: !passed
+        ? "GHG reduction percentage should be between -100% and +100%. Verify the extracted value."
+        : undefined,
+      ruleConfidence: 0.9,
+    };
+  }),
+];
+
 // ── Cross-Field Validation Rules ──────────────────────────────────────────────
 
 const crossFieldRules: ValidationRule[] = [
@@ -662,6 +811,9 @@ const crossFieldRules: ValidationRule[] = [
         ? `Fuel consumed (${consumed}t) ≤ fuel remaining (${total}t)`
         : `Fuel consumed (${consumed}t) exceeds fuel remaining (${total}t) — possible data error`,
       field: "fuelConsumptionTonnes",
+      remediation: !passed
+        ? "Fuel consumption exceeds the total of consumed + remaining fuel. Verify fuel consumption and ROB values."
+        : undefined,
     };
   }),
 
@@ -674,6 +826,7 @@ const crossFieldRules: ValidationRule[] = [
       passed,
       message: passed ? "Arrival date is after departure date" : "Arrival date must be after departure date",
       field: "arrivalDate",
+      remediation: !passed ? "Arrival date is before or equal to departure date. Verify both dates." : undefined,
     };
   }),
 
@@ -691,6 +844,9 @@ const crossFieldRules: ValidationRule[] = [
         ? `Distance ${distance}nm at ${speed}kts gives ~${estimatedHours.toFixed(1)}h voyage — plausible`
         : `Distance ${distance}nm at ${speed}kts gives ~${estimatedHours.toFixed(1)}h — seems excessive`,
       field: "distanceToGoNm",
+      remediation: !passed
+        ? "Distance at current speed would take more than 30 days. Verify distance or speed values."
+        : undefined,
     };
   }),
 
@@ -710,6 +866,9 @@ const crossFieldRules: ValidationRule[] = [
         ? `Engine hours ${engineHrs}h is consistent with voyage duration ${voyageHrs.toFixed(1)}h`
         : `Engine hours ${engineHrs}h seems inconsistent with voyage duration ${voyageHrs.toFixed(1)}h (ratio ${ratio.toFixed(2)})`,
       field: "engineHours",
+      remediation: !passed
+        ? "Engine hours are inconsistent with voyage duration. Verify engine hours and voyage distance/speed."
+        : undefined,
     };
   }),
 
@@ -727,6 +886,7 @@ const crossFieldRules: ValidationRule[] = [
         ? `Coordinates (${lat}, ${lng}) are within legal ranges`
         : `Coordinates (${lat}, ${lng}) are outside legal ranges (lat: ±90, lng: ±180)`,
       field: "positionLatitude",
+      remediation: !(latOk && lngOk) ? "Latitude must be between -90 and 90, longitude between -180 and 180. Verify coordinates." : undefined,
     };
   }),
 
@@ -742,6 +902,7 @@ const crossFieldRules: ValidationRule[] = [
       passed,
       message: passed ? "Date is within a reasonable range" : "Date is more than 1 year from today — verify",
       field: "deliveryDate",
+      remediation: !passed ? "The date is more than 1 year from the current date. Verify the document date." : undefined,
     };
   }),
 ];
@@ -759,6 +920,7 @@ export function buildRuleRegistry(): RuleRegistry {
   registry.registerMany(noonReportRules);
   registry.registerMany(logbookRules);
   registry.registerMany(crossFieldRules);
+  registry.registerMany(fuelEuRules);
   return registry;
 }
 
