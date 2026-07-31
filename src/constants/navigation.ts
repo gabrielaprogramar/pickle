@@ -14,6 +14,7 @@ import {
   Bot,
   Search,
   LifeBuoy,
+  Wrench,
   type LucideIcon,
 } from "lucide-react";
 import { ROUTES } from "./routes";
@@ -73,6 +74,11 @@ export const NAVIGATION: readonly NavSection[] = [
         label: "Captain",
         href: ROUTES.captainAssistant,
         icon: LifeBuoy,
+      },
+      {
+        label: "Maintenance",
+        href: ROUTES.maintenanceAssistant,
+        icon: Wrench,
       },
       {
         label: "MarineTraffic",

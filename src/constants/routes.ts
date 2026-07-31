@@ -19,4 +19,5 @@ export const ROUTES = {
   complianceAssistant: "/compliance-assistant",
   poseidonSearch: "/search",
   captainAssistant: "/captain",
+  maintenanceAssistant: "/maintenance",
 } as const;

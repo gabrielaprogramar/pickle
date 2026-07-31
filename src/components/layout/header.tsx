@@ -30,6 +30,7 @@ const ROUTE_LABELS: Record<string, string> = {
   "compliance-assistant": "Compliance Assistant",
   search: "Poseidon Search",
   captain: "Captain Assistant",
+  maintenance: "Maintenance Assistant",
 };
 
 export function AppHeader() {

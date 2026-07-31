@@ -19,7 +19,12 @@ export type NotificationEventType =
   | "iscc_certificate_missing"
   | "report_generated"
   | "verifier_package_generated"
-  | "verifier_package_failed";
+  | "verifier_package_failed"
+  | "survey_due"
+  | "survey_overdue"
+  | "certificate_expiring"
+  | "monitoring_plan_review_due"
+  | "blocking_maintenance_detected";
 
 export interface NotificationEvent {
   readonly type: NotificationEventType;
