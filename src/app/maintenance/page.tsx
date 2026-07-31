@@ -17,6 +17,7 @@ import {
   Clock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AssistantPageContainer } from "@/components/shared/assistant-page-container";
 
 type SurveyStatus = "CURRENT" | "UPCOMING" | "DUE_SOON" | "OVERDUE" | "BLOCKING" | "UNKNOWN";
 
@@ -184,7 +185,7 @@ export default function MaintenancePage() {
   }, [scenario]);
 
   return (
-    <div className="mx-auto flex min-h-[calc(100vh-3rem)] w-full max-w-6xl flex-col gap-4 px-4 py-5 -m-4 lg:-m-6 lg:px-6">
+    <AssistantPageContainer>
       <div className="flex items-center gap-3">
         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-[#00B89F]/40 bg-[#00B89F]/10">
           <Wrench className="h-6 w-6 text-[#00B89F]" />
@@ -220,9 +221,9 @@ export default function MaintenancePage() {
       </div>
 
       {/* Desktop operational grid */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:items-start">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 xl:grid-cols-[minmax(0,1fr)_minmax(280px,340px)] lg:items-start">
         {/* Main column: status data */}
-        <div className="flex min-w-0 flex-col gap-4 lg:col-span-2">
+        <div className="flex min-w-0 flex-col gap-4 lg:col-span-2 xl:col-span-1">
           {/* Survey schedule */}
           {answer?.schedule && answer.schedule.length > 0 && (
             <>
@@ -514,6 +515,6 @@ export default function MaintenancePage() {
           Survey posture only · deterministic statuses · not a CMMS
         </p>
       </div>
-    </div>
+    </AssistantPageContainer>
   );
 }

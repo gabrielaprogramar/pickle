@@ -15,6 +15,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AssistantPageContainer } from "@/components/shared/assistant-page-container";
 
 // --- Types (subset of the CaptainAnswer contract) ---
 
@@ -207,7 +208,7 @@ export default function CaptainPage() {
   const readiness = answer?.readiness;
 
   return (
-    <div className="mx-auto flex min-h-[calc(100vh-3rem)] w-full max-w-6xl flex-col gap-4 px-4 py-5 -m-4 lg:-m-6 lg:px-6">
+    <AssistantPageContainer>
       {/* Vessel header */}
       <div className="flex items-center gap-3">
         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-[#00B89F]/40 bg-[#00B89F]/10">
@@ -272,9 +273,9 @@ export default function CaptainPage() {
       )}
 
       {/* Desktop operational grid */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:items-start">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 xl:grid-cols-[minmax(0,1fr)_minmax(280px,340px)] lg:items-start">
         {/* Left: checklist / answer */}
-        <div className="flex min-w-0 flex-col gap-4 lg:col-span-2">
+        <div className="flex min-w-0 flex-col gap-4 lg:col-span-2 xl:col-span-1">
           {readiness && (
             <>
               <SectionLabel>Checklist</SectionLabel>
@@ -432,6 +433,6 @@ export default function CaptainPage() {
           BDN inbox: imo9074729@docs.poseidonledger.com · Advisory only
         </p>
       </div>
-    </div>
+    </AssistantPageContainer>
   );
 }
