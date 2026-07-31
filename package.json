@@ -10,7 +10,7 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "verify:mt": "tsx scripts/verify-marinetraffic.ts",
-    "test": "npm run test:parse && npm run test:mock && npm run test:client && npm run test:supabase && npm run test:fuel && npm run test:euets && npm run test:mrv && npm run test:ocr && npm run test:storage && npm run test:ai && npm run test:validation && npm run test:services && npm run test:email_ingress && npm run test:assistant",
+    "test": "npm run test:parse && npm run test:mock && npm run test:client && npm run test:supabase && npm run test:fuel && npm run test:euets && npm run test:mrv && npm run test:ocr && npm run test:storage && npm run test:ai && npm run test:validation && npm run test:services && npm run test:email_ingress && npm run test:assistant && npm run test:search",
     "test:parse": "tsx src/lib/marinetraffic/__tests__/parse.test.ts",
     "test:mock": "tsx src/lib/marinetraffic/__tests__/mockTransport.test.ts",
     "test:client": "tsx src/lib/marinetraffic/__tests__/client.test.ts",
@@ -74,7 +74,15 @@
     "test:compliance_templates": "tsx src/lib/compliance-assistant/__tests__/response-templates.test.ts",
     "test:compliance_handoff": "tsx src/lib/compliance-assistant/__tests__/handoff.test.ts",
     "test:compliance_service": "tsx src/lib/compliance-assistant/__tests__/compliance-service.test.ts",
-    "test:compliance": "npm run test:compliance_system_prompt && npm run test:compliance_templates && npm run test:compliance_handoff && npm run test:compliance_service"
+    "test:compliance": "npm run test:compliance_system_prompt && npm run test:compliance_templates && npm run test:compliance_handoff && npm run test:compliance_service",
+    "test:search_parser": "tsx src/lib/search-assistant/__tests__/query-parser.test.ts",
+    "test:search_validator": "tsx src/lib/search-assistant/__tests__/query-validator.test.ts",
+    "test:search_tools": "tsx src/lib/search-assistant/__tests__/search-tools.test.ts",
+    "test:search_handoff": "tsx src/lib/search-assistant/__tests__/handoff.test.ts",
+    "test:search_service": "tsx src/lib/search-assistant/__tests__/search-service.test.ts",
+    "test:search_saved": "tsx src/lib/search-assistant/__tests__/saved-searches.test.ts",
+    "test:search_memory": "tsx src/lib/search-assistant/__tests__/search-memory.test.ts",
+    "test:search": "npm run test:search_parser && npm run test:search_validator && npm run test:search_tools && npm run test:search_handoff && npm run test:search_service && npm run test:search_saved && npm run test:search_memory"
   },
   "dependencies": {
     "@google-cloud/documentai": "^9.6.2",

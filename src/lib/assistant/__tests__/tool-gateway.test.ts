@@ -7,7 +7,7 @@ describe("ToolGateway", () => {
     const toolSvc = createMockStructuredToolService();
     const gateway = createToolGateway({ toolService: toolSvc });
     const tools = gateway.getAvailableTools();
-    expect(tools.length).toBe(10);
+    expect(tools.length).toBe(15);
   });
 
   it("getTool returns a specific tool definition", async () => {

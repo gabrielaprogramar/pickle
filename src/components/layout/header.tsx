@@ -28,6 +28,7 @@ const ROUTE_LABELS: Record<string, string> = {
   analytics: "Analytics",
   settings: "Settings",
   "compliance-assistant": "Compliance Assistant",
+  search: "Poseidon Search",
 };
 
 export function AppHeader() {

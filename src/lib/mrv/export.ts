@@ -111,7 +111,7 @@ function escapeCsv(s: string): string {
   return s;
 }
 
-function simpleHash(content: string): string {
+export function simpleHash(content: string): string {
   let hash = 0;
   for (let i = 0; i < content.length; i++) {
     const char = content.charCodeAt(i);

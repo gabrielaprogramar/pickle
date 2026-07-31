@@ -12,6 +12,7 @@ import {
   BarChart3,
   Settings,
   Bot,
+  Search,
   type LucideIcon,
 } from "lucide-react";
 import { ROUTES } from "./routes";
@@ -61,6 +62,11 @@ export const NAVIGATION: readonly NavSection[] = [
         label: "Compliance Assistant",
         href: ROUTES.complianceAssistant,
         icon: ShieldCheck,
+      },
+      {
+        label: "Poseidon Search",
+        href: ROUTES.poseidonSearch,
+        icon: Search,
       },
       {
         label: "MarineTraffic",

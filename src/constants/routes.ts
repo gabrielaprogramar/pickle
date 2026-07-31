@@ -17,4 +17,5 @@ export const ROUTES = {
   settings: "/settings",
   assistant: "/assistant",
   complianceAssistant: "/compliance-assistant",
+  poseidonSearch: "/search",
 } as const;
