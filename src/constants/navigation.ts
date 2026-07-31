@@ -13,6 +13,7 @@ import {
   Settings,
   Bot,
   Search,
+  LifeBuoy,
   type LucideIcon,
 } from "lucide-react";
 import { ROUTES } from "./routes";
@@ -67,6 +68,11 @@ export const NAVIGATION: readonly NavSection[] = [
         label: "Poseidon Search",
         href: ROUTES.poseidonSearch,
         icon: Search,
+      },
+      {
+        label: "Captain",
+        href: ROUTES.captainAssistant,
+        icon: LifeBuoy,
       },
       {
         label: "MarineTraffic",

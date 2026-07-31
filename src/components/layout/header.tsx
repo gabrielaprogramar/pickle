@@ -29,6 +29,7 @@ const ROUTE_LABELS: Record<string, string> = {
   settings: "Settings",
   "compliance-assistant": "Compliance Assistant",
   search: "Poseidon Search",
+  captain: "Captain Assistant",
 };
 
 export function AppHeader() {
