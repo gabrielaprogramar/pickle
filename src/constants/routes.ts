@@ -20,4 +20,5 @@ export const ROUTES = {
   poseidonSearch: "/search",
   captainAssistant: "/captain",
   maintenanceAssistant: "/maintenance",
+  voyageAssistant: "/voyage",
 } as const;

@@ -207,7 +207,7 @@ export default function CaptainPage() {
   const readiness = answer?.readiness;
 
   return (
-    <div className="mx-auto flex min-h-[calc(100vh-3rem)] w-full max-w-xl flex-col gap-4 px-4 py-5 -m-4 lg:-m-6">
+    <div className="mx-auto flex min-h-[calc(100vh-3rem)] w-full max-w-6xl flex-col gap-4 px-4 py-5 -m-4 lg:-m-6 lg:px-6">
       {/* Vessel header */}
       <div className="flex items-center gap-3">
         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-[#00B89F]/40 bg-[#00B89F]/10">
@@ -244,168 +244,179 @@ export default function CaptainPage() {
         ))}
       </div>
 
-      {/* Status-first readiness card */}
+      {/* Status-first readiness banner */}
       {readiness && (
-        <div className="flex flex-col gap-3">
-          <div
-            className={`rounded-2xl border ${LEVEL_STYLES[readiness.level].bar} p-5`}
-          >
-            <div className="flex items-center gap-3">
-              <LevelIcon level={readiness.level} />
-              <div className="min-w-0 flex-1">
-                <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#F4F2EC]/60">
-                  Port Vauban · {readiness.port}
+        <div
+          className={`rounded-2xl border ${LEVEL_STYLES[readiness.level].bar} p-5`}
+        >
+          <div className="flex items-center gap-3">
+            <LevelIcon level={readiness.level} />
+            <div className="min-w-0 flex-1">
+              <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#F4F2EC]/60">
+                Port Vauban · {readiness.port}
+              </p>
+              <p className="font-serif text-3xl font-semibold leading-tight">
+                {readiness.level}
+              </p>
+              {readiness.arrivalDate && (
+                <p className="font-mono text-[11px] text-[#F4F2EC]/60">
+                  Arrival {readiness.arrivalDate.slice(0, 10)}
                 </p>
-                <p className="font-serif text-3xl font-semibold leading-tight">
-                  {readiness.level}
-                </p>
-                {readiness.arrivalDate && (
-                  <p className="font-mono text-[11px] text-[#F4F2EC]/60">
-                    Arrival {readiness.arrivalDate.slice(0, 10)}
-                  </p>
-                )}
-              </div>
+              )}
             </div>
-            <p className="mt-3 text-sm leading-relaxed text-[#F4F2EC]/85">
-              {readiness.summary}
-            </p>
           </div>
-
-          <SectionLabel>Checklist</SectionLabel>
-          <div className="flex flex-col gap-2.5">
-            {readiness.checklist.map((item, i) => (
-              <ChecklistItemRow key={i} item={item} />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Ingest status */}
-      {answer?.ingest && answer.ingest.length > 0 && (
-        <>
-          <SectionLabel>BDN status</SectionLabel>
-          <div className="flex flex-col gap-2">
-            {answer.ingest.map((ev, i) => (
-              <div
-                key={i}
-                className="flex items-start gap-3 rounded-xl border border-border bg-card p-4"
-              >
-                <Inbox className="mt-0.5 h-4 w-4 shrink-0 text-[#00B89F]" />
-                <div className="min-w-0 flex-1">
-                  <p className="font-mono text-[11px] text-[#F4F2EC]/80">{ev.fileName}</p>
-                  <p className="mt-0.5 text-xs text-[#F4F2EC]/60">
-                    {ev.status.replace(/_/g, " ")} · received {ev.receivedAt.slice(0, 10)}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </>
-      )}
-
-      {/* Port calls */}
-      {answer?.portCalls && answer.portCalls.length > 0 && (
-        <>
-          <SectionLabel>Upcoming ports</SectionLabel>
-          <div className="flex flex-col gap-2">
-            {answer.portCalls.map((pc, i) => (
-              <div
-                key={i}
-                className="flex items-center gap-3 rounded-xl border border-border bg-card p-4"
-              >
-                <Anchor className="h-4 w-4 shrink-0 text-[#00B89F]" />
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-[#F4F2EC]">{pc.port}</p>
-                  <p className="font-mono text-[11px] text-[#F4F2EC]/60">
-                    {pc.arrivalDate.slice(0, 10)} → {pc.departureDate.slice(0, 10)}
-                  </p>
-                </div>
-                <CalendarDays className="h-4 w-4 text-[#F4F2EC]/40" />
-              </div>
-            ))}
-          </div>
-        </>
-      )}
-
-      {/* Handoff banner */}
-      {answer?.handoff && (
-        <div className="flex items-start gap-3 rounded-xl border border-[#C9A84C]/40 bg-[#C9A84C]/10 p-4">
-          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[#C9A84C]" />
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-[#C9A84C]">
-              Routed to {answer.handoff.target === "compliance" ? "Compliance Assistant" : "Search Assistant"}
-            </p>
-            <p className="mt-0.5 text-xs text-[#F4F2EC]/70">{answer.handoff.reason}</p>
-          </div>
-        </div>
-      )}
-
-      {/* Answer text */}
-      {answer?.text && !readiness && (
-        <div className="rounded-xl border border-border bg-card p-4">
-          <p className="whitespace-pre-wrap font-mono text-[12px] leading-relaxed text-[#F4F2EC]/85">
-            {answer.text}
+          <p className="mt-3 text-sm leading-relaxed text-[#F4F2EC]/85">
+            {readiness.summary}
           </p>
         </div>
       )}
 
-      {/* Quick actions */}
-      <SectionLabel>Quick actions</SectionLabel>
-      <div className="grid grid-cols-2 gap-2.5">
-        {QUICK_ACTIONS.map((action) => (
-          <Button
-            key={action.query}
-            variant="outline"
-            className="h-14 justify-start gap-2 rounded-xl border-border bg-card px-4 text-left text-sm font-medium text-[#F4F2EC]/90 hover:bg-secondary"
-            onClick={() => {
-              setQuery(action.query);
-              void ask(action.query, scenario);
-            }}
-            disabled={loading}
-          >
-            <ArrowRight className="h-4 w-4 shrink-0 text-[#00B89F]" />
-            <span className="leading-tight">{action.label}</span>
-          </Button>
-        ))}
-      </div>
-
-      {/* Ask box */}
-      <div className="mt-1 flex items-end gap-2">
-        <textarea
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              void ask(query, scenario);
-            }
-          }}
-          rows={2}
-          placeholder="Ask your captain console…"
-          className="min-h-[64px] flex-1 resize-none rounded-xl border border-input bg-card px-4 py-3 text-sm text-[#F4F2EC] placeholder:text-[#F4F2EC]/35 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#00B89F]"
-        />
-        <Button
-          className="h-[64px] w-16 shrink-0 rounded-xl bg-[#00B89F] text-[#060F1E] hover:bg-[#007A6A]"
-          onClick={() => void ask(query, scenario)}
-          disabled={loading || !query.trim()}
-          title="Ask"
-        >
-          {loading ? (
-            <div className="flex gap-1">
-              <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-current" />
-              <div
-                className="h-1.5 w-1.5 animate-pulse rounded-full bg-current"
-                style={{ animationDelay: "150ms" }}
-              />
-              <div
-                className="h-1.5 w-1.5 animate-pulse rounded-full bg-current"
-                style={{ animationDelay: "300ms" }}
-              />
-            </div>
-          ) : (
-            <Send className="h-5 w-5" />
+      {/* Desktop operational grid */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:items-start">
+        {/* Left: checklist / answer */}
+        <div className="flex min-w-0 flex-col gap-4 lg:col-span-2">
+          {readiness && (
+            <>
+              <SectionLabel>Checklist</SectionLabel>
+              <div className="flex flex-col gap-2.5">
+                {readiness.checklist.map((item, i) => (
+                  <ChecklistItemRow key={i} item={item} />
+                ))}
+              </div>
+            </>
           )}
-        </Button>
+
+          {/* Answer text */}
+          {answer?.text && !readiness && (
+            <div className="rounded-xl border border-border bg-card p-4">
+              <p className="whitespace-pre-wrap font-mono text-[12px] leading-relaxed text-[#F4F2EC]/85">
+                {answer.text}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Right rail: actions + inbound */}
+        <div className="flex min-w-0 flex-col gap-4">
+          {/* Quick actions */}
+          <SectionLabel>Quick actions</SectionLabel>
+          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-1">
+            {QUICK_ACTIONS.map((action) => (
+              <Button
+                key={action.query}
+                variant="outline"
+                className="h-14 justify-start gap-2 rounded-xl border-border bg-card px-4 text-left text-sm font-medium text-[#F4F2EC]/90 hover:bg-secondary"
+                onClick={() => {
+                  setQuery(action.query);
+                  void ask(action.query, scenario);
+                }}
+                disabled={loading}
+              >
+                <ArrowRight className="h-4 w-4 shrink-0 text-[#00B89F]" />
+                <span className="leading-tight">{action.label}</span>
+              </Button>
+            ))}
+          </div>
+
+          {/* Ask box */}
+          <div className="flex items-end gap-2">
+            <textarea
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  void ask(query, scenario);
+                }
+              }}
+              rows={2}
+              placeholder="Ask your captain console…"
+              className="min-h-[64px] flex-1 resize-none rounded-xl border border-input bg-card px-4 py-3 text-sm text-[#F4F2EC] placeholder:text-[#F4F2EC]/35 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#00B89F]"
+            />
+            <Button
+              className="h-[64px] w-16 shrink-0 rounded-xl bg-[#00B89F] text-[#060F1E] hover:bg-[#007A6A]"
+              onClick={() => void ask(query, scenario)}
+              disabled={loading || !query.trim()}
+              title="Ask"
+            >
+              {loading ? (
+                <div className="flex gap-1">
+                  <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-current" />
+                  <div
+                    className="h-1.5 w-1.5 animate-pulse rounded-full bg-current"
+                    style={{ animationDelay: "150ms" }}
+                  />
+                  <div
+                    className="h-1.5 w-1.5 animate-pulse rounded-full bg-current"
+                    style={{ animationDelay: "300ms" }}
+                  />
+                </div>
+              ) : (
+                <Send className="h-5 w-5" />
+              )}
+            </Button>
+          </div>
+
+          {/* Ingest status */}
+          {answer?.ingest && answer.ingest.length > 0 && (
+            <>
+              <SectionLabel>BDN status</SectionLabel>
+              <div className="flex flex-col gap-2">
+                {answer.ingest.map((ev, i) => (
+                  <div
+                    key={i}
+                    className="flex items-start gap-3 rounded-xl border border-border bg-card p-4"
+                  >
+                    <Inbox className="mt-0.5 h-4 w-4 shrink-0 text-[#00B89F]" />
+                    <div className="min-w-0 flex-1">
+                      <p className="font-mono text-[11px] text-[#F4F2EC]/80">{ev.fileName}</p>
+                      <p className="mt-0.5 text-xs text-[#F4F2EC]/60">
+                        {ev.status.replace(/_/g, " ")} · received {ev.receivedAt.slice(0, 10)}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* Port calls */}
+          {answer?.portCalls && answer.portCalls.length > 0 && (
+            <>
+              <SectionLabel>Upcoming ports</SectionLabel>
+              <div className="flex flex-col gap-2">
+                {answer.portCalls.map((pc, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center gap-3 rounded-xl border border-border bg-card p-4"
+                  >
+                    <Anchor className="h-4 w-4 shrink-0 text-[#00B89F]" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-[#F4F2EC]">{pc.port}</p>
+                      <p className="font-mono text-[11px] text-[#F4F2EC]/60">
+                        {pc.arrivalDate.slice(0, 10)} → {pc.departureDate.slice(0, 10)}
+                      </p>
+                    </div>
+                    <CalendarDays className="h-4 w-4 text-[#F4F2EC]/40" />
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* Handoff banner */}
+          {answer?.handoff && (
+            <div className="flex items-start gap-3 rounded-xl border border-[#C9A84C]/40 bg-[#C9A84C]/10 p-4">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[#C9A84C]" />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-[#C9A84C]">
+                  Routed to {answer.handoff.target === "compliance" ? "Compliance Assistant" : "Search Assistant"}
+                </p>
+                <p className="mt-0.5 text-xs text-[#F4F2EC]/70">{answer.handoff.reason}</p>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {error && (

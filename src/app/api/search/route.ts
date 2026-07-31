@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { apiSuccess, apiError, parseJsonBody } from "@/app/api/_lib/http";
+import { apiError, parseJsonBody } from "@/app/api/_lib/http";
 import { VALIDATION_ERROR } from "@/app/api/_lib/errors";
 import { getSearchService } from "./_service";
 
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
       pageSize,
     });
 
-    return apiSuccess(response);
+    return Response.json(response);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     return apiError("INTERNAL_ERROR", message, 500);

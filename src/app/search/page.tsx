@@ -366,7 +366,8 @@ export default function SearchPage() {
       const res = await fetch(`/api/search/saved?user_id=${USER_ID}&organization_id=${ORG_ID}`);
       const json: Record<string, unknown> = await res.json();
       if (json.success) {
-        setSavedSearches((json.saved as SavedSearch[] | undefined) ?? []);
+        const payload = (json.data as { readonly saved?: SavedSearch[] } | undefined) ?? {};
+        setSavedSearches(Array.isArray(payload.saved) ? payload.saved : []);
       }
     } catch {
       // Sidebar load errors are non-fatal.
@@ -378,7 +379,8 @@ export default function SearchPage() {
       const res = await fetch(`/api/search/recent?user_id=${USER_ID}&organization_id=${ORG_ID}&limit=10`);
       const json: Record<string, unknown> = await res.json();
       if (json.success) {
-        setRecentSearches((json.recent as RecentSearch[] | undefined) ?? []);
+        const payload = (json.data as { readonly recent?: RecentSearch[] } | undefined) ?? {};
+        setRecentSearches(Array.isArray(payload.recent) ? payload.recent : []);
       }
     } catch {
       // Sidebar load errors are non-fatal.
@@ -396,8 +398,21 @@ export default function SearchPage() {
       setClarification(null);
       return false;
     }
-    if (json.data) {
-      const data = json.data as SearchResults;
+    if (json.data && typeof json.data === "object") {
+      const raw = json.data as Partial<SearchResults>;
+      const data: SearchResults = {
+        entity: raw.entity ?? "vessels",
+        total: typeof raw.total === "number" ? raw.total : 0,
+        page: typeof raw.page === "number" ? raw.page : 1,
+        pageSize: typeof raw.pageSize === "number" ? raw.pageSize : PAGE_SIZE,
+        totalPages: typeof raw.totalPages === "number" ? raw.totalPages : 0,
+        results: Array.isArray(raw.results) ? raw.results : [],
+        suggestedFilters: Array.isArray(raw.suggestedFilters) ? raw.suggestedFilters : [],
+        toolsCalled: Array.isArray(raw.toolsCalled) ? raw.toolsCalled : [],
+        latencyMs: typeof raw.latencyMs === "number" ? raw.latencyMs : 0,
+        modelId: typeof raw.modelId === "string" ? raw.modelId : "mock",
+        promptVersion: typeof raw.promptVersion === "string" ? raw.promptVersion : "unknown",
+      };
       setResults(data);
       setHandoff(null);
       setClarification(null);

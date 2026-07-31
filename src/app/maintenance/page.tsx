@@ -184,7 +184,7 @@ export default function MaintenancePage() {
   }, [scenario]);
 
   return (
-    <div className="mx-auto flex min-h-[calc(100vh-3rem)] w-full max-w-xl flex-col gap-4 px-4 py-5 -m-4 lg:-m-6">
+    <div className="mx-auto flex min-h-[calc(100vh-3rem)] w-full max-w-6xl flex-col gap-4 px-4 py-5 -m-4 lg:-m-6 lg:px-6">
       <div className="flex items-center gap-3">
         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-[#00B89F]/40 bg-[#00B89F]/10">
           <Wrench className="h-6 w-6 text-[#00B89F]" />
@@ -219,279 +219,287 @@ export default function MaintenancePage() {
         ))}
       </div>
 
-      {/* Survey schedule */}
-      {answer?.schedule && answer.schedule.length > 0 && (
-        <>
-          <SectionLabel>Survey schedule</SectionLabel>
-          <div className="flex flex-col gap-2">
-            {answer.schedule.map((s) => (
-              <div
-                key={s.surveyType}
-                className="flex items-start gap-3 rounded-xl border border-border bg-card p-4"
-              >
-                <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-[#00B89F]" />
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-semibold text-[#F4F2EC]">
-                      {s.surveyType} survey
-                    </p>
-                    <StatusPill status={s.status} />
+      {/* Desktop operational grid */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:items-start">
+        {/* Main column: status data */}
+        <div className="flex min-w-0 flex-col gap-4 lg:col-span-2">
+          {/* Survey schedule */}
+          {answer?.schedule && answer.schedule.length > 0 && (
+            <>
+              <SectionLabel>Survey schedule</SectionLabel>
+              <div className="flex flex-col gap-2">
+                {answer.schedule.map((s) => (
+                  <div
+                    key={s.surveyType}
+                    className="flex items-start gap-3 rounded-xl border border-border bg-card p-4"
+                  >
+                    <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-[#00B89F]" />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-semibold text-[#F4F2EC]">
+                          {s.surveyType} survey
+                        </p>
+                        <StatusPill status={s.status} />
+                      </div>
+                      <p className="mt-0.5 font-mono text-[11px] text-[#F4F2EC]/60">
+                        due {s.dueDate.slice(0, 10)}
+                        {s.lastCompleted ? ` · last completed ${s.lastCompleted.slice(0, 10)}` : ""}
+                      </p>
+                      <p className="mt-1 font-mono text-[10px] text-[#F4F2EC]/40">{s.source}</p>
+                    </div>
                   </div>
-                  <p className="mt-0.5 font-mono text-[11px] text-[#F4F2EC]/60">
-                    due {s.dueDate.slice(0, 10)}
-                    {s.lastCompleted ? ` · last completed ${s.lastCompleted.slice(0, 10)}` : ""}
-                  </p>
-                  <p className="mt-1 font-mono text-[10px] text-[#F4F2EC]/40">{s.source}</p>
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </>
-      )}
-
-      {/* Certificates */}
-      {answer?.certificates && answer.certificates.length > 0 && (
-        <>
-          <SectionLabel>Certificates</SectionLabel>
-          <div className="flex flex-col gap-2">
-            {answer.certificates.map((c) => (
-              <div
-                key={c.certificateType}
-                className="flex items-start gap-3 rounded-xl border border-border bg-card p-4"
-              >
-                <FileBadge className="mt-0.5 h-4 w-4 shrink-0 text-[#00B89F]" />
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-[#F4F2EC]">{c.title}</p>
-                  <p className="mt-0.5 font-mono text-[11px] uppercase text-[#F4F2EC]/60">
-                    {c.status}
-                    {c.expiresAt ? ` · expires ${c.expiresAt.slice(0, 10)}` : " · no expiry on file"}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </>
-      )}
-
-      {/* Deterministic impacts */}
-      {answer?.impacts && answer.impacts.length > 0 && (
-        <>
-          <SectionLabel>Deterministic impacts</SectionLabel>
-          <div className="flex flex-col gap-2">
-            {answer.impacts.map((i, idx) => (
-              <div
-                key={idx}
-                className="flex items-start gap-3 rounded-xl border border-[#C9A84C]/40 bg-[#C9A84C]/5 p-4"
-              >
-                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[#C9A84C]" />
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <ImpactTag impact={i.impact} />
-                  </div>
-                  <p className="mt-1.5 text-xs leading-relaxed text-[#F4F2EC]/85">{i.claim}</p>
-                  <p className="mt-1 font-mono text-[10px] text-[#F4F2EC]/40">{i.basis}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </>
-      )}
-
-      {/* Deadlines */}
-      {answer?.deadlines && answer.deadlines.length > 0 && (
-        <>
-          <SectionLabel>Deadlines</SectionLabel>
-          <div className="flex flex-col gap-2">
-            {answer.deadlines.map((d) => (
-              <div
-                key={d.label}
-                className="flex items-center gap-3 rounded-xl border border-border bg-card p-4"
-              >
-                <Clock className="h-4 w-4 shrink-0 text-[#00B89F]" />
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-[#F4F2EC]">{d.label}</p>
-                  <p className="font-mono text-[11px] text-[#F4F2EC]/60">
-                    {d.dueDate.slice(0, 10)}
-                    {d.daysRemaining >= 0
-                      ? ` · ${d.daysRemaining}d`
-                      : ` · ${Math.abs(d.daysRemaining)}d overdue`}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  {d.blocking && (
-                    <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-[#FF8A8A]">
-                      blocking
-                    </span>
-                  )}
-                  <StatusPill status={d.status} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </>
-      )}
-
-      {/* Charter calendar */}
-      {answer?.charterCalendar && answer.charterCalendar.length > 0 && (
-        <>
-          <SectionLabel>Charter calendar</SectionLabel>
-          <div className="flex flex-col gap-2">
-            {answer.charterCalendar.map((e) => (
-              <div
-                key={e.period}
-                className={`flex items-start gap-3 rounded-xl border p-4 ${
-                  e.maintenanceWindow
-                    ? "border-[#00B89F]/50 bg-[#00B89F]/10"
-                    : "border-border bg-card"
-                }`}
-              >
-                <Ship className="mt-0.5 h-4 w-4 shrink-0 text-[#00B89F]" />
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-[#F4F2EC]">
-                    {e.period}
-                    {e.maintenanceWindow && (
-                      <span className="ml-2 font-mono text-[10px] uppercase tracking-[0.1em] text-[#00B89F]">
-                        maintenance window
-                      </span>
-                    )}
-                  </p>
-                  <p className="mt-0.5 font-mono text-[11px] text-[#F4F2EC]/60">
-                    {e.startDate.slice(0, 10)} → {e.endDate.slice(0, 10)} · {e.counterParty} ·{" "}
-                    {e.portCalls.join(", ")}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </>
-      )}
-
-      {/* Class society / plan status */}
-      {answer?.classSociety && (
-        <div className="flex items-start gap-3 rounded-xl border border-border bg-card p-4">
-          <Building2 className="mt-0.5 h-4 w-4 shrink-0 text-[#00B89F]" />
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-[#F4F2EC]">
-              {answer.classSociety.known
-                ? `${answer.classSociety.classSociety} · ${answer.classSociety.classificationStatus}`
-                : "Class society unknown"}
-            </p>
-            <p className="mt-0.5 font-mono text-[11px] text-[#F4F2EC]/60">
-              {answer.classSociety.known ? "In class" : "No class record on file"}
-            </p>
-          </div>
-        </div>
-      )}
-
-      {answer?.planStatus && (
-        <div className="flex items-start gap-3 rounded-xl border border-border bg-card p-4">
-          <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-[#00B89F]" />
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-[#F4F2EC]">
-              Monitoring plan v{answer.planStatus.planVersion}
-            </p>
-            <p className="mt-0.5 font-mono text-[11px] text-[#F4F2EC]/60">
-              {answer.planStatus.nextReviewDue
-                ? `next review due ${answer.planStatus.nextReviewDue.slice(0, 10)}`
-                : "no review date on file"}
-            </p>
-          </div>
-          {answer.planStatus.nextReviewDue && (
-            <StatusPill status={answer.planStatus.reviewStatus} />
+            </>
           )}
-        </div>
-      )}
 
-      {/* Handoff banner */}
-      {answer?.handoff && (
-        <div className="flex items-start gap-3 rounded-xl border border-[#C9A84C]/40 bg-[#C9A84C]/10 p-4">
-          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[#C9A84C]" />
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-[#C9A84C]">
-              Routed to{" "}
-              {answer.handoff.target === "captain"
-                ? "Captain Assistant"
-                : answer.handoff.target === "compliance"
-                  ? "Compliance Assistant"
-                  : "Search Assistant"}
-            </p>
-            <p className="mt-0.5 text-xs text-[#F4F2EC]/70">{answer.handoff.reason}</p>
-          </div>
-        </div>
-      )}
+          {/* Certificates */}
+          {answer?.certificates && answer.certificates.length > 0 && (
+            <>
+              <SectionLabel>Certificates</SectionLabel>
+              <div className="flex flex-col gap-2">
+                {answer.certificates.map((c) => (
+                  <div
+                    key={c.certificateType}
+                    className="flex items-start gap-3 rounded-xl border border-border bg-card p-4"
+                  >
+                    <FileBadge className="mt-0.5 h-4 w-4 shrink-0 text-[#00B89F]" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-[#F4F2EC]">{c.title}</p>
+                      <p className="mt-0.5 font-mono text-[11px] uppercase text-[#F4F2EC]/60">
+                        {c.status}
+                        {c.expiresAt ? ` · expires ${c.expiresAt.slice(0, 10)}` : " · no expiry on file"}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
 
-      {/* Answer text */}
-      {answer?.text &&
-        !answer.schedule &&
-        !answer.certificates &&
-        !answer.deadlines &&
-        !answer.charterCalendar &&
-        !answer.classSociety &&
-        !answer.planStatus && (
-          <div className="rounded-xl border border-border bg-card p-4">
-            <p className="whitespace-pre-wrap font-mono text-[12px] leading-relaxed text-[#F4F2EC]/85">
-              {answer.text}
-            </p>
-          </div>
-        )}
+          {/* Deterministic impacts */}
+          {answer?.impacts && answer.impacts.length > 0 && (
+            <>
+              <SectionLabel>Deterministic impacts</SectionLabel>
+              <div className="flex flex-col gap-2">
+                {answer.impacts.map((i, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-start gap-3 rounded-xl border border-[#C9A84C]/40 bg-[#C9A84C]/5 p-4"
+                  >
+                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[#C9A84C]" />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <ImpactTag impact={i.impact} />
+                      </div>
+                      <p className="mt-1.5 text-xs leading-relaxed text-[#F4F2EC]/85">{i.claim}</p>
+                      <p className="mt-1 font-mono text-[10px] text-[#F4F2EC]/40">{i.basis}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
 
-      {/* Quick actions */}
-      <SectionLabel>Quick actions</SectionLabel>
-      <div className="grid grid-cols-2 gap-2.5">
-        {QUICK_ACTIONS.map((action) => (
-          <Button
-            key={action.query}
-            variant="outline"
-            className="h-14 justify-start gap-2 rounded-xl border-border bg-card px-4 text-left text-sm font-medium text-[#F4F2EC]/90 hover:bg-secondary"
-            onClick={() => {
-              setQuery(action.query);
-              void ask(action.query, scenario);
-            }}
-            disabled={loading}
-          >
-            <ArrowRight className="h-4 w-4 shrink-0 text-[#00B89F]" />
-            <span className="leading-tight">{action.label}</span>
-          </Button>
-        ))}
-      </div>
+          {/* Deadlines */}
+          {answer?.deadlines && answer.deadlines.length > 0 && (
+            <>
+              <SectionLabel>Deadlines</SectionLabel>
+              <div className="flex flex-col gap-2">
+                {answer.deadlines.map((d) => (
+                  <div
+                    key={d.label}
+                    className="flex items-center gap-3 rounded-xl border border-border bg-card p-4"
+                  >
+                    <Clock className="h-4 w-4 shrink-0 text-[#00B89F]" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-[#F4F2EC]">{d.label}</p>
+                      <p className="font-mono text-[11px] text-[#F4F2EC]/60">
+                        {d.dueDate.slice(0, 10)}
+                        {d.daysRemaining >= 0
+                          ? ` · ${d.daysRemaining}d`
+                          : ` · ${Math.abs(d.daysRemaining)}d overdue`}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {d.blocking && (
+                        <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-[#FF8A8A]">
+                          blocking
+                        </span>
+                      )}
+                      <StatusPill status={d.status} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
 
-      {/* Ask box */}
-      <div className="mt-1 flex items-end gap-2">
-        <textarea
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              void ask(query, scenario);
-            }
-          }}
-          rows={2}
-          placeholder="Ask your maintenance console…"
-          className="min-h-[64px] flex-1 resize-none rounded-xl border border-input bg-card px-4 py-3 text-sm text-[#F4F2EC] placeholder:text-[#F4F2EC]/35 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#00B89F]"
-        />
-        <Button
-          className="h-[64px] w-16 shrink-0 rounded-xl bg-[#00B89F] text-[#060F1E] hover:bg-[#007A6A]"
-          onClick={() => void ask(query, scenario)}
-          disabled={loading || !query.trim()}
-          title="Ask"
-        >
-          {loading ? (
-            <div className="flex gap-1">
-              <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-current" />
-              <div
-                className="h-1.5 w-1.5 animate-pulse rounded-full bg-current"
-                style={{ animationDelay: "150ms" }}
-              />
-              <div
-                className="h-1.5 w-1.5 animate-pulse rounded-full bg-current"
-                style={{ animationDelay: "300ms" }}
-              />
+          {/* Charter calendar */}
+          {answer?.charterCalendar && answer.charterCalendar.length > 0 && (
+            <>
+              <SectionLabel>Charter calendar</SectionLabel>
+              <div className="flex flex-col gap-2">
+                {answer.charterCalendar.map((e) => (
+                  <div
+                    key={e.period}
+                    className={`flex items-start gap-3 rounded-xl border p-4 ${
+                      e.maintenanceWindow
+                        ? "border-[#00B89F]/50 bg-[#00B89F]/10"
+                        : "border-border bg-card"
+                    }`}
+                  >
+                    <Ship className="mt-0.5 h-4 w-4 shrink-0 text-[#00B89F]" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-[#F4F2EC]">
+                        {e.period}
+                        {e.maintenanceWindow && (
+                          <span className="ml-2 font-mono text-[10px] uppercase tracking-[0.1em] text-[#00B89F]">
+                            maintenance window
+                          </span>
+                        )}
+                      </p>
+                      <p className="mt-0.5 font-mono text-[11px] text-[#F4F2EC]/60">
+                        {e.startDate.slice(0, 10)} → {e.endDate.slice(0, 10)} · {e.counterParty} ·{" "}
+                        {e.portCalls.join(", ")}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* Class society / plan status */}
+          {answer?.classSociety && (
+            <div className="flex items-start gap-3 rounded-xl border border-border bg-card p-4">
+              <Building2 className="mt-0.5 h-4 w-4 shrink-0 text-[#00B89F]" />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-[#F4F2EC]">
+                  {answer.classSociety.known
+                    ? `${answer.classSociety.classSociety} · ${answer.classSociety.classificationStatus}`
+                    : "Class society unknown"}
+                </p>
+                <p className="mt-0.5 font-mono text-[11px] text-[#F4F2EC]/60">
+                  {answer.classSociety.known ? "In class" : "No class record on file"}
+                </p>
+              </div>
             </div>
-          ) : (
-            <Send className="h-5 w-5" />
           )}
-        </Button>
+
+          {answer?.planStatus && (
+            <div className="flex items-start gap-3 rounded-xl border border-border bg-card p-4">
+              <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-[#00B89F]" />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-[#F4F2EC]">
+                  Monitoring plan v{answer.planStatus.planVersion}
+                </p>
+                <p className="mt-0.5 font-mono text-[11px] text-[#F4F2EC]/60">
+                  {answer.planStatus.nextReviewDue
+                    ? `next review due ${answer.planStatus.nextReviewDue.slice(0, 10)}`
+                    : "no review date on file"}
+                </p>
+              </div>
+              {answer.planStatus.nextReviewDue && (
+                <StatusPill status={answer.planStatus.reviewStatus} />
+              )}
+            </div>
+          )}
+
+          {/* Handoff banner */}
+          {answer?.handoff && (
+            <div className="flex items-start gap-3 rounded-xl border border-[#C9A84C]/40 bg-[#C9A84C]/10 p-4">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[#C9A84C]" />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-[#C9A84C]">
+                  Routed to{" "}
+                  {answer.handoff.target === "captain"
+                    ? "Captain Assistant"
+                    : answer.handoff.target === "compliance"
+                      ? "Compliance Assistant"
+                      : "Search Assistant"}
+                </p>
+                <p className="mt-0.5 text-xs text-[#F4F2EC]/70">{answer.handoff.reason}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Answer text */}
+          {answer?.text &&
+            !answer.schedule &&
+            !answer.certificates &&
+            !answer.deadlines &&
+            !answer.charterCalendar &&
+            !answer.classSociety &&
+            !answer.planStatus && (
+              <div className="rounded-xl border border-border bg-card p-4">
+                <p className="whitespace-pre-wrap font-mono text-[12px] leading-relaxed text-[#F4F2EC]/85">
+                  {answer.text}
+                </p>
+              </div>
+            )}
+        </div>
+
+        {/* Right rail: actions */}
+        <div className="flex min-w-0 flex-col gap-4">
+          <SectionLabel>Quick actions</SectionLabel>
+          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-1">
+            {QUICK_ACTIONS.map((action) => (
+              <Button
+                key={action.query}
+                variant="outline"
+                className="h-14 justify-start gap-2 rounded-xl border-border bg-card px-4 text-left text-sm font-medium text-[#F4F2EC]/90 hover:bg-secondary"
+                onClick={() => {
+                  setQuery(action.query);
+                  void ask(action.query, scenario);
+                }}
+                disabled={loading}
+              >
+                <ArrowRight className="h-4 w-4 shrink-0 text-[#00B89F]" />
+                <span className="leading-tight">{action.label}</span>
+              </Button>
+            ))}
+          </div>
+
+          {/* Ask box */}
+          <div className="flex items-end gap-2">
+            <textarea
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  void ask(query, scenario);
+                }
+              }}
+              rows={2}
+              placeholder="Ask your maintenance console…"
+              className="min-h-[64px] flex-1 resize-none rounded-xl border border-input bg-card px-4 py-3 text-sm text-[#F4F2EC] placeholder:text-[#F4F2EC]/35 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#00B89F]"
+            />
+            <Button
+              className="h-[64px] w-16 shrink-0 rounded-xl bg-[#00B89F] text-[#060F1E] hover:bg-[#007A6A]"
+              onClick={() => void ask(query, scenario)}
+              disabled={loading || !query.trim()}
+              title="Ask"
+            >
+              {loading ? (
+                <div className="flex gap-1">
+                  <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-current" />
+                  <div
+                    className="h-1.5 w-1.5 animate-pulse rounded-full bg-current"
+                    style={{ animationDelay: "150ms" }}
+                  />
+                  <div
+                    className="h-1.5 w-1.5 animate-pulse rounded-full bg-current"
+                    style={{ animationDelay: "300ms" }}
+                  />
+                </div>
+              ) : (
+                <Send className="h-5 w-5" />
+              )}
+            </Button>
+          </div>
+        </div>
       </div>
 
       {error && (

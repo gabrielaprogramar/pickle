@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { apiSuccess, apiError } from "@/app/api/_lib/http";
+import { apiError } from "@/app/api/_lib/http";
 import { getSearchService } from "../../../_service";
 
 interface RouteContext {
@@ -14,7 +14,7 @@ export async function POST(request: NextRequest, ctx: RouteContext) {
 
     const service = getSearchService();
     const response = await service.rerunSavedSearch(ctx.params.id, userId, organizationId);
-    return apiSuccess(response);
+    return Response.json(response);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     return apiError("INTERNAL_ERROR", message, 500);

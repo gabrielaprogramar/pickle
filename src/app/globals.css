@@ -68,13 +68,14 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
-    /* Subtle teal grid texture, matching poseidonledger.com's background overlay.
-       Painted as a background-image layer (not a pseudo-element) so it never
-       sits above app content or interferes with existing stacking contexts. */
+    /* Poseidon Ledger grid overlay, matching poseidonledger.com's background.
+       Teal #00B89F at 3% opacity on a 60px×60px grid. Painted as a
+       background-image layer (not a pseudo-element) so it never sits above app
+       content or interferes with existing stacking contexts. */
     background-image:
-      linear-gradient(rgba(0, 184, 159, 0.025) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0, 184, 159, 0.025) 1px, transparent 1px);
-    background-size: 48px 48px;
+      linear-gradient(rgba(0, 184, 159, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 184, 159, 0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
     background-attachment: fixed;
   }
 }
