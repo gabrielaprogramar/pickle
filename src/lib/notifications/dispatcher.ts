@@ -18,6 +18,7 @@ export interface NotificationDispatcherOptions {
     formatReport?: (reportType: string, vesselName: string, year: number) => { subject: string; html: string; text: string };
     formatBdn?: (event: string, vesselName: string, filename: string) => { subject: string; html: string; text: string };
     formatVerifierPackage?: (vesselName: string, year: number, status: string) => { subject: string; html: string; text: string };
+    formatSox?: (severity: string, vesselName: string, message: string) => { subject: string; html: string; text: string };
   };
 }
 
@@ -65,11 +66,15 @@ export function createNotificationDispatcher(opts: NotificationDispatcherOptions
       const emailEnabled = await opts.prefService.isEmailEnabled(event.recipient_id, event.type);
       if (emailEnabled) {
         try {
+          const isSox = event.type.startsWith("sox_eca_");
+          const formatted = isSox && opts.templateFormatter?.formatSox
+            ? opts.templateFormatter.formatSox(event.severity, event.vessel_id ?? "Vessel", event.message)
+            : null;
           const emailNotification: EmailNotification = {
             to: event.recipient_id,
-            subject: event.title,
-            html: `<p>${event.message}</p>`,
-            text: event.message,
+            subject: formatted?.subject ?? event.title,
+            html: formatted?.html ?? `<p>${event.message}</p>`,
+            text: formatted?.text ?? event.message,
             notificationType: event.type,
           };
           await opts.emailProvider.send(emailNotification);

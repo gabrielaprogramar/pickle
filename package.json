@@ -10,7 +10,7 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "verify:mt": "tsx scripts/verify-marinetraffic.ts",
-    "test": "npm run test:parse && npm run test:mock && npm run test:client && npm run test:supabase && npm run test:fuel && npm run test:euets && npm run test:mrv && npm run test:ocr && npm run test:storage && npm run test:ai && npm run test:validation && npm run test:services && npm run test:email_ingress && npm run test:assistant && npm run test:search && npm run test:captain && npm run test:maintenance && npm run test:voyage",
+    "test": "npm run test:parse && npm run test:mock && npm run test:client && npm run test:supabase && npm run test:fuel && npm run test:euets && npm run test:mrv && npm run test:ocr && npm run test:storage && npm run test:ai && npm run test:validation && npm run test:services && npm run test:email_ingress && npm run test:assistant && npm run test:search && npm run test:captain && npm run test:maintenance && npm run test:voyage && npm run test:sox",
     "test:parse": "tsx src/lib/marinetraffic/__tests__/parse.test.ts",
     "test:mock": "tsx src/lib/marinetraffic/__tests__/mockTransport.test.ts",
     "test:client": "tsx src/lib/marinetraffic/__tests__/client.test.ts",
@@ -103,7 +103,17 @@
     "test:voyage_safety": "tsx src/lib/voyage-assistant/__tests__/safety.test.ts",
     "test:voyage_prompt": "tsx src/lib/voyage-assistant/__tests__/system-prompt.test.ts",
     "test:voyage_service": "tsx src/lib/voyage-assistant/__tests__/voyage-service.test.ts",
-    "test:voyage": "npm run test:voyage_gaps && npm run test:voyage_tools && npm run test:voyage_handoff && npm run test:voyage_safety && npm run test:voyage_prompt && npm run test:voyage_service"
+    "test:voyage": "npm run test:voyage_gaps && npm run test:voyage_tools && npm run test:voyage_handoff && npm run test:voyage_safety && npm run test:voyage_prompt && npm run test:voyage_service",
+    "test:sox_parameters": "tsx src/lib/sox-eca/__tests__/parameters.test.ts",
+    "test:sox_evidence": "tsx src/lib/sox-eca/__tests__/evidence.test.ts",
+    "test:sox_zone": "tsx src/lib/sox-eca/__tests__/zone.test.ts",
+    "test:sox_engine": "tsx src/lib/sox-eca/__tests__/engine.test.ts",
+    "test:sox_scenarios": "tsx src/lib/sox-eca/__tests__/scenarios.test.ts",
+    "test:sox_notifications": "tsx src/lib/sox-eca/__tests__/notifications.test.ts",
+    "test:sox_handoff": "tsx src/lib/sox-eca/__tests__/handoff.test.ts",
+    "test:sox_service": "tsx src/lib/sox-eca/__tests__/service.test.ts",
+    "test:sox_api": "tsx src/app/api/vessels/[imo]/sox-watch/__tests__/routes.test.ts",
+    "test:sox": "npm run test:sox_parameters && npm run test:sox_evidence && npm run test:sox_zone && npm run test:sox_engine && npm run test:sox_scenarios && npm run test:sox_notifications && npm run test:sox_handoff && npm run test:sox_service && npm run test:sox_api"
   },
   "dependencies": {
     "@google-cloud/documentai": "^9.6.2",

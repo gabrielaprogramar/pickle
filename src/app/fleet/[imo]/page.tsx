@@ -26,6 +26,7 @@ import { useLatestAisPosition } from "@/hooks/use-latest-ais-position";
 import { useVesselTrack } from "@/hooks/use-vessel-track";
 import { useEnvironmentalZones } from "@/hooks/use-environmental-zones";
 import { VesselMapView } from "@/components/map/vessel-map-view";
+import { SoxWatchCard } from "@/components/sox/sox-watch-card";
 import { MAJOR_MED_PORTS } from "@/lib/geo/constants";
 import { ROUTES } from "@/constants/routes";
 
@@ -332,6 +333,10 @@ export default function VesselDetailPage() {
             </div>
           </CardContent>
         </Card>
+      </div>
+
+      <div className="mt-4">
+        <SoxWatchCard imo={imo} />
       </div>
 
       <div className="mt-4">

@@ -24,7 +24,11 @@ export type NotificationEventType =
   | "survey_overdue"
   | "certificate_expiring"
   | "monitoring_plan_review_due"
-  | "blocking_maintenance_detected";
+  | "blocking_maintenance_detected"
+  | "sox_eca_warning"
+  | "sox_eca_non_conforming"
+  | "sox_eca_no_evidence"
+  | "sox_eca_review_required";
 
 export interface NotificationEvent {
   readonly type: NotificationEventType;

@@ -391,6 +391,17 @@ export type {
   CreateAssistantEvaluationLogRepositoryOptions,
 } from "./repositories/assistant_evaluation_log";
 
+// Phase 4.1 SOx ECA compliance watch repository.
+export { createSoxComplianceRepository } from "./repositories/sox_compliance";
+export type {
+  SoxComplianceRepository,
+  CreateSoxComplianceRepositoryOptions,
+  SoxEventRow,
+  SoxEventInsert,
+  SoxWatchStateRow,
+  SoxWatchStateInsert,
+} from "./repositories/sox_compliance";
+
 // Mapper (re-exported so the orchestration layer can build payloads directly if
 // it ever needs to — e.g. a batch importer).
 export { toVesselInsert, toVoyageInsert } from "./mapper";

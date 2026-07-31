@@ -949,6 +949,109 @@ export type ReviewAuditLogInsert = {
   readonly notes?: string | null;
 };
 
+// ── 1r. SOX ECA COMPLIANCE ROW TYPES (1:1 with migration 0013) ──────────────
+
+/** One row of the `sox_compliance_events` table (append-only). */
+export type SoxComplianceEventRow = {
+  readonly id: string;
+  readonly vessel_id: string;
+  readonly imo: string;
+  readonly event_ts: string;
+  readonly event_type: string;
+  readonly zone_state: string;
+  readonly watch_status: string;
+  readonly severity: string;
+  readonly rule_id: string | null;
+  readonly rule_result: unknown;
+  readonly evidence_status: string | null;
+  readonly inside_eca: boolean;
+  readonly eca_effective: boolean;
+  readonly latitude: number | null;
+  readonly longitude: number | null;
+  readonly ais_position_id: string | null;
+  readonly applicable_limit_pct: number | null;
+  readonly sulphur_content_pct: number | null;
+  readonly selected_delivery_id: string | null;
+  readonly parameter_version: string;
+  readonly geometry_version: string | null;
+  readonly calculation_version: string;
+  readonly details: unknown;
+  readonly dedup_key: string | null;
+  readonly created_at: string;
+};
+
+/** Payload for inserting a compliance event. id/created_at are server-defaulted. */
+export type SoxComplianceEventInsert = {
+  readonly vessel_id: string;
+  readonly imo: string;
+  readonly event_ts: string;
+  readonly event_type: string;
+  readonly zone_state: string;
+  readonly watch_status: string;
+  readonly severity: string;
+  readonly rule_id?: string | null;
+  readonly rule_result?: unknown;
+  readonly evidence_status?: string | null;
+  readonly inside_eca: boolean;
+  readonly eca_effective: boolean;
+  readonly latitude?: number | null;
+  readonly longitude?: number | null;
+  readonly ais_position_id?: string | null;
+  readonly applicable_limit_pct?: number | null;
+  readonly sulphur_content_pct?: number | null;
+  readonly selected_delivery_id?: string | null;
+  readonly parameter_version: string;
+  readonly geometry_version?: string | null;
+  readonly calculation_version: string;
+  readonly details?: unknown;
+  readonly dedup_key?: string | null;
+};
+
+/** One row of the `sox_watch_state` table (current snapshot per vessel). */
+export type SoxWatchStateRow = {
+  readonly vessel_id: string;
+  readonly imo: string;
+  readonly status: string;
+  readonly severity: string;
+  readonly inside_eca: boolean;
+  readonly eca_effective: boolean;
+  readonly zone_state: string;
+  readonly evidence_status: string | null;
+  readonly applicable_limit_pct: number | null;
+  readonly sulphur_content_pct: number | null;
+  readonly selected_delivery_id: string | null;
+  readonly last_entry_ts: string | null;
+  readonly last_exit_ts: string | null;
+  readonly latest_event_id: string | null;
+  readonly parameter_version: string;
+  readonly geometry_version: string | null;
+  readonly review_required: boolean;
+  readonly last_evaluated_at: string;
+  readonly updated_at: string;
+};
+
+/** Payload for upserting watch state. updated_at is server-managed. */
+export type SoxWatchStateInsert = {
+  readonly vessel_id: string;
+  readonly imo: string;
+  readonly status: string;
+  readonly severity: string;
+  readonly inside_eca: boolean;
+  readonly eca_effective: boolean;
+  readonly zone_state: string;
+  readonly evidence_status?: string | null;
+  readonly applicable_limit_pct?: number | null;
+  readonly sulphur_content_pct?: number | null;
+  readonly selected_delivery_id?: string | null;
+  readonly last_entry_ts?: string | null;
+  readonly last_exit_ts?: string | null;
+  readonly latest_event_id?: string | null;
+  readonly parameter_version: string;
+  readonly geometry_version?: string | null;
+  readonly review_required: boolean;
+  readonly last_evaluated_at: string;
+};
+
 export interface PaginationOptions {
   readonly limit: number;
   readonly offset: number;
@@ -1573,6 +1676,18 @@ export type Database = {
         Row: AssistantEvaluationLogRow;
         Insert: AssistantEvaluationLogInsert;
         Update: Partial<AssistantEvaluationLogInsert>;
+        Relationships: Relationships;
+      };
+      sox_compliance_events: {
+        Row: SoxComplianceEventRow;
+        Insert: SoxComplianceEventInsert;
+        Update: Partial<SoxComplianceEventInsert>;
+        Relationships: Relationships;
+      };
+      sox_watch_state: {
+        Row: SoxWatchStateRow;
+        Insert: SoxWatchStateInsert;
+        Update: Partial<SoxWatchStateInsert>;
         Relationships: Relationships;
       };
     };

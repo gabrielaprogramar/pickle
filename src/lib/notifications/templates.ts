@@ -85,6 +85,27 @@ export function formatBdnTemplate(
   return { subject, html, text };
 }
 
+export function formatSoxTemplate(
+  severity: string,
+  vesselName: string,
+  message: string,
+): { subject: string; html: string; text: string } {
+  const subject = `[${severity}] SOx ECA — ${vesselName}`;
+
+  const html = `
+    <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px;">
+      <h2 style="color: ${severity === "CRITICAL" ? "#dc2626" : severity === "HIGH" ? "#ea580c" : "#2563eb"};">SOx ECA Watch — ${vesselName}</h2>
+      <p>${message}</p>
+      <hr style="margin: 20px 0;" />
+      <p style="color: #6b7280; font-size: 12px;">Poseidon Ledger — MARPOL Annex VI Med SOx ECA monitoring</p>
+    </div>
+  `.trim();
+
+  const text = `SOx ECA Watch — ${vesselName}\n${message}`;
+
+  return { subject, html, text };
+}
+
 export function formatVerifierPackageTemplate(
   vesselName: string,
   year: number,
