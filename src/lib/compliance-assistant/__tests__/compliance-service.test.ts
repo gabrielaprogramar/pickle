@@ -175,6 +175,22 @@ describe("createMockComplianceAssistantService", () => {
     expect(response.disclaimer.length).toBeGreaterThan(0);
   });
 
+  it("answers certificate-status queries from the deterministic certificate registry", async () => {
+    const service = createMockService();
+    const response = await service.processQuery("c1", "u1", "Are any certificates expired?");
+    expect(response.content).toContainString("Certificate registry");
+    expect(response.content).toContainString("IMO 9074729");
+    expect(response.content).toContainString("LOAD_LINE");
+    expect(response.content).toContainString("derived deterministically");
+    expect(response.citations.length).toBeGreaterThan(0);
+  });
+
+  it("never infers an expiry date in certificate-status answers", async () => {
+    const service = createMockService();
+    const response = await service.processQuery("c1", "u1", "When does my IAPP certificate expire?");
+    expect(response.content).toContainString("No expiry date is ever inferred");
+  });
+
   it("delegates classifyIntent to base service", async () => {
     const service = createMockService();
     const classification = await service.classifyIntent("What is my FuelEU balance?");

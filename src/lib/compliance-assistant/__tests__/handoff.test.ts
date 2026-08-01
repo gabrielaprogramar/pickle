@@ -48,6 +48,22 @@ describe("HandoffDetector", () => {
       expect(result.target).toBe("captain");
     });
 
+    it('returns "none" target for certificate-status queries (registry data explained here)', () => {
+      const result = detector.detectHandoff("Which certificates are expired?", "COMPLIANCE");
+      expect(result.target).toBe("none");
+      expect(result.confidence).toBe(1.0);
+    });
+
+    it('returns "none" target for certificate expiry queries', () => {
+      const result = detector.detectHandoff("When does my IAPP certificate expire?", "COMPLIANCE");
+      expect(result.target).toBe("none");
+    });
+
+    it('returns "maintenance" target for certificate survey queries (still a maintenance action)', () => {
+      const result = detector.detectHandoff("I need a certificate survey inspection for maintenance", "COMPLIANCE");
+      expect(result.target).toBe("maintenance");
+    });
+
     it('returns "none" target for compliance-related queries (FuelEU)', () => {
       const result = detector.detectHandoff("What is my FuelEU compliance balance?", "COMPLIANCE");
       expect(result.target).toBe("none");

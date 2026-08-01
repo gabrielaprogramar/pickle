@@ -20,7 +20,7 @@ export { createMockNotificationEmailProvider } from "./email-provider";
 export { createPreferenceService } from "./preferences";
 export type { PreferenceService, PreferenceServiceOptions } from "./preferences";
 
-export { formatDeadlineTemplate, formatComplianceTemplate, formatReportTemplate, formatBdnTemplate, formatVerifierPackageTemplate, formatSoxTemplate } from "./templates";
+export { formatDeadlineTemplate, formatComplianceTemplate, formatReportTemplate, formatBdnTemplate, formatVerifierPackageTemplate, formatSoxTemplate, formatCertificateTemplate } from "./templates";
 
 export { createDeadlineAlertService } from "./deadlines";
 export type { DeadlineAlertService, DeadlineAlertServiceOptions } from "./deadlines";

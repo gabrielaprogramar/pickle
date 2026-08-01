@@ -2,6 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { useDocument } from "@/hooks/use-document";
+import { useCertificateRegistryLink } from "@/hooks/use-certificate-registry-link";
 import { useDocumentValidation } from "@/hooks/use-document-validation";
 import { useDocumentReview } from "@/hooks/use-document-review";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -98,6 +99,9 @@ export default function DocumentDetailPage() {
     creating: reviewCreating,
     error: reviewError,
   } = useDocumentReview(id);
+  const { link: certificateLink, isLoading: resolvingVessel } = useCertificateRegistryLink(
+    doc?.document.vessel_id ?? null,
+  );
 
   if (loading) {
     return (
@@ -191,6 +195,28 @@ export default function DocumentDetailPage() {
           </dl>
         </CardContent>
       </Card>
+
+      {documentRow.vessel_id && !resolvingVessel && certificateLink && (
+        <Card className="mb-4">
+          <CardHeader className="pb-2">
+            <CardTitle className="font-mono text-[11px] font-medium uppercase tracking-[0.1em]">
+              Certificate Registry
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-muted-foreground mb-2">
+              This document is evidence for a vessel certificate record. Open the vessel's
+              certificate registry to review status and expiry.
+            </p>
+            <Link
+              href={`/fleet/${certificateLink.imo}#certificates`}
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-7 px-3"
+            >
+              View certificate registry — {certificateLink.vesselName}
+            </Link>
+          </CardContent>
+        </Card>
+      )}
 
       {latestAiExtraction && (
         <Card className="mb-4">

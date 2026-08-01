@@ -19,6 +19,7 @@ const ALL_ENTITIES: ReadonlyArray<SearchEntity> = [
   "verifier_packages",
   "audit_log",
   "regulatory",
+  "certificates",
 ];
 
 function ast(
@@ -37,14 +38,48 @@ function ast(
 }
 
 describe("SearchToolRegistry", () => {
-  it("registers 12 tools", () => {
+  it("registers 13 tools", () => {
     const registry = createSearchToolRegistry();
     const tools = registry.listTools();
-    expect(tools.length).toBe(12);
+    expect(tools.length).toBe(13);
     const entities = tools.map((t) => t.entity);
     for (const entity of ALL_ENTITIES) {
       expect(entities.includes(entity)).toBe(true);
     }
+  });
+
+  it("returns the 8 certificate registry records with derived statuses", async () => {
+    const registry = createSearchToolRegistry();
+    const outcome = await registry.execute(
+      ast("certificates", {}, 1, 50),
+      CONTEXT,
+    );
+    expect(outcome.result.total).toBe(8);
+    const statuses = outcome.result.results.map((r) => r.status).sort();
+    expect(statuses).toContain("VALID");
+    expect(statuses).toContain("EXPIRING_SOON");
+    expect(statuses).toContain("EXPIRED");
+    expect(statuses).toContain("PENDING_REVIEW");
+  });
+
+  it("filters certificates by derived status (expired)", async () => {
+    const registry = createSearchToolRegistry();
+    const outcome = await registry.execute(
+      ast("certificates", { status: "EXPIRED" }, 1, 50),
+      CONTEXT,
+    );
+    expect(outcome.result.total).toBe(1);
+    expect(outcome.result.results[0]!.id).toBe("cert-loadline");
+  });
+
+  it("filters certificates by derived status (expiring soon)", async () => {
+    const registry = createSearchToolRegistry();
+    const outcome = await registry.execute(
+      ast("certificates", { status: "EXPIRING_SOON" }, 1, 50),
+      CONTEXT,
+    );
+    expect(outcome.result.total).toBe(1);
+    expect(outcome.result.results[0]!.id).toBe("cert-iscc");
   });
 
   it("returns the 3 Palma 2025 BDNs", async () => {

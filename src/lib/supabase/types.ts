@@ -1052,6 +1052,93 @@ export type SoxWatchStateInsert = {
   readonly last_evaluated_at: string;
 };
 
+// ── 1s. CERTIFICATE REGISTRY ROW TYPES (1:1 with migration 0014) ────────────
+
+/** One row of the `certificate_registry` table (current or historical). */
+export type CertificateRegistryRow = {
+  readonly id: string;
+  readonly vessel_id: string;
+  readonly imo: string;
+  readonly document_id: string | null;
+  readonly certificate_type: string;
+  readonly certificate_number: string | null;
+  readonly issuing_authority: string | null;
+  readonly class_society: string | null;
+  readonly issue_date: string | null;
+  readonly expiry_date: string | null;
+  readonly status: string;
+  readonly source: string;
+  readonly validation_status: string | null;
+  readonly review_status: string | null;
+  readonly review_required: boolean;
+  readonly blocking: boolean;
+  readonly reason_code: string | null;
+  readonly confidence: number | null;
+  readonly notes: string | null;
+  readonly version: number;
+  readonly supersedes_id: string | null;
+  readonly is_current: boolean;
+  readonly created_at: string;
+  readonly updated_at: string;
+};
+
+/** Payload for inserting a certificate record. id/version/created_at/updated_at are server-defaulted. */
+export type CertificateRegistryInsert = {
+  readonly vessel_id: string;
+  readonly imo: string;
+  readonly document_id?: string | null;
+  readonly certificate_type: string;
+  readonly certificate_number?: string | null;
+  readonly issuing_authority?: string | null;
+  readonly class_society?: string | null;
+  readonly issue_date?: string | null;
+  readonly expiry_date?: string | null;
+  readonly status: string;
+  readonly source: string;
+  readonly validation_status?: string | null;
+  readonly review_status?: string | null;
+  readonly review_required?: boolean;
+  readonly blocking?: boolean;
+  readonly reason_code?: string | null;
+  readonly confidence?: number | null;
+  readonly notes?: string | null;
+  readonly version?: number;
+  readonly supersedes_id?: string | null;
+  readonly is_current?: boolean;
+};
+
+/** One row of the `certificate_registry_events` table (append-only). */
+export type CertificateRegistryEventRow = {
+  readonly id: string;
+  readonly certificate_id: string;
+  readonly vessel_id: string;
+  readonly imo: string;
+  readonly event_ts: string;
+  readonly event_type: string;
+  readonly severity: string;
+  readonly previous_status: string | null;
+  readonly new_status: string | null;
+  readonly reason_code: string | null;
+  readonly details: unknown;
+  readonly dedup_key: string | null;
+  readonly created_at: string;
+};
+
+/** Payload for inserting a certificate registry event. id/created_at are server-defaulted. */
+export type CertificateRegistryEventInsert = {
+  readonly certificate_id: string;
+  readonly vessel_id: string;
+  readonly imo: string;
+  readonly event_ts: string;
+  readonly event_type: string;
+  readonly severity: string;
+  readonly previous_status?: string | null;
+  readonly new_status?: string | null;
+  readonly reason_code?: string | null;
+  readonly details?: unknown;
+  readonly dedup_key?: string | null;
+};
+
 export interface PaginationOptions {
   readonly limit: number;
   readonly offset: number;
@@ -1688,6 +1775,18 @@ export type Database = {
         Row: SoxWatchStateRow;
         Insert: SoxWatchStateInsert;
         Update: Partial<SoxWatchStateInsert>;
+        Relationships: Relationships;
+      };
+      certificate_registry: {
+        Row: CertificateRegistryRow;
+        Insert: CertificateRegistryInsert;
+        Update: Partial<CertificateRegistryInsert>;
+        Relationships: Relationships;
+      };
+      certificate_registry_events: {
+        Row: CertificateRegistryEventRow;
+        Insert: CertificateRegistryEventInsert;
+        Update: Partial<CertificateRegistryEventInsert>;
         Relationships: Relationships;
       };
     };

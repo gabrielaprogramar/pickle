@@ -19,6 +19,7 @@ export interface NotificationDispatcherOptions {
     formatBdn?: (event: string, vesselName: string, filename: string) => { subject: string; html: string; text: string };
     formatVerifierPackage?: (vesselName: string, year: number, status: string) => { subject: string; html: string; text: string };
     formatSox?: (severity: string, vesselName: string, message: string) => { subject: string; html: string; text: string };
+    formatCertificate?: (severity: string, vesselName: string, message: string) => { subject: string; html: string; text: string };
   };
 }
 
@@ -66,10 +67,13 @@ export function createNotificationDispatcher(opts: NotificationDispatcherOptions
       const emailEnabled = await opts.prefService.isEmailEnabled(event.recipient_id, event.type);
       if (emailEnabled) {
         try {
+          const isCertificate = event.type.startsWith("certificate_");
           const isSox = event.type.startsWith("sox_eca_");
-          const formatted = isSox && opts.templateFormatter?.formatSox
-            ? opts.templateFormatter.formatSox(event.severity, event.vessel_id ?? "Vessel", event.message)
-            : null;
+          const formatted = isCertificate && opts.templateFormatter?.formatCertificate
+            ? opts.templateFormatter.formatCertificate(event.severity, event.vessel_id ?? "Vessel", event.message)
+            : isSox && opts.templateFormatter?.formatSox
+              ? opts.templateFormatter.formatSox(event.severity, event.vessel_id ?? "Vessel", event.message)
+              : null;
           const emailNotification: EmailNotification = {
             to: event.recipient_id,
             subject: formatted?.subject ?? event.title,

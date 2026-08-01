@@ -64,12 +64,20 @@ interface SelectOptions {
   count?: "exact" | "planned" | "estimated";
 }
 
+type FilterOp = "eq" | "gte" | "lte" | "gt" | "lt";
+
+interface QueryFilter {
+  readonly column: string;
+  readonly value: unknown;
+  readonly op: FilterOp;
+}
+
 interface QueryState {
   readonly kind: QueryKind;
   readonly table: string;
   values?: unknown;
   onConflict?: string;
-  filters: Array<{ column: string; value: unknown }>;
+  filters: Array<QueryFilter>;
   orderColumn?: string;
   orderAscending?: boolean;
   orderNullsFirst?: boolean;
@@ -159,10 +167,34 @@ class FakeQueryBuilder {
   eq(column: string, value: unknown): this {
     const dotIdx = column.indexOf(".");
     const resolvedCol = dotIdx >= 0 ? column.substring(dotIdx + 1) : column;
-    (this.state.filters as Array<{ column: string; value: unknown }>).push({
+    (this.state.filters as QueryFilter[]).push({
       column: resolvedCol,
       value,
+      op: "eq",
     });
+    return this;
+  }
+
+  gte(column: string, value: unknown): this {
+    return this.addRangeFilter(column, value, "gte");
+  }
+
+  lte(column: string, value: unknown): this {
+    return this.addRangeFilter(column, value, "lte");
+  }
+
+  gt(column: string, value: unknown): this {
+    return this.addRangeFilter(column, value, "gt");
+  }
+
+  lt(column: string, value: unknown): this {
+    return this.addRangeFilter(column, value, "lt");
+  }
+
+  private addRangeFilter(column: string, value: unknown, op: FilterOp): this {
+    const dotIdx = column.indexOf(".");
+    const resolvedCol = dotIdx >= 0 ? column.substring(dotIdx + 1) : column;
+    (this.state.filters as QueryFilter[]).push({ column: resolvedCol, value, op });
     return this;
   }
 
@@ -314,7 +346,7 @@ class FakeQueryBuilder {
           const row = tableRows[i] as Record<string, unknown>;
           let matches = true;
           for (const filter of this.state.filters) {
-            if (row[filter.column] !== filter.value) {
+            if (!this.matchesFilter(row[filter.column], filter)) {
               matches = false;
               break;
             }
@@ -335,7 +367,7 @@ class FakeQueryBuilder {
         for (const filter of this.state.filters) {
           rows = rows.filter((r) => {
             const rowVal = (r as Record<string, unknown>)[filter.column];
-            return rowVal === filter.value;
+            return this.matchesFilter(rowVal, filter);
           });
         }
 
@@ -377,6 +409,33 @@ class FakeQueryBuilder {
     }
   }
 
+  private matchesFilter(
+    rowVal: unknown,
+    filter: QueryFilter,
+  ): boolean {
+    switch (filter.op) {
+      case "gte":
+        return typeof rowVal === "string" && typeof filter.value === "string"
+          ? rowVal >= filter.value
+          : false;
+      case "lte":
+        return typeof rowVal === "string" && typeof filter.value === "string"
+          ? rowVal <= filter.value
+          : false;
+      case "gt":
+        return typeof rowVal === "string" && typeof filter.value === "string"
+          ? rowVal > filter.value
+          : false;
+      case "lt":
+        return typeof rowVal === "string" && typeof filter.value === "string"
+          ? rowVal < filter.value
+          : false;
+      case "eq":
+      default:
+        return rowVal === filter.value;
+    }
+  }
+
   private buildRow(
     input: unknown,
     isUpdate: boolean,
@@ -408,6 +467,34 @@ class FakeQueryBuilder {
       if (row.arrival_port_id === undefined) row.arrival_port_id = null;
       if (row.arrival_time === undefined) row.arrival_time = null;
       if (row.distance_nm === undefined) row.distance_nm = null;
+    }
+
+    if (this.state.table === "certificate_registry") {
+      if (row.document_id === undefined) row.document_id = null;
+      if (row.certificate_number === undefined) row.certificate_number = null;
+      if (row.issuing_authority === undefined) row.issuing_authority = null;
+      if (row.class_society === undefined) row.class_society = null;
+      if (row.issue_date === undefined) row.issue_date = null;
+      if (row.expiry_date === undefined) row.expiry_date = null;
+      if (row.validation_status === undefined) row.validation_status = "pending";
+      if (row.review_status === undefined) row.review_status = "NOT_REQUIRED";
+      if (row.review_required === undefined) row.review_required = false;
+      if (row.blocking === undefined) row.blocking = false;
+      if (row.reason_code === undefined) row.reason_code = null;
+      if (row.confidence === undefined) row.confidence = null;
+      if (row.notes === undefined) row.notes = null;
+      if (row.version === undefined) row.version = 1;
+      if (row.supersedes_id === undefined) row.supersedes_id = null;
+      if (row.is_current === undefined) row.is_current = true;
+      if (row.updated_at === undefined) row.updated_at = row.created_at;
+    }
+
+    if (this.state.table === "certificate_registry_events") {
+      if (row.previous_status === undefined) row.previous_status = null;
+      if (row.new_status === undefined) row.new_status = null;
+      if (row.reason_code === undefined) row.reason_code = null;
+      if (row.details === undefined) row.details = null;
+      if (row.dedup_key === undefined) row.dedup_key = null;
     }
 
     if (this.state.table === "documents") {

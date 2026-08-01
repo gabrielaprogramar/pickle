@@ -10,6 +10,7 @@ import {
   SEARCH_HARD_LIMIT,
   SEARCH_MIN_CONFIDENCE_THRESHOLD,
 } from "./types";
+import { searchCertificatePhrases } from "@/lib/certificates/handoff";
 
 export interface QueryParser {
   parse(query: string): SearchAst;
@@ -34,6 +35,25 @@ const ENTITY_KEYWORDS: Record<SearchEntity, ReadonlyArray<string>> = {
   verifier_packages: ["verifier", "verification package", "verification"],
   audit_log: ["audit", "audit event", "audit log", "event log"],
   regulatory: ["regulation", "rule", "directive", "marpol", "annex", "guideline"],
+  certificates: [
+    "certificate",
+    "certificates",
+    "certificate record",
+    "iapp",
+    "iscc",
+    "issc",
+    "isps",
+    "smc",
+    "doc",
+    "bwm",
+    "ballast water",
+    "load line",
+    "class certificate",
+    "tonnage",
+    "seemp",
+    "iopp",
+    ...searchCertificatePhrases(),
+  ],
 };
 
 const VESSEL_NAMES: ReadonlyArray<string> = [
@@ -71,6 +91,12 @@ const STATUS_KEYWORDS: Record<string, string> = {
   closed: "CLOSED",
   submitted: "SUBMITTED",
   ready: "READY",
+  expiring: "EXPIRING_SOON",
+  "expiring soon": "EXPIRING_SOON",
+  expired: "EXPIRED",
+  missing: "MISSING",
+  "pending review": "PENDING_REVIEW",
+  invalid: "INVALID",
 };
 
 function detectEntity(query: string): ParsedIntent {

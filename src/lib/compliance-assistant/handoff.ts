@@ -34,6 +34,42 @@ const CAPTAIN_KEYWORDS = [
   "captain", "crew", "manning", "port readiness", "operational",
 ];
 
+/**
+ * Certificate *status* queries are deterministic registry data that this
+ * assistant explains (via certificate registry handoff statements). Queries
+ * about certificate *survey/inspection/maintenance* actions still route to
+ * the Maintenance Assistant.
+ */
+const CERTIFICATE_STATUS_KEYWORDS = [
+  "certificate status",
+  "certificate expiry",
+  "certificate expire",
+  "certificate expires",
+  "certificate expiration",
+  "certificates expiring",
+  "expire soon",
+  "expires soon",
+  "expiring",
+  "expired",
+  "expiration",
+  "expiry",
+  "certificate registry",
+  "which certificates",
+  "certificate valid",
+  "certificate validity",
+  "valid certificate",
+  "certificate missing",
+  "missing certificate",
+  "certificate pending review",
+  "certificate review required",
+  "certificate requires review",
+  "iapp valid",
+  "iscc valid",
+  "is the iapp",
+  "is my iapp",
+  "is the iscc",
+];
+
 const KEYWORD_MAP: Record<HandoffTarget, ReadonlyArray<string>> = {
   voyage: VOYAGE_KEYWORDS,
   maintenance: MAINTENANCE_KEYWORDS,
@@ -52,6 +88,12 @@ function countKeywordMatches(query: string, keywords: ReadonlyArray<string>): nu
   return keywords.filter((kw) => lower.includes(kw)).length;
 }
 
+/** True when a query asks about certificate *status* (registry data explained here). */
+export function isCertificateStatusQuery(query: string): boolean {
+  const lower = query.toLowerCase();
+  return CERTIFICATE_STATUS_KEYWORDS.some((kw) => lower.includes(kw));
+}
+
 export function createHandoffDetector(): HandoffDetector {
   function detectHandoff(query: string, intent: IntentType): HandoffDecision {
     const intentTarget = INTENT_TARGET_MAP[intent];
@@ -60,6 +102,14 @@ export function createHandoffDetector(): HandoffDetector {
         target: intentTarget,
         confidence: 1.0,
         reason: `Query classified with intent "${intent}", which maps to ${intentTarget} specialist.`,
+      };
+    }
+
+    if (isCertificateStatusQuery(query)) {
+      return {
+        target: "none",
+        confidence: 1.0,
+        reason: "Certificate status is deterministic registry data that the Compliance Assistant explains from derived statuses — not a survey/maintenance action.",
       };
     }
 

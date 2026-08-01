@@ -17,7 +17,8 @@ export type SearchEntity =
   | "reports"
   | "verifier_packages"
   | "audit_log"
-  | "regulatory";
+  | "regulatory"
+  | "certificates";
 
 export interface SearchFilter {
   readonly entity?: SearchEntity;

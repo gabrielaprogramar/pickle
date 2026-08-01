@@ -27,6 +27,7 @@ import { useVesselTrack } from "@/hooks/use-vessel-track";
 import { useEnvironmentalZones } from "@/hooks/use-environmental-zones";
 import { VesselMapView } from "@/components/map/vessel-map-view";
 import { SoxWatchCard } from "@/components/sox/sox-watch-card";
+import { CertificatesCard } from "@/components/certificates/certificates-card";
 import { MAJOR_MED_PORTS } from "@/lib/geo/constants";
 import { ROUTES } from "@/constants/routes";
 
@@ -335,8 +336,9 @@ export default function VesselDetailPage() {
         </Card>
       </div>
 
-      <div className="mt-4">
+      <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
         <SoxWatchCard imo={imo} />
+        <CertificatesCard imo={imo} />
       </div>
 
       <div className="mt-4">

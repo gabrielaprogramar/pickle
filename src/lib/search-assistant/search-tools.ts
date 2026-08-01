@@ -6,6 +6,14 @@ import type {
   SearchSort,
 } from "./types";
 import { SEARCH_HARD_LIMIT } from "./types";
+import {
+  buildMockCertificateRegistry,
+  CERT_MOCK_NOW,
+  CERT_MOCK_VESSEL,
+  certificateTypeLabel,
+  DEFAULT_CERTIFICATE_THRESHOLDS,
+  viewFor,
+} from "@/lib/certificates";
 
 export interface SearchToolContext {
   readonly organizationId: string;
@@ -161,6 +169,38 @@ const REGULATORY_KB: ReadonlyArray<MockRecord> = [
   { id: "reg-005", document_id: "kb-5", source_title: "FuelEU Maritime Regulation (EU) 2023/1805", title: "Compliance balance and pooling", regulation: "FuelEU Maritime", article_section: "Article 20 — Compliance surplus and pooling", version: "2023", content: "Compliance surpluses may be banked and compliance deficits may be pooled between ships.", relevance_score: 0.89, deep_link: { label: "Ask Compliance Assistant", path: "/compliance-assistant" } },
 ];
 
+const CERTIFICATES: ReadonlyArray<MockRecord> = buildMockCertificateRegistry(CERT_MOCK_NOW).records
+  .map((record) => {
+    const view = viewFor(record, CERT_MOCK_NOW, DEFAULT_CERTIFICATE_THRESHOLDS);
+    const title = certificateTypeLabel(record.certificate_type);
+    return {
+      id: record.id,
+      vessel_id: record.vessel_id,
+      vessel_name: CERT_MOCK_VESSEL.name,
+      imo: record.imo,
+      certificate_type: record.certificate_type,
+      certificate_title: title,
+      certificate_number: record.certificate_number,
+      issuing_authority: record.issuing_authority,
+      class_society: record.class_society,
+      expiry_date: record.expiry_date,
+      status: view.status,
+      reason_code: view.reasonCode,
+      blocking: view.blocking,
+      review_required: view.reviewRequired,
+      days_until_expiry: view.daysUntilExpiry,
+      confidence: record.confidence,
+      source: record.source,
+      document_type: "Certificate",
+      title: `${title} — ${view.status}`,
+      summary: `${title} (${record.certificate_number ?? "no number"}) is ${view.status} on the evidence on file${
+        record.expiry_date ? `; expires ${record.expiry_date}` : ""
+      }. Status is derived deterministically from the registry — no expiry date is ever inferred.`,
+      deep_link: { label: "Open certificate registry", path: `/fleet/${record.imo}#certificates` },
+    };
+  })
+  .sort((a, b) => (a.days_until_expiry ?? Infinity) - (b.days_until_expiry ?? Infinity));
+
 interface EntityConfig {
   readonly entity: SearchEntity;
   readonly name: string;
@@ -182,6 +222,7 @@ const ENTITY_CONFIGS: ReadonlyArray<EntityConfig> = [
   { entity: "verifier_packages", name: "search_verifier_packages", description: "Retrieve verifier packages for the organization", data: VERIFIER_PACKAGES, dateField: "generated_at" },
   { entity: "audit_log", name: "search_audit_log", description: "Retrieve audit events for the organization", data: AUDIT_EVENTS, dateField: "timestamp" },
   { entity: "regulatory", name: "regulatory_search", description: "Retrieve regulatory knowledge base documents", data: REGULATORY_KB, dateField: "" },
+  { entity: "certificates", name: "search_certificates", description: "Retrieve certificate registry records for the organization", data: CERTIFICATES, dateField: "expiry_date" },
 ];
 
 function str(value: unknown): string {
@@ -257,7 +298,7 @@ function matches(record: MockRecord, filters: SearchFilter): boolean {
 }
 
 function inferDateField(record: MockRecord): string {
-  for (const key of ["timestamp", "uploaded_at", "processed_at", "generated_at", "created_at", "delivery_date", "arrival_date", "departure_date"]) {
+  for (const key of ["timestamp", "uploaded_at", "processed_at", "generated_at", "created_at", "delivery_date", "arrival_date", "departure_date", "expiry_date"]) {
     if (record[key] !== undefined && record[key] !== null) return key;
   }
   return "";

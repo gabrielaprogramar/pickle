@@ -402,6 +402,18 @@ export type {
   SoxWatchStateInsert,
 } from "./repositories/sox_compliance";
 
+// Phase 4.2 Certificate & Statutory Document Registry repository.
+export { createCertificateRepository } from "./repositories/certificates";
+export type {
+  CertificateRepository,
+  CreateCertificateRepositoryOptions,
+  FindCertificatesOptions,
+  CertificateRow,
+  CertificateInsert,
+  CertificateEventRow,
+  CertificateEventInsert,
+} from "./repositories/certificates";
+
 // Mapper (re-exported so the orchestration layer can build payloads directly if
 // it ever needs to — e.g. a batch importer).
 export { toVesselInsert, toVoyageInsert } from "./mapper";

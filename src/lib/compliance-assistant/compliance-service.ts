@@ -1,8 +1,15 @@
 import type { AssistantService, AssistantServiceOptions } from "@/lib/assistant/assistant-service";
-import type { AssistantResponse, IntentClassification } from "@/lib/assistant/types";
+import type { AssistantResponse, IntentClassification, RegulatoryCitation } from "@/lib/assistant/types";
 import type { HandoffDetector, HandoffDecision } from "./handoff";
+import { isCertificateStatusQuery } from "./handoff";
 import type { ComplianceResponseBuilder } from "./response-templates";
 import { buildComplianceSystemPrompt, type SystemPromptInput } from "./system-prompt";
+import {
+  buildMockCertificateRegistry,
+  CERT_MOCK_NOW,
+  CERT_MOCK_VESSEL,
+  complianceCertificateExplanation,
+} from "@/lib/certificates";
 
 export interface ComplianceAssistantOptions extends AssistantServiceOptions {
   readonly handoffDetector: HandoffDetector;
@@ -107,7 +114,43 @@ export function createMockComplianceAssistantService(
           safetyCheck: { passed: true, warnings: [], violations: [] },
         };
       }
+      if (isCertificateStatusQuery(query)) {
+        return buildCertificateRegistryResponse();
+      }
       return mockResponse;
     },
+  };
+}
+
+function buildCertificateRegistryResponse(): AssistantResponse {
+  const registry = buildMockCertificateRegistry(CERT_MOCK_NOW);
+  const statements = registry.records.map((record) =>
+    complianceCertificateExplanation(record, CERT_MOCK_NOW).answer,
+  );
+  const citations: ReadonlyArray<RegulatoryCitation> = [
+    {
+      source: "Poseidon Ledger certificate registry",
+      regulation: "Statutory certificates (derived)",
+      article_section: "REGULATORY_RESEARCH.md",
+      version: "1.0",
+      chunk_id: "certificate-registry",
+      document_id: "certificate-registry",
+      relevance_score: 1.0,
+      excerpt:
+        "Certificate statuses are derived deterministically from evidence on file; no expiry date is ever inferred.",
+    },
+  ];
+  return {
+    content: [
+      `**Certificate registry — ${CERT_MOCK_VESSEL.name} (IMO ${CERT_MOCK_VESSEL.imo})**`,
+      "",
+      ...statements,
+      "",
+      "Each status above is derived deterministically from the certificate registry (dates and applicability on file). No expiry date is ever inferred by the assistant.",
+    ].join("\n"),
+    citations,
+    toolCalls: [],
+    disclaimer: "This information is provided for informational purposes only and does not constitute legal advice.",
+    safetyCheck: { passed: true, warnings: [], violations: [] },
   };
 }

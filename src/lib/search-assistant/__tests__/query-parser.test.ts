@@ -62,6 +62,24 @@ describe("QueryParser", () => {
     expect(ast.filters.source).toBe("EMAIL");
   });
 
+  it("parses certificate status queries as certificates entity", () => {
+    const ast = parser.parse("which certificates are expired?");
+    expect(ast.entity).toBe("certificates");
+    expect(ast.filters.status).toBe("EXPIRED");
+  });
+
+  it("parses expiring certificate queries with expiring status", () => {
+    const ast = parser.parse("show certificates expiring soon");
+    expect(ast.entity).toBe("certificates");
+    expect(ast.filters.status).toBe("EXPIRING_SOON");
+  });
+
+  it("parses certificate registry queries for a vessel", () => {
+    const ast = parser.parse("find the certificate records for IMO 9074729");
+    expect(ast.entity).toBe("certificates");
+    expect(ast.filters.imo).toBe("9074729");
+  });
+
   it("returns null entity for ambiguous queries", () => {
     const ast = parser.parse("show me everything");
     expect(ast.entity).toBeNull();
