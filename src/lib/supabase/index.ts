@@ -112,6 +112,14 @@ export type {
   ValidationReportInsert,
   ReviewAuditLogRow,
   ReviewAuditLogInsert,
+  OcrQualityLevel,
+  OcrReviewSuggestionKind,
+  OcrReviewSuggestionPriority,
+  OcrReviewSuggestionStatus,
+  OcrQualityScoreRow,
+  OcrQualityScoreInsert,
+  OcrReviewSuggestionRow,
+  OcrReviewSuggestionInsert,
 } from "./types";
 
 // Errors — callers branch with `instanceof`.
@@ -182,6 +190,18 @@ export type {
   ReviewTaskRepository,
   CreateReviewTaskRepositoryOptions,
 } from "./repositories/review_tasks";
+
+export { createOcrQualityScoreRepository } from "./repositories/ocr_quality_scores";
+export type {
+  OcrQualityScoreRepository,
+  CreateOcrQualityScoreRepositoryOptions,
+} from "./repositories/ocr_quality_scores";
+
+export { createOcrReviewSuggestionRepository } from "./repositories/ocr_review_suggestions";
+export type {
+  OcrReviewSuggestionRepository,
+  CreateOcrReviewSuggestionRepositoryOptions,
+} from "./repositories/ocr_review_suggestions";
 
 export { createDocumentRelationshipRepository } from "./repositories/document_relationships";
 export type {
@@ -295,6 +315,10 @@ export {
   ProcessingLogLevelSchema,
   ReviewTaskStatusSchema,
   ReviewTaskPrioritySchema,
+  OcrQualityLevelSchema,
+  OcrReviewSuggestionKindSchema,
+  OcrReviewSuggestionPrioritySchema,
+  OcrReviewSuggestionStatusSchema,
   DocumentRelationshipTypeSchema,
   DocumentEntityTypeSchema,
   DocumentInsertSchema,
@@ -304,6 +328,8 @@ export {
   DocumentEntityInsertSchema,
   ProcessingLogInsertSchema,
   ReviewTaskInsertSchema,
+  OcrQualityScoreInsertSchema,
+  OcrReviewSuggestionInsertSchema,
   DocumentRelationshipInsertSchema,
   AiExtractionInsertSchema,
   ValidationReportInsertSchema,

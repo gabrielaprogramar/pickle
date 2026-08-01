@@ -540,6 +540,18 @@ class FakeQueryBuilder {
       if (row.due_at === undefined) row.due_at = null;
       if (row.completed_at === undefined) row.completed_at = null;
       if (row.review_note === undefined) row.review_note = null;
+      if (row.reason_code === undefined) row.reason_code = null;
+      if (row.updated_at === undefined) {
+        row.updated_at = row.created_at;
+      }
+    }
+    if (this.state.table === "ocr_quality_scores") {
+      if (row.confidence_distribution === undefined) row.confidence_distribution = {};
+      if (row.issues === undefined) row.issues = [];
+      if (row.missing_mandatory_fields === undefined) row.missing_mandatory_fields = [];
+    }
+    if (this.state.table === "ocr_review_suggestions") {
+      if (row.status === undefined) row.status = "open";
       if (row.updated_at === undefined) {
         row.updated_at = row.created_at;
       }

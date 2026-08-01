@@ -38,6 +38,7 @@ function makeTaskRow(
     due_at: overrides.due_at ?? null,
     completed_at: overrides.completed_at ?? null,
     review_note: overrides.review_note ?? null,
+    reason_code: overrides.reason_code ?? null,
     created_at: overrides.created_at ?? NOW,
     updated_at: overrides.updated_at ?? NOW,
   };

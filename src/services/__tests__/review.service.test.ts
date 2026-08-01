@@ -6,7 +6,8 @@ import { createReviewAuditLogRepository } from "@/lib/supabase/repositories/revi
 import { createAiExtractionRepository } from "@/lib/supabase/repositories/ai_extractions";
 import { createValidationReportRepository } from "@/lib/supabase/repositories/validation_reports";
 import { createReviewService } from "../review.service";
-import type { DocumentRow, DocumentStatus } from "@/lib/supabase/types";
+import { OCR_REVIEW_REQUIRED } from "@/lib/ocr-assistant";
+import type { DocumentRow, DocumentStatus, ValidationReportRow } from "@/lib/supabase/types";
 
 const NOW = "2026-07-29T12:00:00.000Z";
 const DOC_ID = "doc-uuid-001";
@@ -84,6 +85,55 @@ describe("ReviewService — createReviewTask", () => {
     const result = await svc.createReviewTask(DOC_ID);
     expect(result.reviewTask.document_id).toBe(DOC_ID);
     expect(result.document.status).toBe("under_review");
+  });
+
+  it("defaults reason_code to OCR_REVIEW_REQUIRED when validation recommended review", async () => {
+    const report: ValidationReportRow = {
+      id: "vr-uuid-001",
+      document_id: DOC_ID,
+      extraction_id: "ext-uuid-001",
+      status: "passed",
+      score: 78,
+      rule_results: [],
+      passed_count: 18,
+      failed_count: 3,
+      error_count: 0,
+      warning_count: 3,
+      blocking_issues: [],
+      recommended_review: ["Low OCR confidence — manual verification recommended"],
+      ready_for_review: false,
+      validator_version: "1.0.0",
+      latency_ms: 120,
+      created_at: NOW,
+      updated_at: NOW,
+    };
+    const fake = createFakeSupabaseClient({
+      tables: { documents: [makeDoc()], validation_reports: [report] },
+    });
+    const svc = buildService(fake);
+
+    const result = await svc.createReviewTask(DOC_ID);
+    expect(result.reviewTask.reason_code).toBe(OCR_REVIEW_REQUIRED);
+  });
+
+  it("persists an explicit reason code", async () => {
+    const fake = createFakeSupabaseClient({
+      tables: { documents: [makeDoc()] },
+    });
+    const svc = buildService(fake);
+
+    const result = await svc.createReviewTask(DOC_ID, { reasonCode: "IMO_MISMATCH" });
+    expect(result.reviewTask.reason_code).toBe("IMO_MISMATCH");
+  });
+
+  it("leaves reason_code null when nothing recommended review", async () => {
+    const fake = createFakeSupabaseClient({
+      tables: { documents: [makeDoc()] },
+    });
+    const svc = buildService(fake);
+
+    const result = await svc.createReviewTask(DOC_ID);
+    expect(result.reviewTask.reason_code).toBeNull();
   });
 });
 

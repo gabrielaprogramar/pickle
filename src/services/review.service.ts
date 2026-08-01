@@ -7,6 +7,7 @@ import type {
 } from "@/lib/supabase";
 import type { DocumentStatus } from "@/lib/supabase/types";
 import type { ReviewProvider } from "@/lib/review/types";
+import { OCR_REVIEW_REQUIRED } from "@/lib/ocr-assistant";
 
 export interface ReviewServiceOptions {
   readonly reviewTaskRepo: ReviewTaskRepository;
@@ -25,7 +26,7 @@ export interface ReviewTaskFilter {
 }
 
 export interface ReviewService {
-  createReviewTask(documentId: string, options?: { assignee?: string; priority?: string; dueAt?: string }): Promise<{
+  createReviewTask(documentId: string, options?: { assignee?: string; priority?: string; dueAt?: string; reasonCode?: string }): Promise<{
     reviewTask: import("@/lib/supabase/types").ReviewTaskRow;
     document: import("@/lib/supabase/types").DocumentRow;
   }>;
@@ -103,12 +104,23 @@ export function createReviewService(opts: ReviewServiceOptions): ReviewService {
         throw new Error(`Document not found: ${documentId}`);
       }
 
+      let reasonCode: string | null = null;
+      if (options?.reasonCode) {
+        reasonCode = options.reasonCode;
+      } else {
+        const latest = await validationRepo.findLatestByDocumentId(documentId);
+        if (latest && latest.recommended_review.length > 0) {
+          reasonCode = OCR_REVIEW_REQUIRED;
+        }
+      }
+
       const task = await reviewTaskRepo.insert({
         document_id: documentId,
         assigned_to: options?.assignee ?? null,
         status: options?.assignee ? "in_progress" : "pending",
         priority: (options?.priority ?? "normal") as "low" | "normal" | "high" | "urgent",
         due_at: options?.dueAt ?? null,
+        reason_code: reasonCode,
       });
 
       const updated = await documentRepo.updateStatus(documentId, "under_review" as DocumentStatus);

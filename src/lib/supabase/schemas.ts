@@ -80,6 +80,36 @@ export const ReviewTaskPrioritySchema = z.enum([
   "urgent",
 ]);
 
+export const OcrQualityLevelSchema = z.enum([
+  "HIGH",
+  "MEDIUM",
+  "LOW",
+  "VERY_LOW",
+]);
+
+export const OcrReviewSuggestionKindSchema = z.enum([
+  "IMO_CHECKSUM",
+  "DATE_FORMAT",
+  "FUEL_SPELLING",
+  "PORT_SPELLING",
+  "CERTIFICATE_NUMBER_SPACING",
+  "MERGED_CHARACTERS",
+]);
+
+export const OcrReviewSuggestionPrioritySchema = z.enum([
+  "CRITICAL",
+  "HIGH",
+  "MEDIUM",
+  "LOW",
+]);
+
+export const OcrReviewSuggestionStatusSchema = z.enum([
+  "open",
+  "accepted",
+  "rejected",
+  "resolved",
+]);
+
 export const DocumentRelationshipTypeSchema = z.enum([
   "supersedes",
   "amends",
@@ -168,6 +198,37 @@ export const ReviewTaskInsertSchema = z.object({
   due_at: z.string().nullable().optional(),
   completed_at: z.string().nullable().optional(),
   review_note: z.string().max(8192).nullable().optional(),
+  reason_code: z.string().max(255).nullable().optional(),
+});
+
+const scoreField = z.number().min(0).max(1);
+
+export const OcrQualityScoreInsertSchema = z.object({
+  ocr_result_id: z.string().uuid(),
+  document_id: z.string().uuid(),
+  detected_family: z.string().min(1).max(64),
+  overall_quality_score: scoreField,
+  level: OcrQualityLevelSchema,
+  page_quality: scoreField,
+  text_coverage: scoreField,
+  field_coverage: scoreField,
+  confidence_score: scoreField,
+  confidence_distribution: z.record(z.string(), z.number()),
+  issues: z.array(z.unknown()),
+  missing_mandatory_fields: z.array(z.string()),
+});
+
+export const OcrReviewSuggestionInsertSchema = z.object({
+  ocr_result_id: z.string().uuid(),
+  document_id: z.string().uuid(),
+  field_key: z.string().min(1).max(255),
+  kind: OcrReviewSuggestionKindSchema,
+  original_value: z.string().min(1).max(4096),
+  suggested_value: z.string().min(1).max(4096),
+  confidence: scoreField,
+  reason: z.string().min(1).max(4096),
+  priority: OcrReviewSuggestionPrioritySchema,
+  status: OcrReviewSuggestionStatusSchema.optional(),
 });
 
 export const DocumentRelationshipInsertSchema = z.object({

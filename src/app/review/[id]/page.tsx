@@ -3,6 +3,7 @@
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { useReviewTaskDetail, useReviewActions } from "@/hooks/use-review-tasks";
+import { OcrQualityPanel } from "@/components/ocr/ocr-quality-panel";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -240,6 +241,12 @@ export default function ReviewDetailPage() {
             </dl>
           </CardContent>
         </Card>
+      )}
+
+      {task.document_id && (
+        <div className="mb-4">
+          <OcrQualityPanel documentId={task.document_id} />
+        </div>
       )}
 
       {!isCompleted && (

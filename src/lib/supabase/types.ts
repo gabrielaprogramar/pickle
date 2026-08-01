@@ -332,6 +332,7 @@ export type ReviewTaskRow = {
   readonly due_at: string | null;
   readonly completed_at: string | null;
   readonly review_note: string | null;
+  readonly reason_code: string | null;
   readonly created_at: string;
   readonly updated_at: string;
 };
@@ -345,6 +346,92 @@ export type ReviewTaskInsert = {
   readonly due_at?: string | null;
   readonly completed_at?: string | null;
   readonly review_note?: string | null;
+  readonly reason_code?: string | null;
+};
+
+// ── 1c. OCR QUALITY / REVIEW ROW TYPES (1:1 with migration 0015) ────────────
+
+/** OCR quality level. Controlled by ocr_quality_scores_level_check. */
+export type OcrQualityLevel = "HIGH" | "MEDIUM" | "LOW" | "VERY_LOW";
+
+/** OCR repair suggestion kind. Controlled by ocr_review_suggestions_kind_check. */
+export type OcrReviewSuggestionKind =
+  | "IMO_CHECKSUM"
+  | "DATE_FORMAT"
+  | "FUEL_SPELLING"
+  | "PORT_SPELLING"
+  | "CERTIFICATE_NUMBER_SPACING"
+  | "MERGED_CHARACTERS";
+
+/** Review priority at suggestion time. Controlled by ocr_review_suggestions_priority_check. */
+export type OcrReviewSuggestionPriority = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
+
+/** Suggestion workflow state. Controlled by ocr_review_suggestions_status_check. */
+export type OcrReviewSuggestionStatus = "open" | "accepted" | "rejected" | "resolved";
+
+/** One row of the `ocr_quality_scores` table. */
+export type OcrQualityScoreRow = {
+  readonly id: string;
+  readonly ocr_result_id: string;
+  readonly document_id: string;
+  readonly detected_family: string;
+  readonly overall_quality_score: number;
+  readonly level: OcrQualityLevel;
+  readonly page_quality: number;
+  readonly text_coverage: number;
+  readonly field_coverage: number;
+  readonly confidence_score: number;
+  readonly confidence_distribution: Record<string, number>;
+  readonly issues: unknown[];
+  readonly missing_mandatory_fields: string[];
+  readonly created_at: string;
+};
+
+/** Payload for inserting an OCR quality score. id/created_at are server-defaulted. */
+export type OcrQualityScoreInsert = {
+  readonly ocr_result_id: string;
+  readonly document_id: string;
+  readonly detected_family: string;
+  readonly overall_quality_score: number;
+  readonly level: OcrQualityLevel;
+  readonly page_quality: number;
+  readonly text_coverage: number;
+  readonly field_coverage: number;
+  readonly confidence_score: number;
+  readonly confidence_distribution: Record<string, number>;
+  readonly issues: unknown[];
+  readonly missing_mandatory_fields: string[];
+};
+
+/** One row of the `ocr_review_suggestions` table. */
+export type OcrReviewSuggestionRow = {
+  readonly id: string;
+  readonly ocr_result_id: string;
+  readonly document_id: string;
+  readonly field_key: string;
+  readonly kind: OcrReviewSuggestionKind;
+  readonly original_value: string;
+  readonly suggested_value: string;
+  readonly confidence: number;
+  readonly reason: string;
+  readonly priority: OcrReviewSuggestionPriority;
+  readonly status: OcrReviewSuggestionStatus;
+  readonly created_at: string;
+  readonly updated_at: string;
+};
+
+/** Payload for inserting an OCR review suggestion. id/created_at/updated_at are server-defaulted. */
+export type OcrReviewSuggestionInsert = {
+  readonly ocr_result_id: string;
+  readonly document_id: string;
+  readonly field_key: string;
+  readonly kind: OcrReviewSuggestionKind;
+  readonly original_value: string;
+  readonly suggested_value: string;
+  readonly confidence: number;
+  readonly reason: string;
+  readonly priority: OcrReviewSuggestionPriority;
+  readonly status?: OcrReviewSuggestionStatus;
 };
 
 /** One row of the `document_relationships` table. */
@@ -1787,6 +1874,18 @@ export type Database = {
         Row: CertificateRegistryEventRow;
         Insert: CertificateRegistryEventInsert;
         Update: Partial<CertificateRegistryEventInsert>;
+        Relationships: Relationships;
+      };
+      ocr_quality_scores: {
+        Row: OcrQualityScoreRow;
+        Insert: OcrQualityScoreInsert;
+        Update: Partial<OcrQualityScoreInsert>;
+        Relationships: Relationships;
+      };
+      ocr_review_suggestions: {
+        Row: OcrReviewSuggestionRow;
+        Insert: OcrReviewSuggestionInsert;
+        Update: Partial<OcrReviewSuggestionInsert>;
         Relationships: Relationships;
       };
     };

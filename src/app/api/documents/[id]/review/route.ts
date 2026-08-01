@@ -9,12 +9,13 @@ export async function POST(
   const { id } = params;
   try {
     const body = await request.json();
-    const { assignee, priority } = body;
+    const { assignee, priority, reasonCode } = body;
 
     const service = buildReviewService();
     const result = await service.createReviewTask(id, {
       assignee,
       priority,
+      reasonCode,
     });
 
     return apiSuccess(result, 200);
