@@ -434,6 +434,79 @@ export type OcrReviewSuggestionInsert = {
   readonly status?: OcrReviewSuggestionStatus;
 };
 
+/** One row of the `noon_reports` table. */
+export type NoonReportRow = {
+  readonly id: string;
+  readonly vessel_id: string;
+  readonly imo: string;
+  readonly vessel_name: string | null;
+  readonly report_date: string;
+  readonly position_latitude: number | null;
+  readonly position_longitude: number | null;
+  readonly speed_knots: number | null;
+  readonly course_degrees: number | null;
+  readonly distance_to_go_nm: number | null;
+  readonly fuel_consumption_tonnes: number | null;
+  readonly fuel_robs_tonnes: number | null;
+  readonly engine_rpm: number | null;
+  readonly sea_state: string | null;
+  readonly wind_speed_knots: number | null;
+  readonly wind_direction: string | null;
+  readonly summary: string | null;
+  readonly warnings: unknown[];
+  readonly confidence: number;
+  readonly source: string;
+  readonly source_document_id: string | null;
+  readonly review_state: string | null;
+  readonly is_blocked: boolean;
+  readonly analysis: Record<string, unknown> | null;
+  readonly findings: unknown[];
+  readonly fuel_correlation: Record<string, unknown> | null;
+  readonly voyage_correlation: Record<string, unknown> | null;
+  readonly fueleu_operational: Record<string, unknown> | null;
+  readonly ets_operational: Record<string, unknown> | null;
+  readonly evaluated_at: string | null;
+  readonly evaluation_version: string | null;
+  readonly dedup_key: string | null;
+  readonly created_at: string;
+  readonly updated_at: string;
+};
+
+/** Payload for inserting a noon report. id/created_at/updated_at are server-defaulted. */
+export type NoonReportInsert = {
+  readonly vessel_id: string;
+  readonly imo: string;
+  readonly vessel_name?: string | null;
+  readonly report_date: string;
+  readonly position_latitude?: number | null;
+  readonly position_longitude?: number | null;
+  readonly speed_knots?: number | null;
+  readonly course_degrees?: number | null;
+  readonly distance_to_go_nm?: number | null;
+  readonly fuel_consumption_tonnes?: number | null;
+  readonly fuel_robs_tonnes?: number | null;
+  readonly engine_rpm?: number | null;
+  readonly sea_state?: string | null;
+  readonly wind_speed_knots?: number | null;
+  readonly wind_direction?: string | null;
+  readonly summary?: string | null;
+  readonly warnings?: unknown[];
+  readonly confidence?: number;
+  readonly source?: string;
+  readonly source_document_id?: string | null;
+  readonly review_state?: string | null;
+  readonly is_blocked?: boolean;
+  readonly analysis?: Record<string, unknown> | null;
+  readonly findings?: unknown[];
+  readonly fuel_correlation?: Record<string, unknown> | null;
+  readonly voyage_correlation?: Record<string, unknown> | null;
+  readonly fueleu_operational?: Record<string, unknown> | null;
+  readonly ets_operational?: Record<string, unknown> | null;
+  readonly evaluated_at?: string | null;
+  readonly evaluation_version?: string | null;
+  readonly dedup_key?: string | null;
+};
+
 /** One row of the `document_relationships` table. */
 export type DocumentRelationshipRow = {
   readonly id: string;
@@ -1886,6 +1959,12 @@ export type Database = {
         Row: OcrReviewSuggestionRow;
         Insert: OcrReviewSuggestionInsert;
         Update: Partial<OcrReviewSuggestionInsert>;
+        Relationships: Relationships;
+      };
+      noon_reports: {
+        Row: NoonReportRow;
+        Insert: NoonReportInsert;
+        Update: Partial<NoonReportInsert>;
         Relationships: Relationships;
       };
     };

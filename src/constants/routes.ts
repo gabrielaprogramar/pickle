@@ -21,4 +21,5 @@ export const ROUTES = {
   captainAssistant: "/captain",
   maintenanceAssistant: "/maintenance",
   voyageAssistant: "/voyage",
+  noon: "/noon",
 } as const;

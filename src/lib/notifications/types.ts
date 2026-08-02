@@ -32,7 +32,16 @@ export type NotificationEventType =
   | "sox_eca_warning"
   | "sox_eca_non_conforming"
   | "sox_eca_no_evidence"
-  | "sox_eca_review_required";
+  | "sox_eca_review_required"
+  | "noon_report_received"
+  | "noon_impossible_fuel"
+  | "noon_unexpected_consumption"
+  | "noon_heavy_weather"
+  | "noon_unexpected_delay"
+  | "noon_fuel_discrepancy"
+  | "noon_voyage_anomaly"
+  | "noon_rob_inconsistency"
+  | "noon_low_confidence";
 
 export interface NotificationEvent {
   readonly type: NotificationEventType;

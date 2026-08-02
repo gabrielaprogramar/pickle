@@ -550,6 +550,39 @@ class FakeQueryBuilder {
       if (row.issues === undefined) row.issues = [];
       if (row.missing_mandatory_fields === undefined) row.missing_mandatory_fields = [];
     }
+    if (this.state.table === "noon_reports") {
+      if (row.vessel_name === undefined) row.vessel_name = null;
+      if (row.position_latitude === undefined) row.position_latitude = null;
+      if (row.position_longitude === undefined) row.position_longitude = null;
+      if (row.speed_knots === undefined) row.speed_knots = null;
+      if (row.course_degrees === undefined) row.course_degrees = null;
+      if (row.distance_to_go_nm === undefined) row.distance_to_go_nm = null;
+      if (row.fuel_consumption_tonnes === undefined) row.fuel_consumption_tonnes = null;
+      if (row.fuel_robs_tonnes === undefined) row.fuel_robs_tonnes = null;
+      if (row.engine_rpm === undefined) row.engine_rpm = null;
+      if (row.sea_state === undefined) row.sea_state = null;
+      if (row.wind_speed_knots === undefined) row.wind_speed_knots = null;
+      if (row.wind_direction === undefined) row.wind_direction = null;
+      if (row.summary === undefined) row.summary = null;
+      if (row.warnings === undefined) row.warnings = [];
+      if (row.confidence === undefined) row.confidence = 0;
+      if (row.source === undefined) row.source = "ai_extraction";
+      if (row.source_document_id === undefined) row.source_document_id = null;
+      if (row.review_state === undefined) row.review_state = null;
+      if (row.is_blocked === undefined) row.is_blocked = false;
+      if (row.analysis === undefined) row.analysis = null;
+      if (row.findings === undefined) row.findings = [];
+      if (row.fuel_correlation === undefined) row.fuel_correlation = null;
+      if (row.voyage_correlation === undefined) row.voyage_correlation = null;
+      if (row.fueleu_operational === undefined) row.fueleu_operational = null;
+      if (row.ets_operational === undefined) row.ets_operational = null;
+      if (row.evaluated_at === undefined) row.evaluated_at = null;
+      if (row.evaluation_version === undefined) row.evaluation_version = null;
+      if (row.dedup_key === undefined) row.dedup_key = null;
+      if (row.updated_at === undefined) {
+        row.updated_at = row.created_at;
+      }
+    }
     if (this.state.table === "ocr_review_suggestions") {
       if (row.status === undefined) row.status = "open";
       if (row.updated_at === undefined) {

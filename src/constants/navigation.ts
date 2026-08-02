@@ -16,6 +16,7 @@ import {
   LifeBuoy,
   Wrench,
   Compass,
+  Waves,
   type LucideIcon,
 } from "lucide-react";
 import { ROUTES } from "./routes";
@@ -85,6 +86,11 @@ export const NAVIGATION: readonly NavSection[] = [
         label: "Voyage",
         href: ROUTES.voyageAssistant,
         icon: Compass,
+      },
+      {
+        label: "Noon Reports",
+        href: ROUTES.noon,
+        icon: Waves,
       },
       {
         label: "MarineTraffic",

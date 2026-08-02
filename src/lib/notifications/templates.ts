@@ -149,3 +149,24 @@ export function formatCertificateTemplate(
 
   return { subject, html, text };
 }
+
+export function formatNoonTemplate(
+  severity: string,
+  vesselName: string,
+  message: string,
+): { subject: string; html: string; text: string } {
+  const subject = `[${severity}] Noon Report — ${vesselName}`;
+
+  const html = `
+    <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px;">
+      <h2 style="color: ${severity === "CRITICAL" ? "#dc2626" : severity === "HIGH" ? "#ea580c" : severity === "MEDIUM" ? "#d97706" : "#2563eb"};">Noon Report Intelligence — ${vesselName}</h2>
+      <p>${message}</p>
+      <hr style="margin: 20px 0;" />
+      <p style="color: #6b7280; font-size: 12px;">Poseidon Ledger — Noon Report Monitoring</p>
+    </div>
+  `.trim();
+
+  const text = `Noon Report Intelligence — ${vesselName}\n${message}`;
+
+  return { subject, html, text };
+}

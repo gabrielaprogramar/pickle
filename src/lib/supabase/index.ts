@@ -120,6 +120,8 @@ export type {
   OcrQualityScoreInsert,
   OcrReviewSuggestionRow,
   OcrReviewSuggestionInsert,
+  NoonReportRow,
+  NoonReportInsert,
 } from "./types";
 
 // Errors — callers branch with `instanceof`.
@@ -208,6 +210,13 @@ export type {
   DocumentRelationshipRepository,
   CreateDocumentRelationshipRepositoryOptions,
 } from "./repositories/document_relationships";
+
+export { createNoonReportRepository } from "./repositories/noon_reports";
+export type {
+  NoonReportRepository,
+  CreateNoonReportRepositoryOptions,
+  NoonReportUpdate,
+} from "./repositories/noon_reports";
 
 // AI Extraction repository.
 export { createAiExtractionRepository } from "./repositories/ai_extractions";
@@ -330,6 +339,7 @@ export {
   ReviewTaskInsertSchema,
   OcrQualityScoreInsertSchema,
   OcrReviewSuggestionInsertSchema,
+  NoonReportInsertSchema,
   DocumentRelationshipInsertSchema,
   AiExtractionInsertSchema,
   ValidationReportInsertSchema,

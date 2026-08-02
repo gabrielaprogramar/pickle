@@ -20,6 +20,7 @@ export interface NotificationDispatcherOptions {
     formatVerifierPackage?: (vesselName: string, year: number, status: string) => { subject: string; html: string; text: string };
     formatSox?: (severity: string, vesselName: string, message: string) => { subject: string; html: string; text: string };
     formatCertificate?: (severity: string, vesselName: string, message: string) => { subject: string; html: string; text: string };
+    formatNoon?: (severity: string, vesselName: string, message: string) => { subject: string; html: string; text: string };
   };
 }
 
@@ -69,11 +70,14 @@ export function createNotificationDispatcher(opts: NotificationDispatcherOptions
         try {
           const isCertificate = event.type.startsWith("certificate_");
           const isSox = event.type.startsWith("sox_eca_");
+          const isNoon = event.type.startsWith("noon_");
           const formatted = isCertificate && opts.templateFormatter?.formatCertificate
             ? opts.templateFormatter.formatCertificate(event.severity, event.vessel_id ?? "Vessel", event.message)
             : isSox && opts.templateFormatter?.formatSox
               ? opts.templateFormatter.formatSox(event.severity, event.vessel_id ?? "Vessel", event.message)
-              : null;
+              : isNoon && opts.templateFormatter?.formatNoon
+                ? opts.templateFormatter.formatNoon(event.severity, event.vessel_id ?? "Vessel", event.message)
+                : null;
           const emailNotification: EmailNotification = {
             to: event.recipient_id,
             subject: formatted?.subject ?? event.title,

@@ -231,6 +231,42 @@ export const OcrReviewSuggestionInsertSchema = z.object({
   status: OcrReviewSuggestionStatusSchema.optional(),
 });
 
+const jsonRecord = z.record(z.string(), z.unknown());
+
+export const NoonReportInsertSchema = z.object({
+  vessel_id: z.string().uuid(),
+  imo: z.string().min(3).max(32),
+  vessel_name: z.string().min(1).max(255).nullable().optional(),
+  report_date: z.string().min(1).max(64),
+  position_latitude: z.number().min(-90).max(90).nullable().optional(),
+  position_longitude: z.number().min(-180).max(180).nullable().optional(),
+  speed_knots: z.number().min(0).max(60).nullable().optional(),
+  course_degrees: z.number().min(0).max(360).nullable().optional(),
+  distance_to_go_nm: z.number().min(0).nullable().optional(),
+  fuel_consumption_tonnes: z.number().min(0).nullable().optional(),
+  fuel_robs_tonnes: z.number().min(0).nullable().optional(),
+  engine_rpm: z.number().min(0).max(500).nullable().optional(),
+  sea_state: z.string().min(1).max(64).nullable().optional(),
+  wind_speed_knots: z.number().min(0).max(150).nullable().optional(),
+  wind_direction: z.string().min(1).max(16).nullable().optional(),
+  summary: z.string().max(8192).nullable().optional(),
+  warnings: z.array(z.unknown()).optional(),
+  confidence: z.number().min(0).max(1).optional(),
+  source: z.string().min(1).max(64).optional(),
+  source_document_id: z.string().max(255).nullable().optional(),
+  review_state: z.string().max(64).nullable().optional(),
+  is_blocked: z.boolean().optional(),
+  analysis: jsonRecord.nullable().optional(),
+  findings: z.array(z.unknown()).optional(),
+  fuel_correlation: jsonRecord.nullable().optional(),
+  voyage_correlation: jsonRecord.nullable().optional(),
+  fueleu_operational: jsonRecord.nullable().optional(),
+  ets_operational: jsonRecord.nullable().optional(),
+  evaluated_at: z.string().nullable().optional(),
+  evaluation_version: z.string().max(64).nullable().optional(),
+  dedup_key: z.string().max(512).nullable().optional(),
+});
+
 export const DocumentRelationshipInsertSchema = z.object({
   source_document_id: z.string().uuid(),
   target_document_id: z.string().uuid(),

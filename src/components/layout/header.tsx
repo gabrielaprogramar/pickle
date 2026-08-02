@@ -31,6 +31,8 @@ const ROUTE_LABELS: Record<string, string> = {
   search: "Poseidon Search",
   captain: "Captain Assistant",
   maintenance: "Maintenance Assistant",
+  voyage: "Voyage Assistant",
+  noon: "Noon Reports",
 };
 
 export function AppHeader() {

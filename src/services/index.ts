@@ -37,3 +37,16 @@ export type {
   ReviewTaskFilter,
   ReviewService,
 } from "./review.service";
+
+export {
+  getNoonLatest,
+  getNoonHistory,
+  createNoonReport,
+  evaluateNoonReport,
+} from "./noon.service";
+export type {
+  NoonLatestResponse,
+  NoonHistoryResponse,
+  NoonCreateResponse,
+  NoonEvaluateResponse,
+} from "./noon.service";
