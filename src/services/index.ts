@@ -50,3 +50,39 @@ export type {
   NoonCreateResponse,
   NoonEvaluateResponse,
 } from "./noon.service";
+
+export {
+  getSession,
+  login,
+  logout,
+  requestPasswordReset,
+  resetPassword,
+  getSettingsBundle,
+} from "./auth.service";
+export type {
+  AuthSessionResponse,
+  LoginResponse,
+  LoginInput,
+} from "./auth.service";
+
+export {
+  updateOrganization,
+  updateGeneral,
+  updateAppearance,
+  updateNotificationPreferences,
+  configureIntegration,
+  disconnectIntegration,
+  createInvite,
+  cancelInvite,
+  resendInvite,
+  updateUser,
+} from "./settings.service";
+export type {
+  UpdateOrganizationResult,
+  UpdateGeneralResult,
+  UpdateAppearanceResult,
+  UpdateNotificationsResult,
+  UpdateIntegrationsResult,
+  UpdateSettingsResult,
+  CreateInviteInput,
+} from "./settings.service";

@@ -13,7 +13,6 @@ import {
   REPOSITORY_UNAVAILABLE,
   INTERNAL_ERROR,
 } from "./errors";
-
 export function apiSuccess<T>(data: T, status = 200): Response {
   return Response.json({ success: true, data }, { status });
 }
@@ -98,6 +97,39 @@ export function httpStatusForError(err: unknown): ErrorMapping {
     }
     if (name === "PackageValidationError") {
       return { code: VALIDATION_ERROR, status: 400 };
+    }
+    if (name === "InvalidCredentialsError") {
+      return { code: "INVALID_CREDENTIALS", status: 401 };
+    }
+    if (name === "UserNotActiveError") {
+      return { code: "FORBIDDEN", status: 403 };
+    }
+    if (name === "InvalidSessionError") {
+      return { code: "INVALID_SESSION", status: 401 };
+    }
+    if (name === "InvalidResetTokenError") {
+      return { code: "INVALID_RESET_TOKEN", status: 400 };
+    }
+    if (name === "OrganizationNotFoundError") {
+      return { code: "ORGANIZATION_NOT_FOUND", status: 404 };
+    }
+    if (name === "UserNotFoundError") {
+      return { code: "USER_NOT_FOUND", status: 404 };
+    }
+    if (name === "InviteNotFoundError") {
+      return { code: "INVITE_NOT_FOUND", status: 404 };
+    }
+    if (name === "InviteConflictError") {
+      return { code: "INVITE_CONFLICT", status: 409 };
+    }
+    if (name === "CannotDeactivateLastOwnerError") {
+      return { code: "LAST_OWNER", status: 409 };
+    }
+    if (name === "CannotDemoteSelfError") {
+      return { code: "FORBIDDEN", status: 403 };
+    }
+    if (name === "InvalidIntegrationError") {
+      return { code: "INVALID_INTEGRATION", status: 400 };
     }
   }
 

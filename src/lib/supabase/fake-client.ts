@@ -175,6 +175,17 @@ class FakeQueryBuilder {
     return this;
   }
 
+  is(column: string, value: unknown): this {
+    const dotIdx = column.indexOf(".");
+    const resolvedCol = dotIdx >= 0 ? column.substring(dotIdx + 1) : column;
+    (this.state.filters as QueryFilter[]).push({
+      column: resolvedCol,
+      value,
+      op: "eq",
+    });
+    return this;
+  }
+
   gte(column: string, value: unknown): this {
     return this.addRangeFilter(column, value, "gte");
   }
@@ -706,6 +717,72 @@ class FakeQueryBuilder {
       if (row.monitoring_plan_version === undefined) row.monitoring_plan_version = null;
       if (row.ets_record_id === undefined) row.ets_record_id = null;
       if (row.updated_at === undefined) row.updated_at = row.created_at;
+    }
+
+    if (this.state.table === "organizations") {
+      if (row.company_logo_url === undefined) row.company_logo_url = null;
+      if (row.country === undefined) row.country = null;
+      if (row.imo_company_number === undefined) row.imo_company_number = null;
+      if (row.address === undefined) row.address = null;
+      if (row.billing_email === undefined) row.billing_email = null;
+      if (row.support_email === undefined) row.support_email = null;
+      if (row.updated_at === undefined) row.updated_at = row.created_at;
+    }
+    if (this.state.table === "user_roles") {
+      if (row.description === undefined) row.description = null;
+      if (row.permissions === undefined) row.permissions = [];
+      if (row.rank === undefined) row.rank = 0;
+    }
+    if (this.state.table === "organization_users") {
+      if (row.avatar_url === undefined) row.avatar_url = null;
+      if (row.status === undefined) row.status = "active";
+      if (row.last_login_at === undefined) row.last_login_at = null;
+      if (row.updated_at === undefined) row.updated_at = row.created_at;
+    }
+    if (this.state.table === "organization_settings") {
+      if (row.default_timezone === undefined) row.default_timezone = "UTC";
+      if (row.default_reporting_year === undefined) row.default_reporting_year = new Date().getUTCFullYear();
+      if (row.language === undefined) row.language = "en";
+      if (row.appearance === undefined) {
+        row.appearance = {
+          theme: "dark",
+          accent: "blue",
+          sidebarDensity: "compact",
+          tableDensity: "compact",
+          gridView: "grid",
+        };
+      }
+      if (row.notification_preferences === undefined) {
+        row.notification_preferences = {
+          emails: true,
+          complianceAlerts: true,
+          certificateExpiry: true,
+          fuelAlerts: true,
+          noonReport: true,
+          assistantDigests: true,
+          systemAnnouncements: true,
+        };
+      }
+      if (row.updated_at === undefined) row.updated_at = row.created_at;
+    }
+    if (this.state.table === "organization_invites") {
+      if (row.full_name === undefined) row.full_name = null;
+      if (row.status === undefined) row.status = "pending";
+      if (row.accepted_at === undefined) row.accepted_at = null;
+      if (row.resend_count === undefined) row.resend_count = 0;
+      if (row.last_sent_at === undefined) row.last_sent_at = null;
+      if (row.updated_at === undefined) row.updated_at = row.created_at;
+    }
+    if (this.state.table === "integration_credentials") {
+      if (row.status === undefined) row.status = "NOT_CONFIGURED";
+      if (row.encrypted_config === undefined) row.encrypted_config = {};
+      if (row.configured_at === undefined) row.configured_at = null;
+      if (row.updated_at === undefined) row.updated_at = row.created_at;
+    }
+    if (this.state.table === "auth_tokens") {
+      if (row.organization_id === undefined) row.organization_id = null;
+      if (row.user_id === undefined) row.user_id = null;
+      if (row.revoked_at === undefined) row.revoked_at = null;
     }
 
     return row;

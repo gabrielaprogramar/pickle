@@ -124,6 +124,24 @@ export type {
   NoonReportInsert,
 } from "./types";
 
+// Phase 4.5 Product Foundation row types + insert payloads.
+export type {
+  OrganizationRow,
+  OrganizationInsert,
+  UserRoleRow,
+  UserRoleInsert,
+  OrganizationUserRow,
+  OrganizationUserInsert,
+  OrganizationSettingsRow,
+  OrganizationSettingsInsert,
+  OrganizationInviteRow,
+  OrganizationInviteInsert,
+  IntegrationCredentialRow,
+  IntegrationCredentialInsert,
+  AuthTokenRow,
+  AuthTokenInsert,
+} from "./types";
+
 // Errors — callers branch with `instanceof`.
 export {
   SupabaseError,
@@ -217,6 +235,56 @@ export type {
   CreateNoonReportRepositoryOptions,
   NoonReportUpdate,
 } from "./repositories/noon_reports";
+
+// Phase 4.5 Product Foundation repositories.
+export { createOrganizationRepository } from "./repositories/organizations";
+export type {
+  OrganizationRepository,
+  CreateOrganizationRepositoryOptions,
+  OrganizationUpdate,
+} from "./repositories/organizations";
+
+export { createUserRoleRepository } from "./repositories/user_roles";
+export type {
+  UserRoleRepository,
+  CreateUserRoleRepositoryOptions,
+} from "./repositories/user_roles";
+
+export { createOrganizationUserRepository } from "./repositories/organization_users";
+export type {
+  OrganizationUserRepository,
+  CreateOrganizationUserRepositoryOptions,
+  OrganizationUserUpdate,
+} from "./repositories/organization_users";
+
+export { createOrganizationSettingsRepository } from "./repositories/organization_settings";
+export type {
+  OrganizationSettingsRepository,
+  CreateOrganizationSettingsRepositoryOptions,
+  OrganizationSettingsUpdate,
+} from "./repositories/organization_settings";
+
+export { createOrganizationInviteRepository } from "./repositories/organization_invites";
+export type {
+  OrganizationInviteRepository,
+  CreateOrganizationInviteRepositoryOptions,
+  OrganizationInviteUpdate,
+} from "./repositories/organization_invites";
+
+export { createIntegrationCredentialRepository } from "./repositories/integration_credentials";
+export type {
+  IntegrationCredentialRepository,
+  CreateIntegrationCredentialRepositoryOptions,
+  IntegrationCredentialUpdate,
+} from "./repositories/integration_credentials";
+
+export { createAuthTokenRepository } from "./repositories/auth_tokens";
+export type {
+  AuthTokenRepository,
+  CreateAuthTokenRepositoryOptions,
+  FindValidTokenOptions,
+  AuthTokenUpdate,
+} from "./repositories/auth_tokens";
 
 // AI Extraction repository.
 export { createAiExtractionRepository } from "./repositories/ai_extractions";

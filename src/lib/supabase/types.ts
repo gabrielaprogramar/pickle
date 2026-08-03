@@ -507,6 +507,178 @@ export type NoonReportInsert = {
   readonly dedup_key?: string | null;
 };
 
+// ── 1e. PRODUCT FOUNDATION ROW TYPES (1:1 with migration 0017) ──────────────
+
+/** One row of the `organizations` table. */
+export type OrganizationRow = {
+  readonly id: string;
+  readonly name: string;
+  readonly company_logo_url: string | null;
+  readonly country: string | null;
+  readonly imo_company_number: string | null;
+  readonly address: string | null;
+  readonly billing_email: string | null;
+  readonly support_email: string | null;
+  readonly created_at: string;
+  readonly updated_at: string;
+};
+
+/** Payload for inserting an organization. id/created_at/updated_at are server-defaulted. */
+export type OrganizationInsert = {
+  readonly name: string;
+  readonly company_logo_url?: string | null;
+  readonly country?: string | null;
+  readonly imo_company_number?: string | null;
+  readonly address?: string | null;
+  readonly billing_email?: string | null;
+  readonly support_email?: string | null;
+};
+
+/** One row of the `user_roles` table. */
+export type UserRoleRow = {
+  readonly code: string;
+  readonly label: string;
+  readonly description: string | null;
+  readonly permissions: readonly string[];
+  readonly rank: number;
+};
+
+/** Payload for inserting a user role. */
+export type UserRoleInsert = {
+  readonly code: string;
+  readonly label: string;
+  readonly description?: string | null;
+  readonly permissions: readonly string[];
+  readonly rank: number;
+};
+
+/** One row of the `organization_users` table. */
+export type OrganizationUserRow = {
+  readonly id: string;
+  readonly organization_id: string;
+  readonly email: string;
+  readonly full_name: string;
+  readonly avatar_url: string | null;
+  readonly password_hash: string;
+  readonly role: string;
+  readonly status: "active" | "inactive";
+  readonly last_login_at: string | null;
+  readonly created_at: string;
+  readonly updated_at: string;
+};
+
+/** Payload for inserting an organization user. id/created_at/updated_at are server-defaulted. */
+export type OrganizationUserInsert = {
+  readonly organization_id: string;
+  readonly email: string;
+  readonly full_name: string;
+  readonly avatar_url?: string | null;
+  readonly password_hash: string;
+  readonly role: string;
+  readonly status?: "active" | "inactive";
+  readonly last_login_at?: string | null;
+};
+
+/** One row of the `organization_settings` table. */
+export type OrganizationSettingsRow = {
+  readonly id: string;
+  readonly organization_id: string;
+  readonly default_timezone: string;
+  readonly default_reporting_year: number;
+  readonly language: string;
+  readonly appearance: Record<string, unknown>;
+  readonly notification_preferences: Record<string, unknown>;
+  readonly created_at: string;
+  readonly updated_at: string;
+};
+
+/** Payload for inserting organization settings. id/created_at/updated_at are server-defaulted. */
+export type OrganizationSettingsInsert = {
+  readonly organization_id: string;
+  readonly default_timezone?: string;
+  readonly default_reporting_year?: number;
+  readonly language?: string;
+  readonly appearance?: Record<string, unknown>;
+  readonly notification_preferences?: Record<string, unknown>;
+};
+
+/** One row of the `organization_invites` table. */
+export type OrganizationInviteRow = {
+  readonly id: string;
+  readonly organization_id: string;
+  readonly email: string;
+  readonly full_name: string | null;
+  readonly role: string;
+  readonly status: "pending" | "accepted" | "cancelled";
+  readonly token: string;
+  readonly invited_by: string;
+  readonly expires_at: string;
+  readonly accepted_at: string | null;
+  readonly resend_count: number;
+  readonly last_sent_at: string | null;
+  readonly created_at: string;
+  readonly updated_at: string;
+};
+
+/** Payload for inserting an organization invite. id/created_at/updated_at are server-defaulted. */
+export type OrganizationInviteInsert = {
+  readonly organization_id: string;
+  readonly email: string;
+  readonly full_name?: string | null;
+  readonly role: string;
+  readonly token: string;
+  readonly invited_by: string;
+  readonly expires_at: string;
+  readonly status?: "pending" | "accepted" | "cancelled";
+  readonly accepted_at?: string | null;
+  readonly resend_count?: number;
+  readonly last_sent_at?: string | null;
+};
+
+/** One row of the `integration_credentials` table. */
+export type IntegrationCredentialRow = {
+  readonly id: string;
+  readonly organization_id: string;
+  readonly provider: string;
+  readonly status: "NOT_CONFIGURED" | "CONFIGURED";
+  readonly encrypted_config: Record<string, unknown>;
+  readonly configured_at: string | null;
+  readonly created_at: string;
+  readonly updated_at: string;
+};
+
+/** Payload for inserting integration credentials. id/created_at/updated_at are server-defaulted. */
+export type IntegrationCredentialInsert = {
+  readonly organization_id: string;
+  readonly provider: string;
+  readonly status?: "NOT_CONFIGURED" | "CONFIGURED";
+  readonly encrypted_config?: Record<string, unknown>;
+  readonly configured_at?: string | null;
+};
+
+/** One row of the `auth_tokens` table. */
+export type AuthTokenRow = {
+  readonly token: string;
+  readonly kind: "session" | "password_reset";
+  readonly organization_id: string | null;
+  readonly user_id: string | null;
+  readonly email: string;
+  readonly expires_at: string;
+  readonly created_at: string;
+  readonly revoked_at: string | null;
+};
+
+/** Payload for inserting an auth token. created_at is server-defaulted. */
+export type AuthTokenInsert = {
+  readonly token: string;
+  readonly kind: "session" | "password_reset";
+  readonly organization_id?: string | null;
+  readonly user_id?: string | null;
+  readonly email: string;
+  readonly expires_at: string;
+  readonly revoked_at?: string | null;
+};
+
 /** One row of the `document_relationships` table. */
 export type DocumentRelationshipRow = {
   readonly id: string;
@@ -1965,6 +2137,48 @@ export type Database = {
         Row: NoonReportRow;
         Insert: NoonReportInsert;
         Update: Partial<NoonReportInsert>;
+        Relationships: Relationships;
+      };
+      organizations: {
+        Row: OrganizationRow;
+        Insert: OrganizationInsert;
+        Update: Partial<OrganizationInsert>;
+        Relationships: Relationships;
+      };
+      user_roles: {
+        Row: UserRoleRow;
+        Insert: UserRoleInsert;
+        Update: Partial<UserRoleInsert>;
+        Relationships: Relationships;
+      };
+      organization_users: {
+        Row: OrganizationUserRow;
+        Insert: OrganizationUserInsert;
+        Update: Partial<OrganizationUserInsert>;
+        Relationships: Relationships;
+      };
+      organization_settings: {
+        Row: OrganizationSettingsRow;
+        Insert: OrganizationSettingsInsert;
+        Update: Partial<OrganizationSettingsInsert>;
+        Relationships: Relationships;
+      };
+      organization_invites: {
+        Row: OrganizationInviteRow;
+        Insert: OrganizationInviteInsert;
+        Update: Partial<OrganizationInviteInsert>;
+        Relationships: Relationships;
+      };
+      integration_credentials: {
+        Row: IntegrationCredentialRow;
+        Insert: IntegrationCredentialInsert;
+        Update: Partial<IntegrationCredentialInsert>;
+        Relationships: Relationships;
+      };
+      auth_tokens: {
+        Row: AuthTokenRow;
+        Insert: AuthTokenInsert;
+        Update: Partial<AuthTokenInsert>;
         Relationships: Relationships;
       };
     };

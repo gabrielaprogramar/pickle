@@ -121,9 +121,7 @@ export const NAVIGATION: readonly NavSection[] = [
   },
   {
     title: "System",
-    items: [
-      { label: "Settings", href: ROUTES.settings, icon: Settings, disabled: true },
-    ],
+    items: [{ label: "Settings", href: ROUTES.settings, icon: Settings }],
   },
 ] as const;
 

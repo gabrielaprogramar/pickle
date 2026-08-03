@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ROUTES } from "@/constants/routes";
+import { useAuth } from "@/hooks/use-auth";
 
 const ROUTE_LABELS: Record<string, string> = {
   fleet: "Fleet",
@@ -27,6 +28,11 @@ const ROUTE_LABELS: Record<string, string> = {
   dnv: "DNV",
   analytics: "Analytics",
   settings: "Settings",
+  users: "Users",
+  integrations: "Integrations",
+  organization: "Organization",
+  appearance: "Appearance",
+  notifications: "Notifications",
   "compliance-assistant": "Compliance Assistant",
   search: "Poseidon Search",
   captain: "Captain Assistant",
@@ -35,8 +41,18 @@ const ROUTE_LABELS: Record<string, string> = {
   noon: "Noon Reports",
 };
 
+function initials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "?";
+  if (parts.length === 1) return parts[0]!.slice(0, 2).toUpperCase();
+  return (parts[0]!.charAt(0) + parts[parts.length - 1]!.charAt(0)).toUpperCase();
+}
+
 export function AppHeader() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, organization, logout } = useAuth();
+
   const segments = pathname.split("/").filter(Boolean);
 
   const crumbs = segments.map((seg, i) => {
@@ -75,46 +91,60 @@ export function AppHeader() {
 
       <div className="flex-1" />
 
-      <Button
-        variant="outline"
-        size="sm"
-        className="h-7 gap-1.5 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground"
-        disabled
-      >
-        <span className="inline-block h-2 w-2 rounded-full bg-warning" />
-        <span>Demo Organization</span>
-      </Button>
-
-      <Separator orientation="vertical" className="h-5" />
-
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm" className="h-7 gap-2 px-2">
-            <Avatar className="h-5 w-5">
-              <AvatarFallback className="text-[8px] bg-primary text-primary-foreground">
-                OP
-              </AvatarFallback>
-            </Avatar>
-            <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground hidden lg:inline">
-              Operator
-            </span>
+      {organization && (
+        <>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 gap-1.5 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground"
+            disabled
+          >
+            <span className="inline-block h-2 w-2 rounded-full bg-primary" />
+            <span>{organization.name}</span>
           </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-40">
-          <DropdownMenuLabel className="text-xs">Operator</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem disabled className="text-xs">
-            Profile
-          </DropdownMenuItem>
-          <DropdownMenuItem disabled className="text-xs">
-            Preferences
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem disabled className="text-xs">
-            Sign out
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+          <Separator orientation="vertical" className="h-5" />
+        </>
+      )}
+
+      {user && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm" className="h-7 gap-2 px-2">
+              <Avatar className="h-5 w-5">
+                <AvatarFallback className="text-[8px] bg-primary text-primary-foreground">
+                  {initials(user.fullName)}
+                </AvatarFallback>
+              </Avatar>
+              <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground hidden lg:inline">
+                {user.fullName}
+              </span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-52">
+            <DropdownMenuLabel className="text-xs">{user.fullName}</DropdownMenuLabel>
+            <DropdownMenuLabel className="text-[10px] font-normal text-muted-foreground truncate">
+              {user.email}
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              className="text-xs"
+              onClick={() => router.push(ROUTES.settings)}
+            >
+              Settings
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              className="text-xs"
+              onClick={async () => {
+                await logout();
+                router.replace(ROUTES.login);
+              }}
+            >
+              Sign out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
     </header>
   );
 }

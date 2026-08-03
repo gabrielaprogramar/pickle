@@ -30,6 +30,20 @@ export const PACKAGE_GENERATION_FAILED = "PACKAGE_GENERATION_FAILED" as const;
 export const NOTIFICATION_NOT_FOUND = "NOTIFICATION_NOT_FOUND" as const;
 export const PACKAGE_VALIDATION_FAILED = "PACKAGE_VALIDATION_FAILED" as const;
 
+// Phase 4.5 Auth.
+export const INVALID_CREDENTIALS = "INVALID_CREDENTIALS" as const;
+export const UNAUTHORIZED = "UNAUTHORIZED" as const;
+export const INVALID_SESSION = "INVALID_SESSION" as const;
+export const INVALID_RESET_TOKEN = "INVALID_RESET_TOKEN" as const;
+export const EMAIL_ALREADY_IN_USE = "EMAIL_ALREADY_IN_USE" as const;
+export const INVITE_CONFLICT = "INVITE_CONFLICT" as const;
+export const INVITE_NOT_FOUND = "INVITE_NOT_FOUND" as const;
+export const USER_NOT_FOUND = "USER_NOT_FOUND" as const;
+export const ORGANIZATION_NOT_FOUND = "ORGANIZATION_NOT_FOUND" as const;
+export const LAST_OWNER = "LAST_OWNER" as const;
+export const FORBIDDEN = "FORBIDDEN" as const;
+export const INVALID_INTEGRATION = "INVALID_INTEGRATION" as const;
+
 export type ErrorCode =
   | typeof INVALID_JSON
   | typeof VALIDATION_ERROR
@@ -60,4 +74,16 @@ export type ErrorCode =
   | typeof MALFORMED_RESPONSE
   | typeof CONFIGURATION_ERROR
   | typeof REPOSITORY_UNAVAILABLE
-  | typeof INTERNAL_ERROR;
+  | typeof INTERNAL_ERROR
+  | typeof INVALID_CREDENTIALS
+  | typeof UNAUTHORIZED
+  | typeof INVALID_SESSION
+  | typeof INVALID_RESET_TOKEN
+  | typeof EMAIL_ALREADY_IN_USE
+  | typeof INVITE_CONFLICT
+  | typeof INVITE_NOT_FOUND
+  | typeof USER_NOT_FOUND
+  | typeof ORGANIZATION_NOT_FOUND
+  | typeof LAST_OWNER
+  | typeof FORBIDDEN
+  | typeof INVALID_INTEGRATION;
