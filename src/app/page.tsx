@@ -50,7 +50,7 @@ function StatCard({
   mono,
 }: StatCardProps) {
   const card = (
-    <Card className="hover:border-primary/30 transition-colors">
+    <Card className="interactive">
       <CardHeader className="flex flex-row items-center justify-between pb-1">
         <CardTitle className="font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
           {label}
@@ -141,7 +141,11 @@ export default function DashboardPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="font-serif text-xl font-medium tracking-tight text-foreground">
+        <p className="mb-2 flex items-center gap-3 font-mono text-[10px] font-medium uppercase tracking-[0.2em] text-primary">
+          <span className="block h-px w-7 bg-primary" aria-hidden="true" />
+          Fleet Overview
+        </p>
+        <h1 className="font-serif text-lg font-light tracking-tight text-foreground">
           Operational Dashboard
         </h1>
         <p className="mt-0.5 font-mono text-[11px] uppercase tracking-[0.1em] text-muted-foreground">

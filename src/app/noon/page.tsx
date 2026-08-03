@@ -240,6 +240,7 @@ export default function NoonPage() {
   return (
     <div>
       <PageHeader
+        label="Noon Reports"
         title="Noon Reports"
         description="Deterministic noon-report intelligence: consumption, engine performance, weather and voyage deviations."
         actions={

@@ -66,7 +66,7 @@ export function AppHeader() {
       <nav className="hidden md:flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
         <Link
           href={ROUTES.dashboard}
-          className="hover:text-primary transition-colors"
+          className="hover:text-primary transition-colors duration-200"
         >
           Dashboard
         </Link>
@@ -75,7 +75,7 @@ export function AppHeader() {
             <ChevronRight className="h-3 w-3" />
             <Link
               href={crumb.href}
-              className="hover:text-primary transition-colors"
+              className="hover:text-primary transition-colors duration-200"
             >
               {crumb.label}
             </Link>

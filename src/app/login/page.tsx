@@ -30,7 +30,7 @@ export default function LoginPage() {
   const busy = isLoading || submitting;
 
   return (
-    <AuthShell title="Sign in" subtitle="Access your Poseidon Ledger workspace">
+    <AuthShell label="Secure Access" title="Sign in" subtitle="Access your Poseidon Ledger workspace">
       <form onSubmit={onSubmit} className="space-y-3">
         <div className="space-y-1.5">
           <Label htmlFor="email">Email</Label>

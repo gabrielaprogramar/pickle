@@ -127,6 +127,7 @@ export default function VoyagesPage() {
   return (
     <div>
       <PageHeader
+        label="Voyage History"
         title="Voyages"
         description="Voyage history by vessel IMO number"
       />

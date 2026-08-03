@@ -25,6 +25,7 @@ export default function SettingsLayout({
   return (
     <div className="space-y-4">
       <PageHeader
+        label="Platform Configuration"
         title="Settings"
         description="Workspace configuration, membership and integrations"
       />
@@ -41,7 +42,7 @@ export default function SettingsLayout({
                   key={section.href}
                   href={section.href}
                   className={cn(
-                    "rounded-md px-2 py-1.5 font-mono text-[11px] uppercase tracking-[0.1em] transition-colors",
+                    "rounded-md px-2 py-1.5 font-mono text-[11px] uppercase tracking-[0.1em] transition-colors duration-200",
                     active
                       ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
                       : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",

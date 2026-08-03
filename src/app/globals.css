@@ -81,6 +81,20 @@
 }
 
 @layer utilities {
+  /* Interactive hover language — mirrors oldweb.html's .how-card / .enforcement-item
+     hover states: teal border transition + a very soft teal glow, no scaling,
+     no new animations. ~200ms to match the site's 0.2s interaction timing. */
+  .interactive {
+    transition: border-color 200ms ease, box-shadow 200ms ease,
+      background-color 200ms ease;
+  }
+
+  .interactive:hover {
+    border-color: hsl(var(--primary) / 0.35);
+    background-color: hsl(var(--primary) / 0.05);
+    box-shadow: 0 0 14px rgba(0, 184, 159, 0.06);
+  }
+
   .font-mono-technical {
     font-family: var(--font-mono), ui-monospace, monospace;
     font-variant-numeric: tabular-nums;

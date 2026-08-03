@@ -130,6 +130,7 @@ export default function AisPage() {
   return (
     <div>
       <PageHeader
+        label="AIS Tracking"
         title="AIS Positions"
         description="Real-time vessel tracking data"
       />

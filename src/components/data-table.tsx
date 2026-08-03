@@ -96,7 +96,7 @@ export function DataTable<T extends Record<string, unknown>>({
         {rows.map((row) => (
           <TableRow
             key={String(row[rowKey])}
-            className={cn(onRowClick && "cursor-pointer")}
+            className={cn(onRowClick && "interactive cursor-pointer")}
             onClick={() => onRowClick?.(row)}
           >
             {columns.map((col) => (

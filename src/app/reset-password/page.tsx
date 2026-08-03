@@ -60,6 +60,7 @@ function ResetPasswordForm() {
 
   return (
     <AuthShell
+      label="New Credentials"
       title="Set a new password"
       subtitle={email ? `For ${email}` : "Choose a strong password (8+ characters)"}
     >

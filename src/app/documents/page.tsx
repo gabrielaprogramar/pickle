@@ -76,6 +76,10 @@ export default function DocumentsPage() {
     <div>
       <div className="flex items-start justify-between gap-4 mb-4">
         <div>
+          <p className="mb-2 flex items-center gap-3 font-mono text-[10px] font-medium uppercase tracking-[0.2em] text-primary">
+            <span className="block h-px w-7 bg-primary" aria-hidden="true" />
+            Document Management
+          </p>
           <h1 className="font-serif text-lg font-light tracking-tight">Documents</h1>
           <p className="mt-0.5 font-mono text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
             Document management and processing

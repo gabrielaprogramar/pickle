@@ -30,6 +30,7 @@ export default function ForgotPasswordPage() {
 
   return (
     <AuthShell
+      label="Account Recovery"
       title="Reset password"
       subtitle="We'll email you a link to set a new password"
     >

@@ -111,6 +111,7 @@ export default function FleetPage() {
   return (
     <div>
       <PageHeader
+        label="Fleet Registry"
         title="Fleet"
         description={`${total} vessel${total !== 1 ? "s" : ""} registered`}
       />
