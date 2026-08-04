@@ -18,14 +18,18 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorBanner } from "@/components/error-banner";
-import { getVessels } from "@/services/vessels.service";
+import { getDashboardSummary } from "@/services/dashboard.service";
 import { ApiError } from "@/services/api-client";
 import { ROUTES } from "@/constants/routes";
-import type { VesselRow } from "@/lib/supabase/types";
 
 interface DashboardStats {
   readonly totalVessels: number;
+  readonly activeVoyages: number;
   readonly latestUpdate: string | null;
+  readonly documents: number;
+  readonly reviewQueue: number;
+  readonly ocrQueue: number;
+  readonly complianceAlerts: number;
   readonly isLoading: boolean;
   readonly error: ApiError | null;
 }
@@ -89,7 +93,12 @@ function StatCard({
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats>({
     totalVessels: 0,
+    activeVoyages: 0,
     latestUpdate: null,
+    documents: 0,
+    reviewQueue: 0,
+    ocrQueue: 0,
+    complianceAlerts: 0,
     isLoading: true,
     error: null,
   });
@@ -97,21 +106,28 @@ export default function DashboardPage() {
   const fetchStats = useCallback(async () => {
     setStats((s) => ({ ...s, isLoading: true, error: null }));
     try {
-      const result = await getVessels({ limit: 1 });
-      const totalVessels = result.total;
-      const latestVessel = result.rows[0] as VesselRow | undefined;
-      const latestUpdate = latestVessel?.updated_at ?? null;
+      const summary = await getDashboardSummary();
 
       setStats({
-        totalVessels,
-        latestUpdate,
+        totalVessels: summary.totalVessels,
+        activeVoyages: summary.activeVoyages,
+        latestUpdate: summary.latestAisUpdate,
+        documents: summary.documents,
+        reviewQueue: summary.reviewQueue,
+        ocrQueue: summary.ocrQueue,
+        complianceAlerts: summary.complianceAlerts,
         isLoading: false,
         error: null,
       });
     } catch (err) {
       setStats({
         totalVessels: 0,
+        activeVoyages: 0,
         latestUpdate: null,
+        documents: 0,
+        reviewQueue: 0,
+        ocrQueue: 0,
+        complianceAlerts: 0,
         isLoading: false,
         error:
           err instanceof ApiError
@@ -173,10 +189,10 @@ export default function DashboardPage() {
         />
         <StatCard
           label="Active Voyages"
-          value="—"
+          value={stats.activeVoyages}
           icon={<Navigation className="h-4 w-4" />}
           href={ROUTES.voyages}
-          badge="Soon"
+          isLoading={stats.isLoading}
         />
         <StatCard
           label="Latest AIS Update"
@@ -187,27 +203,31 @@ export default function DashboardPage() {
         />
         <StatCard
           label="Documents"
-          value="—"
+          value={stats.documents}
           icon={<FileText className="h-4 w-4" />}
           href={ROUTES.documents}
+          isLoading={stats.isLoading}
         />
         <StatCard
           label="Review"
-          value="—"
+          value={stats.reviewQueue}
           icon={<ClipboardCheck className="h-4 w-4" />}
           href={ROUTES.review}
+          isLoading={stats.isLoading}
         />
         <StatCard
           label="OCR Queue"
-          value="—"
+          value={stats.ocrQueue}
           icon={<ScanEye className="h-4 w-4" />}
-          badge="Phase 2"
+          href={ROUTES.ocr}
+          isLoading={stats.isLoading}
         />
         <StatCard
           label="Compliance Alerts"
-          value="—"
+          value={stats.complianceAlerts}
           icon={<ShieldCheck className="h-4 w-4" />}
-          badge="Phase 2"
+          href={ROUTES.compliance}
+          isLoading={stats.isLoading}
         />
       </div>
 

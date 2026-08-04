@@ -3,11 +3,13 @@
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Sparkles } from "lucide-react";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/use-auth";
+import { DEMO_OWNER } from "@/constants/demo";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -15,6 +17,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [demoBusy, setDemoBusy] = useState(false);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -27,7 +30,17 @@ export default function LoginPage() {
     }
   }
 
-  const busy = isLoading || submitting;
+  async function onDemoAccess() {
+    setDemoBusy(true);
+    try {
+      const ok = await login(DEMO_OWNER.email, DEMO_OWNER.password);
+      if (ok) router.replace("/");
+    } finally {
+      setDemoBusy(false);
+    }
+  }
+
+  const busy = isLoading || submitting || demoBusy;
 
   return (
     <AuthShell label="Secure Access" title="Sign in" subtitle="Access your Poseidon Ledger workspace">
@@ -77,6 +90,29 @@ export default function LoginPage() {
           {submitting ? "Signing in…" : "Sign in"}
         </Button>
       </form>
+
+      <div className="mt-4">
+        <div className="mb-3 flex items-center gap-3">
+          <span className="h-px flex-1 bg-border" aria-hidden="true" />
+          <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-muted-foreground">
+            Demo
+          </span>
+          <span className="h-px flex-1 bg-border" aria-hidden="true" />
+        </div>
+        <Button
+          type="button"
+          variant="secondary"
+          className="w-full"
+          disabled={busy}
+          onClick={onDemoAccess}
+        >
+          <Sparkles className="mr-2 h-3.5 w-3.5" />
+          {demoBusy ? "Entering demo…" : "Enter demo workspace"}
+        </Button>
+        <p className="mt-2 text-center font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+          One click — no credentials needed
+        </p>
+      </div>
     </AuthShell>
   );
 }

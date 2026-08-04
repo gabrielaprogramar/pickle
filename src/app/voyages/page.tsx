@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useVoyages } from "@/hooks/use-voyages";
+import { DEMO_DEFAULT_IMO } from "@/constants/demo";
 import { ROUTES } from "@/constants/routes";
 import type { VoyageRow } from "@/lib/supabase/types";
 
@@ -95,8 +96,8 @@ const COLUMNS: readonly ColumnDef<VoyageRow & Record<string, unknown>>[] = [
 
 export default function VoyagesPage() {
   const router = useRouter();
-  const [imoInput, setImoInput] = useState("");
-  const [activeImo, setActiveImo] = useState<string | null>(null);
+  const [imoInput, setImoInput] = useState(DEMO_DEFAULT_IMO);
+  const [activeImo, setActiveImo] = useState<string | null>(DEMO_DEFAULT_IMO);
 
   const {
     voyages,

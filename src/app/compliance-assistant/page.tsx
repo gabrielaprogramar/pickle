@@ -77,11 +77,11 @@ interface HandoffInfo {
 // --- Mock Data ---
 
 const VESSELS: ReadonlyArray<Vessel> = [
-  { id: "vsl-001", name: "MSC Djamila", imo: "9443731" },
-  { id: "vsl-002", name: "MSC Diletta", imo: "9443743" },
-  { id: "vsl-003", name: "Maersk Evora", imo: "9443755" },
-  { id: "vsl-004", name: "CMA CGM T. Jefferson", imo: "9443767" },
-  { id: "vsl-005", name: "Ever Given", imo: "9443779" },
+  { id: "vsl-aurelia", name: "Aurelia", imo: "9074729" },
+  { id: "vsl-atlas", name: "Atlas", imo: "9432891" },
+  { id: "vsl-horizon", name: "Horizon", imo: "9587420" },
+  { id: "vsl-neptune", name: "Neptune", imo: "9338490" },
+  { id: "vsl-odyssey", name: "Odyssey", imo: "9712215" },
 ];
 
 const REGULATORY_SCHEMES = [
@@ -379,7 +379,11 @@ export default function ComplianceAssistantPage() {
       const res = await fetch("/api/assistant/conversations?user_id=user-001");
       const json = await res.json();
       if (!json.success) throw new Error(json.error?.message ?? "Failed to load conversations");
-      setConversations(json.data.conversations);
+      const convs: ReadonlyArray<Conversation> = json.data.conversations ?? [];
+      setConversations(convs);
+      if (!activeConversationId && convs.length > 0) {
+        setActiveConversationId(convs[0]!.id);
+      }
     } catch (err) {
       setConversationsError(err instanceof Error ? err.message : String(err));
     } finally {

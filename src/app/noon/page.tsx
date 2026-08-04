@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { ErrorBanner } from "@/components/error-banner";
 import { EmptyState } from "@/components/empty-state";
 import { useNoon } from "@/hooks/use-noon";
+import { DEMO_DEFAULT_IMO } from "@/constants/demo";
 import type { NoonReportRow } from "@/lib/supabase/types";
 import type { NoonFinding, NoonReportAnalysis } from "@/lib/noon-report";
 
@@ -221,8 +222,8 @@ function LatestCard({
 }
 
 export default function NoonPage() {
-  const [imoInput, setImoInput] = useState("");
-  const [activeImo, setActiveImo] = useState<string | null>(null);
+  const [imoInput, setImoInput] = useState(DEMO_DEFAULT_IMO);
+  const [activeImo, setActiveImo] = useState<string | null>(DEMO_DEFAULT_IMO);
   const { latest, history, findings, isLoading, isEvaluating, error, evaluate, refetch } =
     useNoon(activeImo);
 

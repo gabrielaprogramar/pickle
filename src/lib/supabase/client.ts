@@ -27,8 +27,7 @@ import { createClient } from "@supabase/supabase-js";
 import { loadConfig, type SupabaseConfig } from "./config";
 import { createFakeSupabaseClient } from "./fake-client";
 import type { Database } from "./types";
-import { ROLES } from "@/lib/roles/catalog";
-import { hashPassword } from "@/lib/auth/passwords";
+import { buildDemoSeedTables } from "./demo-seed";
 
 export type { Database };
 
@@ -77,111 +76,8 @@ export function getSupabaseClient(): TypedSupabaseClient {
 
   const config = loadConfig();
   if (config.useMock) {
-    const now = new Date().toISOString();
-    const organizationId = crypto.randomUUID();
-    const ownerId = crypto.randomUUID();
     cached = createFakeSupabaseClient({
-      tables: {
-        organizations: [
-          {
-            id: organizationId,
-            name: "Demo Organization",
-            company_logo_url: null,
-            country: "GR",
-            imo_company_number: "1234567",
-            address: "1 Piraeus Avenue, Athens, Greece",
-            billing_email: "billing@poseidonledger.com",
-            support_email: "support@poseidonledger.com",
-            created_at: now,
-            updated_at: now,
-          },
-        ],
-        user_roles: ROLES.map((role) => ({
-          code: role.code,
-          label: role.label,
-          description: role.description,
-          permissions: [...role.permissions],
-          rank: role.rank,
-        })),
-        organization_users: [
-          {
-            id: ownerId,
-            organization_id: organizationId,
-            email: "operator@poseidonledger.com",
-            full_name: "Demo Operator",
-            avatar_url: null,
-            password_hash: hashPassword("demo1234"),
-            role: "owner",
-            status: "active",
-            last_login_at: null,
-            created_at: now,
-            updated_at: now,
-          },
-        ],
-        organization_settings: [
-          {
-            id: crypto.randomUUID(),
-            organization_id: organizationId,
-            default_timezone: "UTC",
-            default_reporting_year: 2026,
-            language: "en",
-            appearance: {
-              theme: "dark",
-              accent: "blue",
-              sidebarDensity: "compact",
-              tableDensity: "compact",
-              gridView: "grid",
-            },
-            notification_preferences: {
-              emails: true,
-              complianceAlerts: true,
-              certificateExpiry: true,
-              fuelAlerts: true,
-              noonReport: true,
-              assistantDigests: true,
-              systemAnnouncements: true,
-            },
-            created_at: now,
-            updated_at: now,
-          },
-        ],
-        integration_credentials: [
-          { id: crypto.randomUUID(), organization_id: organizationId, provider: "marinetraffic", status: "NOT_CONFIGURED", encrypted_config: {}, configured_at: null, created_at: now, updated_at: now },
-          { id: crypto.randomUUID(), organization_id: organizationId, provider: "google_docai", status: "NOT_CONFIGURED", encrypted_config: {}, configured_at: null, created_at: now, updated_at: now },
-          { id: crypto.randomUUID(), organization_id: organizationId, provider: "openai", status: "NOT_CONFIGURED", encrypted_config: {}, configured_at: null, created_at: now, updated_at: now },
-          { id: crypto.randomUUID(), organization_id: organizationId, provider: "resend", status: "NOT_CONFIGURED", encrypted_config: {}, configured_at: null, created_at: now, updated_at: now },
-          { id: crypto.randomUUID(), organization_id: organizationId, provider: "ais", status: "NOT_CONFIGURED", encrypted_config: {}, configured_at: null, created_at: now, updated_at: now },
-        ],
-        vessels: [
-          {
-            id: crypto.randomUUID(),
-            imo: "9074729",
-            name: "Aurelia",
-            mmsi: "310625000",
-            ship_id: "371663",
-            created_at: now,
-            updated_at: now,
-          },
-          {
-            id: crypto.randomUUID(),
-            imo: "1234567",
-            name: "Northern Star",
-            mmsi: "219000123",
-            ship_id: "123456",
-            created_at: now,
-            updated_at: now,
-          },
-          {
-            id: crypto.randomUUID(),
-            imo: "7654321",
-            name: "Pacific Voyager",
-            mmsi: "538001234",
-            ship_id: "789012",
-            created_at: now,
-            updated_at: now,
-          },
-        ],
-      },
+      tables: buildDemoSeedTables(),
     }) as unknown as TypedSupabaseClient;
     return cached;
   }

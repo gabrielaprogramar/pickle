@@ -95,7 +95,11 @@ export default function AssistantPage() {
       const res = await fetch("/api/assistant/conversations?user_id=user-001");
       const json = await res.json();
       if (!json.success) throw new Error(json.error?.message ?? "Failed to load conversations");
-      setConversations(json.data.conversations);
+      const convs: ReadonlyArray<Conversation> = json.data.conversations ?? [];
+      setConversations(convs);
+      if (!activeConversationId && convs.length > 0) {
+        setActiveConversationId(convs[0]!.id);
+      }
     } catch (err) {
       setConversationsError(err instanceof Error ? err.message : String(err));
     } finally {

@@ -103,20 +103,10 @@ export const NAVIGATION: readonly NavSection[] = [
   {
     title: "Modules",
     items: [
-      { label: "OCR", href: ROUTES.ocr, icon: ScanEye, disabled: true },
-      {
-        label: "Compliance",
-        href: ROUTES.compliance,
-        icon: ShieldCheck,
-        disabled: true,
-      },
+      { label: "OCR", href: ROUTES.ocr, icon: ScanEye },
+      { label: "Compliance", href: ROUTES.compliance, icon: ShieldCheck },
       { label: "DNV", href: ROUTES.dnv, icon: Building2, disabled: true },
-      {
-        label: "Analytics",
-        href: ROUTES.analytics,
-        icon: BarChart3,
-        disabled: true,
-      },
+      { label: "Analytics", href: ROUTES.analytics, icon: BarChart3 },
     ],
   },
   {

@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ROUTES } from "@/constants/routes";
 import { useAuth } from "@/hooks/use-auth";
+import { NotificationBell } from "@/components/notifications/notification-bell";
 
 const ROUTE_LABELS: Record<string, string> = {
   fleet: "Fleet",
@@ -102,6 +103,8 @@ export function AppHeader() {
             <span className="inline-block h-2 w-2 rounded-full bg-primary" />
             <span>{organization.name}</span>
           </Button>
+          <Separator orientation="vertical" className="h-5" />
+          <NotificationBell recipientId="default" />
           <Separator orientation="vertical" className="h-5" />
         </>
       )}
