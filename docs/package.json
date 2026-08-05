@@ -1,0 +1,12 @@
+{
+  "name": "poseidon-ledger",
+  "version": "1.0.0",
+  "description": "Poseidon Ledger — Maritime ESG Compliance Platform",
+  "private": true,
+  "scripts": {
+    "dev": "vercel dev"
+  },
+  "dependencies": {
+    "resend": "^3.2.0"
+  }
+}
