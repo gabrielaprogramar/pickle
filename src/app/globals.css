@@ -170,13 +170,15 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
-    /* Poseidon Ledger grid overlay, matching poseidonledger.com's background.
-       Tinted with the active accent so theme/accent changes carry through.
-       Painted as a background-image layer (not a pseudo-element) so it never
-       sits above app content or interferes with existing stacking contexts. */
+    /* Poseidon Ledger grid overlay, matching oldweb.html's grid exactly:
+       two 1px linear gradients at 3% opacity (rgba(0,184,159,0.03)), 60px
+       cells. Tinted with the active accent so theme/accent changes carry
+       through. Painted as a background-image layer (not a pseudo-element) so
+       it never sits above app content or interferes with existing stacking
+       contexts. */
     background-image:
-      linear-gradient(hsl(var(--primary) / 0.05) 1px, transparent 1px),
-      linear-gradient(90deg, hsl(var(--primary) / 0.05) 1px, transparent 1px);
+      linear-gradient(hsl(var(--primary) / 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--primary) / 0.03) 1px, transparent 1px);
     background-size: 60px 60px;
     background-attachment: fixed;
   }

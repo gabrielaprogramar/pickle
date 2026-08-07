@@ -18,7 +18,7 @@ export function MainLayout({ children }: MainLayoutProps) {
       {bare ? (
         <>{children}</>
       ) : (
-        <div className="flex h-screen overflow-hidden bg-background">
+        <div className="flex h-screen overflow-hidden">
           <AppSidebar />
           <div className="flex flex-1 flex-col overflow-hidden">
             <AppHeader />
