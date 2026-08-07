@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSettings } from "@/hooks/use-settings";
 import {
   ChoiceField,
@@ -28,6 +28,33 @@ const LANGUAGES: readonly { value: string; label: string }[] = [
   { value: "el", label: "Ελληνικά" },
   { value: "no", label: "Norsk" },
 ];
+
+function LocalTime({ timezone }: { readonly timezone: string }) {
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  let formatted: string;
+  try {
+    formatted = new Intl.DateTimeFormat("en-GB", {
+      timeZone: timezone,
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    }).format(now);
+  } catch {
+    formatted = "—";
+  }
+
+  return (
+    <p className="mt-1.5 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+      Local time · <span className="text-primary">{formatted}</span>
+    </p>
+  );
+}
 
 export default function SettingsHomePage() {
   const { bundle, isLoading, updateGeneral } = useSettings();
@@ -107,6 +134,7 @@ export default function SettingsHomePage() {
             onChange={setTimezone}
             options={TIMEZONES.map((t) => ({ value: t, label: t }))}
           />
+          <LocalTime timezone={tz} />
           <TextField
             label="Default reporting year"
             value={yr}
@@ -119,6 +147,10 @@ export default function SettingsHomePage() {
             onChange={setLanguage}
             options={LANGUAGES}
           />
+          <p className="mt-1.5 text-[11px] text-muted-foreground">
+            Ελληνικά and Norsk are stored with your profile, but this build ships
+            English-only interface strings, so the UI remains in English.
+          </p>
         </div>
       </SettingsCard>
 

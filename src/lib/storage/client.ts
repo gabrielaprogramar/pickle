@@ -18,7 +18,13 @@ import { createMockStorageClient } from "./mock-storage";
 import { createSupabaseStorageClient } from "./supabase-storage";
 import type { StorageClient } from "./types";
 
-let cached: StorageClient | null = null;
+// Same rationale as supabase/client.ts: store the singleton on `globalThis` so
+// every route-handler module copy shares one storage instance.
+
+declare global {
+  // eslint-disable-next-line no-var
+  var __poseidonLedgerStorageClient: StorageClient | null | undefined;
+}
 
 /**
  * Returns the process-wide storage client, building it on first call.
@@ -26,30 +32,21 @@ let cached: StorageClient | null = null;
  * Supabase Storage client from the existing Supabase client singleton.
  */
 export function getStorageClient(): StorageClient {
-  if (cached) return cached;
+  const existing = globalThis.__poseidonLedgerStorageClient ?? null;
+  if (existing) return existing;
 
   const config = loadStorageConfig();
 
-  if (config.useMock) {
-    cached = createMockStorageClient();
-  } else {
-    // Lazy-import the Supabase client so the mock path never touches it.
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { getSupabaseClient } = require("@/lib/supabase/client") as {
-      getSupabaseClient: () => ReturnType<typeof import("@supabase/supabase-js").createClient>;
-    };
-    cached = createSupabaseStorageClient(getSupabaseClient());
-  }
+  const client = config.useMock
+    ? createMockStorageClient()
+    : createLiveStorageClient();
 
-  return cached;
+  globalThis.__poseidonLedgerStorageClient = client;
+  return client;
 }
 
-/**
- * Create a fresh storage client (for tests / DI).
- */
-export function createStorageClient(): StorageClient {
-  const config = loadStorageConfig();
-  if (config.useMock) return createMockStorageClient();
+function createLiveStorageClient(): StorageClient {
+  // Lazy-import the Supabase client so the mock path never touches it.
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const { getSupabaseClient } = require("@/lib/supabase/client") as {
     getSupabaseClient: () => ReturnType<typeof import("@supabase/supabase-js").createClient>;
@@ -58,8 +55,17 @@ export function createStorageClient(): StorageClient {
 }
 
 /**
+ * Create a fresh storage client (for tests / DI).
+ */
+export function createStorageClient(): StorageClient {
+  const config = loadStorageConfig();
+  if (config.useMock) return createMockStorageClient();
+  return createLiveStorageClient();
+}
+
+/**
  * Test helper: reset the cached singleton.
  */
 export function _resetStorageClientForTest(): void {
-  cached = null;
+  globalThis.__poseidonLedgerStorageClient = null;
 }

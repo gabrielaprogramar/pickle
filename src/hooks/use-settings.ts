@@ -15,6 +15,7 @@ import {
   updateUser as apiUpdateUser,
 } from "@/services/settings.service";
 import { ApiError } from "@/services/api-client";
+import { notifySettingsChanged } from "@/lib/settings/events";
 import type {
   AppearanceSettings,
   GeneralSettings,
@@ -79,61 +80,91 @@ export function useSettings(): UseSettingsResult {
 
     updateOrganization: async (patch) => {
       const result = await guard(() => apiUpdateOrganization(patch));
-      if (result) await fetchBundle();
+      if (result) {
+        await fetchBundle();
+        await notifySettingsChanged();
+      }
       return result !== null;
     },
 
     updateGeneral: async (patch) => {
       const result = await guard(() => apiUpdateGeneral(patch));
-      if (result) await fetchBundle();
+      if (result) {
+        await fetchBundle();
+        await notifySettingsChanged();
+      }
       return result !== null;
     },
 
     updateAppearance: async (appearance) => {
       const result = await guard(() => apiUpdateAppearance(appearance));
-      if (result) await fetchBundle();
+      if (result) {
+        await fetchBundle();
+        await notifySettingsChanged();
+      }
       return result !== null;
     },
 
     updateNotifications: async (prefs) => {
       const result = await guard(() => apiUpdateNotificationPreferences(prefs));
-      if (result) await fetchBundle();
+      if (result) {
+        await fetchBundle();
+        await notifySettingsChanged();
+      }
       return result !== null;
     },
 
     configureIntegration: async (provider, config) => {
       const result = await guard(() => apiConfigureIntegration(provider, config));
-      if (result) await fetchBundle();
+      if (result) {
+        await fetchBundle();
+        await notifySettingsChanged();
+      }
       return result !== null;
     },
 
     disconnectIntegration: async (provider) => {
       const result = await guard(() => apiDisconnectIntegration(provider));
-      if (result) await fetchBundle();
+      if (result) {
+        await fetchBundle();
+        await notifySettingsChanged();
+      }
       return result !== null;
     },
 
     inviteUser: async (input) => {
       const invite = await guard(() => apiCreateInvite(input));
-      if (invite) await fetchBundle();
+      if (invite) {
+        await fetchBundle();
+        await notifySettingsChanged();
+      }
       return invite;
     },
 
     cancelInvite: async (id) => {
       const invite = await guard(() => apiCancelInvite(id));
-      if (invite) await fetchBundle();
+      if (invite) {
+        await fetchBundle();
+        await notifySettingsChanged();
+      }
       return invite;
     },
 
     resendInvite: async (id) => {
       const invite = await guard(() => apiResendInvite(id));
-      if (invite) await fetchBundle();
+      if (invite) {
+        await fetchBundle();
+        await notifySettingsChanged();
+      }
       return invite;
     },
 
     changeUser: async (id, patch) => {
       const user = await guard(() => apiUpdateUser(id, patch));
-      if (user) await fetchBundle();
+      if (user) {
+        await fetchBundle();
+        await notifySettingsChanged();
+      }
       return user;
     },
   };

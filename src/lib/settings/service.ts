@@ -110,10 +110,10 @@ function toSettingsUser(row: OrganizationUserRow): SettingsUser {
 
 const DEFAULT_APPEARANCE: AppearanceSettings = {
   theme: "dark",
-  accent: "blue",
+  accent: "teal",
   sidebarDensity: "compact",
   tableDensity: "compact",
-  gridView: "grid",
+  gridView: "list",
 };
 
 const DEFAULT_NOTIFICATIONS: NotificationPreferences = {

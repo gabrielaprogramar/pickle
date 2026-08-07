@@ -62,7 +62,24 @@ export type TypedSupabaseClient = ReturnType<typeof createSupabaseClient>;
 
 // ── Cached singleton (production hot path) ───────────────────────────────────
 
-let cached: TypedSupabaseClient | null = null;
+// Next.js bundles route handlers separately, so a module-level `let` yields a
+// distinct in-memory store per route. Keep the instance on `globalThis` so all
+// module copies share one client (and, in mock mode, one in-memory database).
+
+const CLIENT_CACHE_KEY = "__poseidonLedgerSupabaseClient";
+
+declare global {
+  // eslint-disable-next-line no-var
+  var __poseidonLedgerSupabaseClient: TypedSupabaseClient | null | undefined;
+}
+
+function readCachedClient(): TypedSupabaseClient | null {
+  return globalThis.__poseidonLedgerSupabaseClient ?? null;
+}
+
+function writeCachedClient(client: TypedSupabaseClient | null): void {
+  globalThis.__poseidonLedgerSupabaseClient = client;
+}
 
 /**
  * Returns the process-wide Supabase client, building it on first call.
@@ -72,18 +89,18 @@ let cached: TypedSupabaseClient | null = null;
  * fake seeded with fixture data so the app works out of the box.
  */
 export function getSupabaseClient(): TypedSupabaseClient {
-  if (cached) return cached;
+  const existing = readCachedClient();
+  if (existing) return existing;
 
   const config = loadConfig();
-  if (config.useMock) {
-    cached = createFakeSupabaseClient({
-      tables: buildDemoSeedTables(),
-    }) as unknown as TypedSupabaseClient;
-    return cached;
-  }
+  const client = config.useMock
+    ? (createFakeSupabaseClient({
+        tables: buildDemoSeedTables(),
+      }) as unknown as TypedSupabaseClient)
+    : createSupabaseClient(config);
 
-  cached = createSupabaseClient(config);
-  return cached;
+  writeCachedClient(client);
+  return client;
 }
 
 /**
@@ -93,5 +110,5 @@ export function getSupabaseClient(): TypedSupabaseClient {
 export function _setSupabaseClientForTest(
   client: TypedSupabaseClient | null,
 ): void {
-  cached = client;
+  writeCachedClient(client);
 }

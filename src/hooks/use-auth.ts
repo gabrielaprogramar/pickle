@@ -31,6 +31,8 @@ function subscribeAuthChanged(listener: AuthChangeListener): () => void {
   };
 }
 
+export { subscribeAuthChanged };
+
 interface UseAuthResult {
   readonly user: AuthUser | null;
   readonly organization: AuthOrganization | null;

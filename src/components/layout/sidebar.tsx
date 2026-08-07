@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
+import { useSettingsAppearance } from "@/components/settings/settings-provider";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
@@ -183,6 +184,8 @@ function SidebarContent({
 export function AppSidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const { appearance } = useSettingsAppearance();
+  const comfortable = appearance?.sidebarDensity === "comfortable";
 
   return (
     <>
@@ -210,7 +213,7 @@ export function AppSidebar() {
       <aside
         className={cn(
           "hidden md:flex flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-all duration-200",
-          collapsed ? "w-14" : "w-48",
+          collapsed ? "w-14" : comfortable ? "w-56" : "w-44",
         )}
       >
         <SidebarContent

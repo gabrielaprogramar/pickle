@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, DM_Sans, DM_Mono } from "next/font/google";
 import { MainLayout } from "@/components/layout/main-layout";
+import { SettingsProvider } from "@/components/settings/settings-provider";
 import "./globals.css";
 
 // Headlines — brand serif
@@ -45,7 +46,9 @@ export default function RootLayout({
       className={`${cormorantGaramond.variable} ${dmSans.variable} ${dmMono.variable} dark`}
     >
       <body className="font-sans antialiased">
-        <MainLayout>{children}</MainLayout>
+        <SettingsProvider>
+          <MainLayout>{children}</MainLayout>
+        </SettingsProvider>
       </body>
     </html>
   );

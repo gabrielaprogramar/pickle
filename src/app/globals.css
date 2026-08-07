@@ -12,6 +12,8 @@
        Gold       #C9A84C   Text       #F4F2EC
        Alert Red  #D94F4F
        ─────────────────────────────────────────────────────────── */
+    color-scheme: dark;
+
     --background: 218 67% 7%;        /* Navy Base #060F1E */
     --foreground: 45 27% 94%;        /* Text Primary #F4F2EC */
 
@@ -33,6 +35,8 @@
     --border: 215 35% 22%;           /* subtle navy border, ~ rgba(white,0.10) on Navy Card */
     --input: 215 35% 22%;
     --ring: 172 100% 36%;            /* Teal #00B89F */
+
+    --field: 215 65% 19%;            /* input/select surface — Navy Light #112B4F */
 
     --destructive: 0 64% 58%;        /* Alert Red #D94F4F — reserved for warnings/alerts only */
     --destructive-foreground: 45 27% 94%;
@@ -61,6 +65,104 @@
     --radius: 0.25rem; /* restrained corners, matches the site's sharper terminal aesthetic */
   }
 
+  /* ── Accent families (dark theme) ─────────────────────────────
+     Teal is the brand default; blue and slate are selectable
+     alternatives. Every override keeps the same variable set so the
+     whole shell (buttons, focus rings, sidebar tint, charts, field
+     borders, interactive hovers) re-tints coherently. */
+  :root[data-accent="blue"] {
+    --primary: 210 90% 48%;
+    --primary-foreground: 0 0% 100%;
+    --ring: 210 90% 48%;
+    --chart-1: 210 90% 48%;
+    --sidebar-primary: 210 90% 48%;
+    --sidebar-ring: 210 90% 48%;
+    --sidebar-accent: 210 60% 26%;
+  }
+
+  :root[data-accent="slate"] {
+    --primary: 215 32% 52%;
+    --primary-foreground: 0 0% 100%;
+    --ring: 215 32% 52%;
+    --chart-1: 215 32% 52%;
+    --sidebar-primary: 215 32% 52%;
+    --sidebar-ring: 215 32% 52%;
+    --sidebar-accent: 215 30% 30%;
+  }
+
+  /* ── Light theme ──────────────────────────────────────────────
+     The same navy-led brand, rebalanced for light surfaces. Applied
+     by adding `.light` to <html> (the SettingsProvider does this). */
+  :root.light {
+    color-scheme: light;
+
+    --background: 45 30% 96%;
+    --foreground: 218 60% 14%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 218 60% 14%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 218 60% 14%;
+
+    --primary: 172 72% 33%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 218 40% 22%;
+    --secondary-foreground: 45 30% 96%;
+
+    --muted: 45 15% 90%;
+    --muted-foreground: 218 20% 38%;
+
+    --border: 218 18% 84%;
+    --input: 218 18% 80%;
+    --ring: 172 72% 33%;
+
+    --field: 0 0% 100%;
+
+    --destructive: 0 72% 48%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 60% 38%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 44 62% 40%;
+    --warning-foreground: 0 0% 100%;
+
+    --chart-1: 172 72% 33%;
+    --chart-2: 44 62% 40%;
+    --chart-3: 142 60% 38%;
+    --chart-4: 210 55% 48%;
+    --chart-5: 0 72% 48%;
+
+    --sidebar-background: 218 30% 93%;
+    --sidebar-foreground: 218 55% 16%;
+    --sidebar-primary: 172 72% 33%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 218 25% 86%;
+    --sidebar-accent-foreground: 218 55% 16%;
+    --sidebar-border: 218 18% 84%;
+    --sidebar-ring: 172 72% 33%;
+  }
+
+  :root.light[data-accent="blue"] {
+    --primary: 210 85% 45%;
+    --ring: 210 85% 45%;
+    --chart-1: 210 85% 45%;
+    --sidebar-primary: 210 85% 45%;
+    --sidebar-ring: 210 85% 45%;
+    --sidebar-accent: 210 70% 90%;
+  }
+
+  :root.light[data-accent="slate"] {
+    --primary: 215 35% 45%;
+    --ring: 215 35% 45%;
+    --chart-1: 215 35% 45%;
+    --sidebar-primary: 215 35% 45%;
+    --sidebar-ring: 215 35% 45%;
+    --sidebar-accent: 215 25% 88%;
+  }
+
   * {
     @apply border-border;
   }
@@ -69,12 +171,12 @@
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
     /* Poseidon Ledger grid overlay, matching poseidonledger.com's background.
-       Teal #00B89F at 3% opacity on a 60px×60px grid. Painted as a
-       background-image layer (not a pseudo-element) so it never sits above app
-       content or interferes with existing stacking contexts. */
+       Tinted with the active accent so theme/accent changes carry through.
+       Painted as a background-image layer (not a pseudo-element) so it never
+       sits above app content or interferes with existing stacking contexts. */
     background-image:
-      linear-gradient(rgba(0, 184, 159, 0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0, 184, 159, 0.03) 1px, transparent 1px);
+      linear-gradient(hsl(var(--primary) / 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--primary) / 0.05) 1px, transparent 1px);
     background-size: 60px 60px;
     background-attachment: fixed;
   }
@@ -92,7 +194,7 @@
   .interactive:hover {
     border-color: hsl(var(--primary) / 0.35);
     background-color: hsl(var(--primary) / 0.05);
-    box-shadow: 0 0 14px rgba(0, 184, 159, 0.06);
+    box-shadow: 0 0 14px hsl(var(--primary) / 0.08);
   }
 
   .font-mono-technical {
@@ -111,6 +213,17 @@
 
   .table-compact tr {
     @apply h-8;
+  }
+
+  /* Table density — driven by the Appearance setting via a data attribute on
+     <html>. Compact matches the default row height (h-8); the larger densities
+     only ever touch body rows, leaving header rows alone. */
+  html[data-table-density="comfortable"] tbody tr {
+    height: 2.75rem;
+  }
+
+  html[data-table-density="roomy"] tbody tr {
+    height: 3.5rem;
   }
 
   .scrollbar-thin {

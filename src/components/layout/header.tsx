@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ROUTES } from "@/constants/routes";
 import { useAuth } from "@/hooks/use-auth";
+import { useSettingsAppearance } from "@/components/settings/settings-provider";
 import { NotificationBell } from "@/components/notifications/notification-bell";
 
 const ROUTE_LABELS: Record<string, string> = {
@@ -53,6 +54,8 @@ export function AppHeader() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, organization, logout } = useAuth();
+  const { organization: settingsOrganization } = useSettingsAppearance();
+  const currentOrganization = settingsOrganization ?? organization;
 
   const segments = pathname.split("/").filter(Boolean);
 
@@ -92,7 +95,7 @@ export function AppHeader() {
 
       <div className="flex-1" />
 
-      {organization && (
+      {currentOrganization && (
         <>
           <Button
             variant="outline"
@@ -101,7 +104,7 @@ export function AppHeader() {
             disabled
           >
             <span className="inline-block h-2 w-2 rounded-full bg-primary" />
-            <span>{organization.name}</span>
+            <span>{currentOrganization.name}</span>
           </Button>
           <Separator orientation="vertical" className="h-5" />
           <NotificationBell recipientId="default" />

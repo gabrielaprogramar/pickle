@@ -746,10 +746,10 @@ class FakeQueryBuilder {
       if (row.appearance === undefined) {
         row.appearance = {
           theme: "dark",
-          accent: "blue",
+          accent: "teal",
           sidebarDensity: "compact",
           tableDensity: "compact",
-          gridView: "grid",
+          gridView: "list",
         };
       }
       if (row.notification_preferences === undefined) {

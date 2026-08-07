@@ -1087,7 +1087,7 @@ export function buildDemoSeedTables(): Record<string, readonly unknown[]> {
         default_timezone: "UTC",
         default_reporting_year: 2026,
         language: "en",
-        appearance: { theme: "dark", accent: "blue", sidebarDensity: "compact", tableDensity: "compact", gridView: "grid" },
+        appearance: { theme: "dark", accent: "teal", sidebarDensity: "compact", tableDensity: "compact", gridView: "list" },
         notification_preferences: { emails: true, complianceAlerts: true, certificateExpiry: true, fuelAlerts: true, noonReport: true, assistantDigests: true, systemAnnouncements: true },
         created_at: nowIso,
         updated_at: nowIso,
