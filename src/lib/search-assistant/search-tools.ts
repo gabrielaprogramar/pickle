@@ -49,116 +49,313 @@ interface MockRecord extends Record<string, unknown> {
   readonly title: string;
 }
 
+const DAY = 86_400_000;
+const HOUR = 3_600_000;
+const isoDateTime = (offsetMs: number): string => new Date(Date.now() + offsetMs).toISOString();
+const isoDateOnly = (offsetMs: number): string => isoDateTime(offsetMs).slice(0, 10);
+
+const VESSEL_LOOKUP: Record<string, { readonly name: string; readonly imo: string }> = {
+  "vsl-aurelia": { name: "Aurelia", imo: "9074729" },
+  "vsl-atlas": { name: "Atlas", imo: "9432891" },
+  "vsl-horizon": { name: "Horizon", imo: "9587420" },
+  "vsl-neptune": { name: "Neptune", imo: "9338490" },
+  "vsl-odyssey": { name: "Odyssey", imo: "9712215" },
+};
+
 const VESSELS: ReadonlyArray<Record<string, unknown>> = [
-  { id: "vessel-001", imo: "9074729", vessel_name: "MV Aurelia", title: "MV Aurelia", vessel_type: "RoPax", flag: "PANAMA", gross_tonnage: 12450, status: "OPERATIONAL" },
-  { id: "vessel-002", imo: "9812345", vessel_name: "MV Poseidon Voyager", title: "MV Poseidon Voyager", vessel_type: "Container", flag: "MARSHALL_ISLANDS", gross_tonnage: 85000, status: "OPERATIONAL" },
-  { id: "vessel-003", imo: "9412345", vessel_name: "MV Ocean Guardian", title: "MV Ocean Guardian", vessel_type: "Bulk Carrier", flag: "GREECE", gross_tonnage: 72000, status: "OPERATIONAL" },
-  { id: "vessel-004", imo: "9712345", vessel_name: "MV Baltic Trader", title: "MV Baltic Trader", vessel_type: "General Cargo", flag: "GERMANY", gross_tonnage: 45000, status: "IN_MAINTENANCE" },
-  { id: "vessel-005", imo: "9912345", vessel_name: "MV Mediterranean Star", title: "MV Mediterranean Star", vessel_type: "Tanker", flag: "ITALY", gross_tonnage: 38000, status: "OPERATIONAL" },
+  { id: "vsl-aurelia", imo: "9074729", vessel_name: "Aurelia", title: "Aurelia", mmsi: "310625000", ship_id: "371663", gross_tonnage: 31240, vessel_type: "RoPax", flag: "PANAMA", status: "OPERATIONAL", deep_link: { label: "View fleet profile", path: "/fleet/9074729" } },
+  { id: "vsl-atlas", imo: "9432891", vessel_name: "Atlas", title: "Atlas", mmsi: "538005432", ship_id: "411552", gross_tonnage: 55460, vessel_type: "Container", flag: "LIBERIA", status: "OPERATIONAL", deep_link: { label: "View fleet profile", path: "/fleet/9432891" } },
+  { id: "vsl-horizon", imo: "9587420", vessel_name: "Horizon", title: "Horizon", mmsi: "636012345", ship_id: "623451", gross_tonnage: 29870, vessel_type: "Bulk Carrier", flag: "MARSHALL_ISLANDS", status: "OPERATIONAL", deep_link: { label: "View fleet profile", path: "/fleet/9587420" } },
+  { id: "vsl-neptune", imo: "9338490", vessel_name: "Neptune", title: "Neptune", mmsi: "215008765", ship_id: "884532", gross_tonnage: 18650, vessel_type: "General Cargo", flag: "MALTA", status: "OPERATIONAL", deep_link: { label: "View fleet profile", path: "/fleet/9338490" } },
+  { id: "vsl-odyssey", imo: "9712215", vessel_name: "Odyssey", title: "Odyssey", mmsi: "374712000", ship_id: "915611", gross_tonnage: 38980, vessel_type: "Tanker", flag: "GREECE", status: "OPERATIONAL", deep_link: { label: "View fleet profile", path: "/fleet/9712215" } },
 ];
 
-const VOYAGES: ReadonlyArray<MockRecord> = [
-  { id: "voyage-001", vessel_id: "vessel-001", vessel_name: "MV Aurelia", imo: "9074729", title: "Rotterdam → Palma", departure_port: "Rotterdam", arrival_port: "Palma", departure_date: "2025-05-10", arrival_date: "2025-05-14", distance_nm: 1180, status: "COMPLETED", deep_link: { label: "View voyage", path: "/voyages/voyage-001" } },
-  { id: "voyage-002", vessel_id: "vessel-001", vessel_name: "MV Aurelia", imo: "9074729", title: "Palma → Barcelona", departure_port: "Palma", arrival_port: "Barcelona", departure_date: "2025-05-16", arrival_date: "2025-05-17", distance_nm: 110, status: "COMPLETED", deep_link: { label: "View voyage", path: "/voyages/voyage-002" } },
-  { id: "voyage-003", vessel_id: "vessel-001", vessel_name: "MV Aurelia", imo: "9074729", title: "Barcelona → Genoa", departure_port: "Barcelona", arrival_port: "Genoa", departure_date: "2025-06-02", arrival_date: "2025-06-03", distance_nm: 340, status: "COMPLETED", deep_link: { label: "View voyage", path: "/voyages/voyage-003" } },
-  { id: "voyage-004", vessel_id: "vessel-001", vessel_name: "MV Aurelia", imo: "9074729", title: "Genoa → Palma", departure_port: "Genoa", arrival_port: "Palma", departure_date: "2025-06-10", arrival_date: "2025-06-12", distance_nm: 430, status: "COMPLETED", deep_link: { label: "View voyage", path: "/voyages/voyage-004" } },
-  { id: "voyage-005", vessel_id: "vessel-001", vessel_name: "MV Aurelia", imo: "9074729", title: "Palma → Valencia", departure_port: "Palma", arrival_port: "Valencia", departure_date: "2026-06-05", arrival_date: "2026-06-06", distance_nm: 150, status: "COMPLETED", deep_link: { label: "View voyage", path: "/voyages/voyage-005" } },
-  { id: "voyage-006", vessel_id: "vessel-001", vessel_name: "MV Aurelia", imo: "9074729", title: "Valencia → Algeciras", departure_port: "Valencia", arrival_port: "Algeciras", departure_date: "2026-06-15", arrival_date: "2026-06-16", distance_nm: 320, status: "PLANNED", deep_link: { label: "View voyage", path: "/voyages/voyage-006" } },
-  { id: "voyage-007", vessel_id: "vessel-002", vessel_name: "MV Poseidon Voyager", imo: "9812345", title: "Shanghai → Singapore", departure_port: "Shanghai", arrival_port: "Singapore", departure_date: "2025-07-01", arrival_date: "2025-07-05", distance_nm: 2240, status: "COMPLETED", deep_link: { label: "View voyage", path: "/voyages/voyage-007" } },
-  { id: "voyage-008", vessel_id: "vessel-002", vessel_name: "MV Poseidon Voyager", imo: "9812345", title: "Singapore → Rotterdam", departure_port: "Singapore", arrival_port: "Rotterdam", departure_date: "2025-07-20", arrival_date: "2025-08-12", distance_nm: 8310, status: "COMPLETED", deep_link: { label: "View voyage", path: "/voyages/voyage-008" } },
-  { id: "voyage-009", vessel_id: "vessel-003", vessel_name: "MV Ocean Guardian", imo: "9412345", title: "Santos → Algeciras", departure_port: "Santos", arrival_port: "Algeciras", departure_date: "2025-08-05", arrival_date: "2025-08-28", distance_nm: 4900, status: "COMPLETED", deep_link: { label: "View voyage", path: "/voyages/voyage-009" } },
-  { id: "voyage-010", vessel_id: "vessel-004", vessel_name: "MV Baltic Trader", imo: "9712345", title: "Gdansk → Antwerp", departure_port: "Gdansk", arrival_port: "Antwerp", departure_date: "2025-03-15", arrival_date: "2025-03-20", distance_nm: 980, status: "COMPLETED", deep_link: { label: "View voyage", path: "/voyages/voyage-010" } },
-  { id: "voyage-011", vessel_id: "vessel-005", vessel_name: "MV Mediterranean Star", imo: "9912345", title: "Piraeus → Valencia", departure_port: "Piraeus", arrival_port: "Valencia", departure_date: "2025-04-01", arrival_date: "2025-04-05", distance_nm: 1180, status: "COMPLETED", deep_link: { label: "View voyage", path: "/voyages/voyage-011" } },
+const VOYAGE_DEFS: ReadonlyArray<{
+  readonly id: string;
+  readonly vesselId: string;
+  readonly departurePort: string;
+  readonly arrivalPort: string;
+  readonly depOffsetMs: number;
+  readonly arrOffsetMs: number | null;
+  readonly distanceNm: number;
+}> = [
+  { id: "voy-aur-1", vesselId: "vsl-aurelia", departurePort: "Piraeus", arrivalPort: "Valencia", depOffsetMs: -9 * DAY, arrOffsetMs: -7 * DAY, distanceNm: 1002 },
+  { id: "voy-aur-2", vesselId: "vsl-aurelia", departurePort: "Valencia", arrivalPort: "Genoa", depOffsetMs: -30 * HOUR, arrOffsetMs: 34 * HOUR, distanceNm: 623 },
+  { id: "voy-atl-1", vesselId: "vsl-atlas", departurePort: "Rotterdam", arrivalPort: "Piraeus", depOffsetMs: -12 * DAY, arrOffsetMs: -10 * DAY, distanceNm: 2695 },
+  { id: "voy-atl-2", vesselId: "vsl-atlas", departurePort: "Piraeus", arrivalPort: "Marseille", depOffsetMs: -48 * HOUR, arrOffsetMs: 10 * HOUR, distanceNm: 1280 },
+  { id: "voy-hrz-1", vesselId: "vsl-horizon", departurePort: "Rotterdam", arrivalPort: "Hamburg", depOffsetMs: -6 * HOUR, arrOffsetMs: 5 * HOUR, distanceNm: 398 },
+  { id: "voy-hrz-2", vesselId: "vsl-horizon", departurePort: "Hamburg", arrivalPort: "Rotterdam", depOffsetMs: -5 * DAY, arrOffsetMs: -4 * DAY, distanceNm: 398 },
+  { id: "voy-nep-1", vesselId: "vsl-neptune", departurePort: "Algeciras", arrivalPort: "Barcelona", depOffsetMs: -3 * DAY, arrOffsetMs: 16 * HOUR, distanceNm: 760 },
+  { id: "voy-nep-2", vesselId: "vsl-neptune", departurePort: "Barcelona", arrivalPort: "Algeciras", depOffsetMs: -15 * DAY, arrOffsetMs: -13 * DAY, distanceNm: 760 },
+  { id: "voy-ody-1", vesselId: "vsl-odyssey", departurePort: "Singapore", arrivalPort: "Fujairah", depOffsetMs: -5 * DAY, arrOffsetMs: 6 * DAY, distanceNm: 3185 },
+  { id: "voy-ody-2", vesselId: "vsl-odyssey", departurePort: "Fujairah", arrivalPort: "Singapore", depOffsetMs: -30 * DAY, arrOffsetMs: -27 * DAY, distanceNm: 3185 },
+  { id: "voy-ody-3", vesselId: "vsl-odyssey", departurePort: "Singapore", arrivalPort: "Fujairah", depOffsetMs: -45 * DAY, arrOffsetMs: -42 * DAY, distanceNm: 3185 },
 ];
+
+const VOYAGES: ReadonlyArray<MockRecord> = VOYAGE_DEFS.map((v) => {
+  const vessel = VESSEL_LOOKUP[v.vesselId]!;
+  return {
+    id: v.id,
+    vessel_id: v.vesselId,
+    vessel_name: vessel.name,
+    imo: vessel.imo,
+    title: `${v.departurePort} → ${v.arrivalPort}`,
+    departure_port: v.departurePort,
+    arrival_port: v.arrivalPort,
+    departure_date: isoDateOnly(v.depOffsetMs),
+    arrival_date: v.arrOffsetMs === null ? null : isoDateOnly(v.arrOffsetMs),
+    distance_nm: v.distanceNm,
+    status: v.arrOffsetMs !== null && v.arrOffsetMs > 0 ? "PLANNED" : "COMPLETED",
+    deep_link: { label: "View voyage", path: `/voyages/${v.id}` },
+  };
+});
 
 const AIS_POSITIONS: ReadonlyArray<MockRecord> = [
-  { id: "ais-001", vessel_id: "vessel-001", vessel_name: "MV Aurelia", imo: "9074729", title: "Aurelia near Valencia", timestamp: "2026-06-05T08:00:00Z", latitude: 38.68, longitude: 0.05, speed_knots: 14, heading: 270, zone: "EU_ETS", deep_link: { label: "Open map", path: "/ais" } },
-  { id: "ais-002", vessel_id: "vessel-001", vessel_name: "MV Aurelia", imo: "9074729", title: "Aurelia approaching Algeciras", timestamp: "2026-06-15T12:00:00Z", latitude: 36.4, longitude: -5.3, speed_knots: 8, heading: 240, zone: "EU_ETS", deep_link: { label: "Open map", path: "/ais" } },
-  { id: "ais-003", vessel_id: "vessel-002", vessel_name: "MV Poseidon Voyager", imo: "9812345", title: "Poseidon Voyager in Mediterranean", timestamp: "2026-06-10T10:00:00Z", latitude: 41.3, longitude: 2.2, speed_knots: 18, heading: 285, zone: "EU_ETS", deep_link: { label: "Open map", path: "/ais" } },
-  { id: "ais-004", vessel_id: "vessel-003", vessel_name: "MV Ocean Guardian", imo: "9412345", title: "Ocean Guardian off Gibraltar", timestamp: "2026-06-20T06:00:00Z", latitude: 36.1, longitude: -4.2, speed_knots: 12, heading: 90, zone: "EU_ETS", deep_link: { label: "Open map", path: "/ais" } },
-  { id: "ais-005", vessel_id: "vessel-004", vessel_name: "MV Baltic Trader", imo: "9712345", title: "Baltic Trader at Gdansk anchorage", timestamp: "2026-06-01T14:00:00Z", latitude: 54.4, longitude: 18.7, speed_knots: 0, heading: 0, zone: "OPEN_SEA", deep_link: { label: "Open map", path: "/ais" } },
-  { id: "ais-006", vessel_id: "vessel-005", vessel_name: "MV Mediterranean Star", imo: "9912345", title: "Mediterranean Star leaving Piraeus", timestamp: "2026-06-08T22:00:00Z", latitude: 37.9, longitude: 23.7, speed_knots: 11, heading: 200, zone: "EU_ETS", deep_link: { label: "Open map", path: "/ais" } },
+  { id: "ais-vsl-aurelia", vessel_id: "vsl-aurelia", vessel_name: "Aurelia", imo: "9074729", title: "Aurelia in the Mediterranean", timestamp: isoDateTime(-2 * HOUR), latitude: 41.95, longitude: 7.95, speed_knots: 15.2, heading: 47, zone: "EU_ETS", deep_link: { label: "Open map", path: "/ais" } },
+  { id: "ais-vsl-atlas", vessel_id: "vsl-atlas", vessel_name: "Atlas", imo: "9432891", title: "Atlas in the Mediterranean", timestamp: isoDateTime(-2 * HOUR), latitude: 41.2, longitude: 5.8, speed_knots: 14, heading: 275, zone: "EU_ETS", deep_link: { label: "Open map", path: "/ais" } },
+  { id: "ais-vsl-horizon", vessel_id: "vsl-horizon", vessel_name: "Horizon", imo: "9587420", title: "Horizon approaching Hamburg", timestamp: isoDateTime(-2 * HOUR), latitude: 53.3, longitude: 7.2, speed_knots: 11.5, heading: 92, zone: "OPEN_SEA", deep_link: { label: "Open map", path: "/ais" } },
+  { id: "ais-vsl-neptune", vessel_id: "vsl-neptune", vessel_name: "Neptune", imo: "9338490", title: "Neptune in the Mediterranean", timestamp: isoDateTime(-2 * HOUR), latitude: 37.85, longitude: 1.1, speed_knots: 13.8, heading: 52, zone: "EU_ETS", deep_link: { label: "Open map", path: "/ais" } },
+  { id: "ais-vsl-odyssey", vessel_id: "vsl-odyssey", vessel_name: "Odyssey", imo: "9712215", title: "Odyssey in the Arabian Sea", timestamp: isoDateTime(-2 * HOUR), latitude: 12.6, longitude: 77.2, speed_knots: 16.4, heading: 305, zone: "OPEN_SEA", deep_link: { label: "Open map", path: "/ais" } },
 ];
 
-const FUEL_DELIVERIES: ReadonlyArray<MockRecord> = [
-  { id: "bdn-001", vessel_id: "vessel-001", vessel_name: "MV Aurelia", imo: "9074729", title: "BDN 001 — Palma", port: "Palma", delivery_date: "2025-03-12", fuel_type: "HFO", quantity_mt: 850, supplier: "Cepsa Energia", confidence: 0.94, status: "APPROVED", source: "MANUAL", deep_link: { label: "View BDN", path: "/documents/doc-101" } },
-  { id: "bdn-002", vessel_id: "vessel-001", vessel_name: "MV Aurelia", imo: "9074729", title: "BDN 002 — Palma", port: "Palma", delivery_date: "2025-06-18", fuel_type: "VLSFO", quantity_mt: 620, supplier: "OMV Bunkering", confidence: 0.88, status: "APPROVED", source: "EMAIL", deep_link: { label: "View BDN", path: "/documents/doc-102" } },
-  { id: "bdn-003", vessel_id: "vessel-001", vessel_name: "MV Aurelia", imo: "9074729", title: "BDN 003 — Palma", port: "Palma", delivery_date: "2025-10-05", fuel_type: "MGO", quantity_mt: 140, supplier: "Bunker One", confidence: 0.72, status: "PENDING", source: "OCR", deep_link: { label: "View BDN", path: "/documents/doc-103" } },
-  { id: "bdn-004", vessel_id: "vessel-001", vessel_name: "MV Aurelia", imo: "9074729", title: "BDN 004 — Barcelona", port: "Barcelona", delivery_date: "2025-11-22", fuel_type: "VLSFO", quantity_mt: 700, supplier: "Shell Marine", confidence: 0.95, status: "APPROVED", source: "EMAIL", deep_link: { label: "View BDN", path: "/documents/doc-104" } },
-  { id: "bdn-005", vessel_id: "vessel-002", vessel_name: "MV Poseidon Voyager", imo: "9812345", title: "BDN 005 — Rotterdam", port: "Rotterdam", delivery_date: "2025-04-14", fuel_type: "VLSFO", quantity_mt: 1800, supplier: "Vitol Bunkers", confidence: 0.91, status: "APPROVED", source: "EMAIL", deep_link: { label: "View BDN", path: "/documents/doc-105" } },
-  { id: "bdn-006", vessel_id: "vessel-002", vessel_name: "MV Poseidon Voyager", imo: "9812345", title: "BDN 006 — Singapore", port: "Singapore", delivery_date: "2025-07-08", fuel_type: "VLSFO", quantity_mt: 2200, supplier: "Sentek Marine", confidence: 0.97, status: "APPROVED", source: "EMAIL", deep_link: { label: "View BDN", path: "/documents/doc-106" } },
-  { id: "bdn-007", vessel_id: "vessel-003", vessel_name: "MV Ocean Guardian", imo: "9412345", title: "BDN 007 — Algeciras", port: "Algeciras", delivery_date: "2025-08-29", fuel_type: "HFO", quantity_mt: 1200, supplier: "CEPSA", confidence: 0.65, status: "PENDING", source: "OCR", deep_link: { label: "View BDN", path: "/documents/doc-107" } },
-  { id: "bdn-008", vessel_id: "vessel-004", vessel_name: "MV Baltic Trader", imo: "9712345", title: "BDN 008 — Antwerp", port: "Antwerp", delivery_date: "2025-03-20", fuel_type: "MGO", quantity_mt: 260, supplier: "Bunkerpartner", confidence: 0.89, status: "APPROVED", source: "MANUAL", deep_link: { label: "View BDN", path: "/documents/doc-108" } },
-  { id: "bdn-009", vessel_id: "vessel-005", vessel_name: "MV Mediterranean Star", imo: "9912345", title: "BDN 009 — Piraeus", port: "Piraeus", delivery_date: "2025-04-03", fuel_type: "HFO", quantity_mt: 950, supplier: "Aegean Bunkering", confidence: 0.79, status: "REJECTED", source: "OCR", deep_link: { label: "View BDN", path: "/documents/doc-109" } },
-  { id: "bdn-010", vessel_id: "vessel-001", vessel_name: "MV Aurelia", imo: "9074729", title: "BDN 010 — Palma", port: "Palma", delivery_date: "2026-02-20", fuel_type: "VLSFO", quantity_mt: 580, supplier: "OMV Bunkering", confidence: 0.93, status: "APPROVED", source: "EMAIL", deep_link: { label: "View BDN", path: "/documents/doc-110" } },
+const FUEL_DELIVERY_DEFS: ReadonlyArray<{
+  readonly id: string;
+  readonly vesselId: string;
+  readonly port: string;
+  readonly offsetMs: number;
+  readonly fuelType: string;
+  readonly quantityMt: number;
+  readonly supplier: string;
+  readonly status: string;
+  readonly documentId: string;
+  readonly bdn: string;
+  readonly confidence: number;
+}> = [
+  { id: "fuel-aur-1", vesselId: "vsl-aurelia", port: "Valencia", offsetMs: -8 * DAY, fuelType: "VLSFO", quantityMt: 320, supplier: "Bunker Holding Iberia S.L.", status: "reconciled", documentId: "doc-bdn-aurelia-valencia", bdn: "BDN-2026-0726", confidence: 0.95 },
+  { id: "fuel-atl-1", vesselId: "vsl-atlas", port: "Piraeus", offsetMs: -11 * DAY, fuelType: "VLSFO", quantityMt: 400, supplier: "Hellas Bunkers S.A.", status: "reconciled", documentId: "doc-bdn-atlas-piraeus", bdn: "BDN-2026-0723", confidence: 0.94 },
+  { id: "fuel-atl-2", vesselId: "vsl-atlas", port: "Rotterdam", offsetMs: -13 * DAY, fuelType: "LSMGO", quantityMt: 120, supplier: "Vitol Bunkers B.V.", status: "verified", documentId: "doc-bdn-atlas-rotterdam", bdn: "BDN-2026-0721", confidence: 0.93 },
+  { id: "fuel-hrz-1", vesselId: "vsl-horizon", port: "Rotterdam", offsetMs: -7 * DAY, fuelType: "VLSFO", quantityMt: 480, supplier: "Vitol Bunkers B.V.", status: "verified", documentId: "doc-bdn-horizon-rotterdam", bdn: "BDN-2026-0727", confidence: 0.92 },
+  { id: "fuel-hrz-2", vesselId: "vsl-horizon", port: "Hamburg", offsetMs: -4 * DAY, fuelType: "LSMGO", quantityMt: 90, supplier: "Marine Bunkers GmbH", status: "pending", documentId: "doc-bdn-horizon-hamburg", bdn: "BDN-2026-0730", confidence: 0.86 },
+  { id: "fuel-nep-1", vesselId: "vsl-neptune", port: "Algeciras", offsetMs: -3 * DAY, fuelType: "VLSFO", quantityMt: 550, supplier: "Cepsa Marine", status: "pending", documentId: "doc-bdn-neptune-algeciras", bdn: "BDN-2026-0731", confidence: 0.88 },
+  { id: "fuel-nep-2", vesselId: "vsl-neptune", port: "Barcelona", offsetMs: -14 * DAY, fuelType: "MGO", quantityMt: 40, supplier: "Cepsa Marine", status: "reconciled", documentId: "doc-bdn-neptune-barcelona", bdn: "BDN-2026-0720", confidence: 0.9 },
+  { id: "fuel-ody-1", vesselId: "vsl-odyssey", port: "Singapore", offsetMs: -5 * DAY, fuelType: "VLSFO", quantityMt: 700, supplier: "Oceania Marine Fuels Pte Ltd", status: "verified", documentId: "doc-bdn-odyssey-singapore", bdn: "BDN-2026-0729", confidence: 0.93 },
+  { id: "fuel-ody-2", vesselId: "vsl-odyssey", port: "Fujairah", offsetMs: -29 * DAY, fuelType: "HFO", quantityMt: 500, supplier: "Gulf Marine Bunkers FZE", status: "reconciled", documentId: "doc-bdn-odyssey-fujairah", bdn: "BDN-2026-0705", confidence: 0.9 },
 ];
 
-const DOCUMENTS: ReadonlyArray<MockRecord> = [
-  { id: "doc-001", vessel_id: "vessel-001", vessel_name: "MV Aurelia", imo: "9074729", document_type: "THETIS", title: "THETIS_2024_Aurelia.pdf", filename: "THETIS_2024_Aurelia.pdf", summary: "THETIS 2024 inspection report for MV Aurelia", status: "PROCESSED", source: "EMAIL", confidence: 0.96, uploaded_at: "2025-01-15", deep_link: { label: "Open document", path: "/documents/doc-001" } },
-  { id: "doc-002", vessel_id: "vessel-001", vessel_name: "MV Aurelia", imo: "9074729", document_type: "BDN", title: "BDN_Palma_2025-06-18.pdf", filename: "BDN_Palma_2025-06-18.pdf", summary: "Bunker delivery note from OMV Bunkering, Palma", status: "PROCESSED", source: "EMAIL", confidence: 0.88, uploaded_at: "2025-06-19", deep_link: { label: "Open document", path: "/documents/doc-002" } },
-  { id: "doc-003", vessel_id: "vessel-001", vessel_name: "MV Aurelia", imo: "9074729", document_type: "BDN", title: "BDN_Palma_2025-10-05.pdf", filename: "BDN_Palma_2025-10-05.pdf", summary: "Bunker delivery note from Bunker One, Palma (low OCR confidence)", status: "PENDING", source: "OCR", confidence: 0.72, uploaded_at: "2025-10-06", deep_link: { label: "Open document", path: "/documents/doc-003" } },
-  { id: "doc-004", vessel_id: "vessel-002", vessel_name: "MV Poseidon Voyager", imo: "9812345", document_type: "FuelEU", title: "FuelEU_Monitoring_Plan_2025.pdf", filename: "FuelEU_Monitoring_Plan_2025.pdf", summary: "FuelEU Maritime monitoring plan", status: "PROCESSED", source: "MANUAL", confidence: 0.99, uploaded_at: "2025-02-01", deep_link: { label: "Open document", path: "/documents/doc-004" } },
-  { id: "doc-005", vessel_id: "vessel-002", vessel_name: "MV Poseidon Voyager", imo: "9812345", document_type: "MRV", title: "MRV_2024_Report.pdf", filename: "MRV_2024_Report.pdf", summary: "MRV emissions report 2024", status: "PROCESSED", source: "EMAIL", confidence: 0.94, uploaded_at: "2025-04-30", deep_link: { label: "Open document", path: "/documents/doc-005" } },
-  { id: "doc-006", vessel_id: "vessel-003", vessel_name: "MV Ocean Guardian", imo: "9412345", document_type: "EU_ETS", title: "EU_ETS_2025_Plan.pdf", filename: "EU_ETS_2025_Plan.pdf", summary: "EU ETS monitoring plan", status: "PENDING", source: "MANUAL", confidence: 0.9, uploaded_at: "2025-01-20", deep_link: { label: "Open document", path: "/documents/doc-006" } },
-  { id: "doc-007", vessel_id: "vessel-004", vessel_name: "MV Baltic Trader", imo: "9712345", document_type: "Certificate", title: "Class_Certificate_2025.pdf", filename: "Class_Certificate_2025.pdf", summary: "Class certificate (poor scan quality)", status: "FAILED", source: "OCR", confidence: 0.58, uploaded_at: "2025-05-11", deep_link: { label: "Open document", path: "/documents/doc-007" } },
-  { id: "doc-008", vessel_id: "vessel-001", vessel_name: "MV Aurelia", imo: "9074729", document_type: "Logbook", title: "Logbook_June_2025.pdf", filename: "Logbook_June_2025.pdf", summary: "Deck logbook June 2025", status: "PROCESSED", source: "EMAIL", confidence: 0.93, uploaded_at: "2025-07-05", deep_link: { label: "Open document", path: "/documents/doc-008" } },
-  { id: "doc-009", vessel_id: "vessel-005", vessel_name: "MV Mediterranean Star", imo: "9912345", document_type: "Invoice", title: "Bunker_Invoice_2025-04.pdf", filename: "Bunker_Invoice_2025-04.pdf", summary: "Bunker invoice from Aegean Bunkering", status: "PROCESSED", source: "EMAIL", confidence: 0.91, uploaded_at: "2025-04-10", deep_link: { label: "Open document", path: "/documents/doc-009" } },
-  { id: "doc-010", vessel_id: "vessel-002", vessel_name: "MV Poseidon Voyager", imo: "9812345", document_type: "BDN", title: "BDN_Singapore_2025-07-08.pdf", filename: "BDN_Singapore_2025-07-08.pdf", summary: "Bunker delivery note from Sentek Marine, Singapore", status: "PROCESSED", source: "EMAIL", confidence: 0.97, uploaded_at: "2025-07-09", deep_link: { label: "Open document", path: "/documents/doc-010" } },
+const FUEL_DELIVERIES: ReadonlyArray<MockRecord> = FUEL_DELIVERY_DEFS.map((f) => {
+  const vessel = VESSEL_LOOKUP[f.vesselId]!;
+  return {
+    id: f.id,
+    vessel_id: f.vesselId,
+    vessel_name: vessel.name,
+    imo: vessel.imo,
+    title: `BDN ${f.bdn} — ${f.port}`,
+    bdn_reference: f.bdn,
+    port: f.port,
+    delivery_date: isoDateOnly(f.offsetMs),
+    fuel_type: f.fuelType,
+    quantity_mt: f.quantityMt,
+    supplier: f.supplier,
+    confidence: f.confidence,
+    status: f.status,
+    source: "EMAIL",
+    deep_link: { label: "View BDN", path: `/documents/${f.documentId}` },
+  };
+});
+
+const DOCUMENT_DEFS: ReadonlyArray<{
+  readonly id: string;
+  readonly vesselId: string | null;
+  readonly documentType: string;
+  readonly title: string;
+  readonly filename: string;
+  readonly summary: string;
+  readonly status: string;
+  readonly source: string;
+  readonly confidence: number;
+  readonly offsetMs: number;
+}> = [
+  { id: "doc-bdn-aurelia-valencia", vesselId: "vsl-aurelia", documentType: "bdn", title: "BDN — Aurelia (Valencia, 2026-07-26)", filename: "bdn-aurelia-valencia-2026-0726.pdf", summary: "Bunker delivery note from Bunker Holding Iberia S.L., Valencia", status: "approved", source: "EMAIL", confidence: 0.95, offsetMs: -8 * DAY },
+  { id: "doc-bdn-atlas-piraeus", vesselId: "vsl-atlas", documentType: "bdn", title: "BDN — Atlas (Piraeus, 2026-07-23)", filename: "bdn-atlas-piraeus-2026-0723.pdf", summary: "Bunker delivery note from Hellas Bunkers S.A., Piraeus", status: "approved", source: "EMAIL", confidence: 0.94, offsetMs: -11 * DAY },
+  { id: "doc-bdn-atlas-rotterdam", vesselId: "vsl-atlas", documentType: "bdn", title: "BDN — Atlas (Rotterdam, 2026-07-21)", filename: "bdn-atlas-rotterdam-2026-0721.pdf", summary: "Bunker delivery note from Vitol Bunkers B.V., Rotterdam", status: "approved", source: "EMAIL", confidence: 0.93, offsetMs: -13 * DAY },
+  { id: "doc-bdn-horizon-rotterdam", vesselId: "vsl-horizon", documentType: "bdn", title: "BDN — Horizon (Rotterdam, 2026-07-27)", filename: "bdn-horizon-rotterdam-2026-0727.pdf", summary: "Bunker delivery note from Vitol Bunkers B.V., Rotterdam", status: "extracted", source: "EMAIL", confidence: 0.9, offsetMs: -7 * DAY },
+  { id: "doc-bdn-horizon-hamburg", vesselId: "vsl-horizon", documentType: "bdn", title: "BDN — Horizon (Hamburg, 2026-07-30)", filename: "bdn-horizon-hamburg-2026-0730.pdf", summary: "Bunker delivery note from Marine Bunkers GmbH, Hamburg (low OCR confidence)", status: "processing", source: "EMAIL", confidence: 0.6, offsetMs: -4 * DAY },
+  { id: "doc-bdn-neptune-algeciras", vesselId: "vsl-neptune", documentType: "bdn", title: "BDN — Neptune (Algeciras, 2026-07-31)", filename: "bdn-neptune-algeciras-2026-0731.pdf", summary: "Bunker delivery note from Cepsa Marine, Algeciras", status: "ocr_complete", source: "EMAIL", confidence: 0.9, offsetMs: -3 * DAY },
+  { id: "doc-bdn-neptune-barcelona", vesselId: "vsl-neptune", documentType: "bdn", title: "BDN — Neptune (Barcelona, 2026-07-20)", filename: "bdn-neptune-barcelona-2026-0720.pdf", summary: "Bunker delivery note from Cepsa Marine, Barcelona", status: "approved", source: "EMAIL", confidence: 0.92, offsetMs: -14 * DAY },
+  { id: "doc-bdn-odyssey-singapore", vesselId: "vsl-odyssey", documentType: "bdn", title: "BDN — Odyssey (Singapore, 2026-07-29)", filename: "bdn-odyssey-singapore-2026-0729.pdf", summary: "Bunker delivery note from Oceania Marine Fuels Pte Ltd, Singapore", status: "extracted", source: "EMAIL", confidence: 0.91, offsetMs: -5 * DAY },
+  { id: "doc-bdn-odyssey-fujairah", vesselId: "vsl-odyssey", documentType: "bdn", title: "BDN — Odyssey (Fujairah, 2026-07-05)", filename: "bdn-odyssey-fujairah-2026-0705.pdf", summary: "Bunker delivery note from Gulf Marine Bunkers FZE, Fujairah", status: "approved", source: "EMAIL", confidence: 0.93, offsetMs: -29 * DAY },
+  { id: "doc-iapp-aurelia", vesselId: "vsl-aurelia", documentType: "certificate", title: "IAPP Certificate — Aurelia", filename: "iapp-aurelia-2025.pdf", summary: "International Air Pollution Prevention certificate for Aurelia", status: "approved", source: "MANUAL", confidence: 0.98, offsetMs: -50 * DAY },
+  { id: "doc-mrv-atlas-2025", vesselId: "vsl-atlas", documentType: "eu_mrv", title: "MRV Report — Atlas (2025)", filename: "mrv-atlas-2025.pdf", summary: "THETIS-MRV 2025 emissions report for Atlas", status: "approved", source: "MANUAL", confidence: 0.97, offsetMs: -20 * DAY },
+  { id: "doc-corr-harbourmaster", vesselId: "vsl-horizon", documentType: "correspondence", title: "Hamburg Harbourmaster — pre-arrival correspondence", filename: "hamburg-hm-2026-0729.eml", summary: "Pre-arrival correspondence with Hamburg Harbourmaster", status: "archived", source: "EMAIL", confidence: 0.7, offsetMs: -5 * DAY },
 ];
 
-const OCR_RESULTS: ReadonlyArray<MockRecord> = [
-  { id: "ocr-001", document_id: "doc-001", document_title: "THETIS_2024_Aurelia.pdf", vessel_id: "vessel-001", vessel_name: "MV Aurelia", title: "OCR extraction — THETIS_2024_Aurelia.pdf", confidence: 0.96, extracted_text_length: 8500, page_count: 12, status: "SUCCESS", processed_at: "2025-01-16", deep_link: { label: "View extraction", path: "/documents/doc-001" } },
-  { id: "ocr-002", document_id: "doc-003", document_title: "BDN_Palma_2025-10-05.pdf", vessel_id: "vessel-001", vessel_name: "MV Aurelia", title: "OCR extraction — BDN_Palma_2025-10-05.pdf", confidence: 0.72, extracted_text_length: 2100, page_count: 3, status: "LOW_CONFIDENCE", processed_at: "2025-10-06", deep_link: { label: "View extraction", path: "/documents/doc-003" } },
-  { id: "ocr-003", document_id: "doc-007", document_title: "Class_Certificate_2025.pdf", vessel_id: "vessel-004", vessel_name: "MV Baltic Trader", title: "OCR extraction — Class_Certificate_2025.pdf", confidence: 0.58, extracted_text_length: 1450, page_count: 2, status: "LOW_CONFIDENCE", processed_at: "2025-05-11", deep_link: { label: "View extraction", path: "/documents/doc-007" } },
-  { id: "ocr-004", document_id: "doc-002", document_title: "BDN_Palma_2025-06-18.pdf", vessel_id: "vessel-001", vessel_name: "MV Aurelia", title: "OCR extraction — BDN_Palma_2025-06-18.pdf", confidence: 0.88, extracted_text_length: 2300, page_count: 4, status: "SUCCESS", processed_at: "2025-06-19", deep_link: { label: "View extraction", path: "/documents/doc-002" } },
-  { id: "ocr-005", document_id: "doc-010", document_title: "BDN_Singapore_2025-07-08.pdf", vessel_id: "vessel-002", vessel_name: "MV Poseidon Voyager", title: "OCR extraction — BDN_Singapore_2025-07-08.pdf", confidence: 0.97, extracted_text_length: 2600, page_count: 4, status: "SUCCESS", processed_at: "2025-07-09", deep_link: { label: "View extraction", path: "/documents/doc-010" } },
-  { id: "ocr-006", document_id: "doc-009", document_title: "Bunker_Invoice_2025-04.pdf", vessel_id: "vessel-005", vessel_name: "MV Mediterranean Star", title: "OCR extraction — Bunker_Invoice_2025-04.pdf", confidence: 0.91, extracted_text_length: 1800, page_count: 2, status: "SUCCESS", processed_at: "2025-04-10", deep_link: { label: "View extraction", path: "/documents/doc-009" } },
+const DOCUMENTS: ReadonlyArray<MockRecord> = DOCUMENT_DEFS.map((d) => {
+  const vessel = d.vesselId ? VESSEL_LOOKUP[d.vesselId] : undefined;
+  return {
+    id: d.id,
+    vessel_id: d.vesselId,
+    vessel_name: vessel?.name ?? null,
+    imo: vessel?.imo ?? null,
+    document_type: d.documentType,
+    title: d.title,
+    filename: d.filename,
+    summary: d.summary,
+    status: d.status,
+    source: d.source,
+    confidence: d.confidence,
+    uploaded_at: isoDateOnly(d.offsetMs),
+    deep_link: { label: "Open document", path: `/documents/${d.id}` },
+  };
+});
+
+const OCR_MIRROR_DEFS: ReadonlyArray<{
+  readonly documentId: string;
+  readonly documentTitle: string;
+  readonly confidence: number;
+  readonly offsetMs: number;
+}> = [
+  { documentId: "ocr-doc-perfect-bdn", documentTitle: "BDN — Aurora (Singapore, 2026-07-18)", confidence: 0.95, offsetMs: -8 * DAY },
+  { documentId: "ocr-doc-rotated-bdn", documentTitle: "BDN — Aurora (rotated 90°)", confidence: 0.6, offsetMs: -7 * DAY },
+  { documentId: "ocr-doc-blurred-certificate", documentTitle: "IAPP Certificate — Aurora (blurred)", confidence: 0.45, offsetMs: -7 * DAY },
+  { documentId: "ocr-doc-unreadable-noon-report", documentTitle: "Noon Report — Aurora (unreadable)", confidence: 0.2, offsetMs: -7 * DAY },
+  { documentId: "ocr-doc-mixed-language", documentTitle: "BDN — Aurora (mixed-language supplier block)", confidence: 0.8, offsetMs: -6 * DAY },
+  { documentId: "ocr-doc-duplicate-scan", documentTitle: "BDN — Aurora (duplicate page scan)", confidence: 0.75, offsetMs: -6 * DAY },
+  { documentId: "ocr-doc-damaged-scan", documentTitle: "EU ETS Report — Aurora (damaged scan)", confidence: 0.3, offsetMs: -6 * DAY },
+  { documentId: "ocr-doc-wrong-type", documentTitle: "Uploaded as Certificate — content is a BDN", confidence: 0.95, offsetMs: -5 * DAY },
 ];
+
+const OCR_RESULTS: ReadonlyArray<MockRecord> = OCR_MIRROR_DEFS.map((o) => ({
+  id: `ocr-${o.documentId}`,
+  document_id: o.documentId,
+  document_title: o.documentTitle,
+  vessel_id: null,
+  vessel_name: null,
+  imo: null,
+  title: `OCR extraction — ${o.documentTitle}`,
+  confidence: o.confidence,
+  extracted_text_length: 2100,
+  page_count: 3,
+  status: o.confidence >= 0.8 ? "SUCCESS" : "LOW_CONFIDENCE",
+  processed_at: isoDateOnly(o.offsetMs),
+  deep_link: { label: "View extraction", path: `/documents/${o.documentId}` },
+}));
 
 const VALIDATION_REPORTS: ReadonlyArray<MockRecord> = [
-  { id: "vr-001", vessel_id: "vessel-001", vessel_name: "MV Aurelia", imo: "9074729", report_type: "FuelEU", title: "FuelEU 2025 validation report — Aurelia", year: 2025, passed: true, errors_count: 0, warnings_count: 2, generated_at: "2025-12-10", deep_link: { label: "View validation", path: "/review" } },
-  { id: "vr-002", vessel_id: "vessel-001", vessel_name: "MV Aurelia", imo: "9074729", report_type: "EU_ETS", title: "EU ETS 2025 validation report — Aurelia", year: 2025, passed: true, errors_count: 0, warnings_count: 1, generated_at: "2025-12-10", deep_link: { label: "View validation", path: "/review" } },
-  { id: "vr-003", vessel_id: "vessel-002", vessel_name: "MV Poseidon Voyager", imo: "9812345", report_type: "FuelEU", title: "FuelEU 2025 validation report — Poseidon Voyager", year: 2025, passed: true, errors_count: 0, warnings_count: 3, generated_at: "2025-12-12", deep_link: { label: "View validation", path: "/review" } },
-  { id: "vr-004", vessel_id: "vessel-004", vessel_name: "MV Baltic Trader", imo: "9712345", report_type: "MRV", title: "MRV 2024 validation report — Baltic Trader", year: 2024, passed: false, errors_count: 2, warnings_count: 5, generated_at: "2025-03-28", deep_link: { label: "View validation", path: "/review" } },
-  { id: "vr-005", vessel_id: "vessel-003", vessel_name: "MV Ocean Guardian", imo: "9412345", report_type: "EU_ETS", title: "EU ETS 2025 validation report — Ocean Guardian", year: 2025, passed: true, errors_count: 0, warnings_count: 0, generated_at: "2025-12-11", deep_link: { label: "View validation", path: "/review" } },
+  { id: "mrv-atlas-2025", vessel_id: "vsl-atlas", vessel_name: "Atlas", imo: "9432891", report_type: "MRV", title: "MRV 2025 validation report — Atlas", year: 2025, passed: true, errors_count: 0, warnings_count: 1, generated_at: isoDateOnly(-14 * DAY), deep_link: { label: "View validation", path: "/review" } },
+  { id: "mrv-aurelia-2025", vessel_id: "vsl-aurelia", vessel_name: "Aurelia", imo: "9074729", report_type: "MRV", title: "MRV 2025 validation report — Aurelia", year: 2025, passed: true, errors_count: 0, warnings_count: 0, generated_at: isoDateOnly(-14 * DAY), deep_link: { label: "View validation", path: "/review" } },
+  { id: "mrv-neptune-2025", vessel_id: "vsl-neptune", vessel_name: "Neptune", imo: "9338490", report_type: "MRV", title: "MRV 2025 validation report — Neptune", year: 2025, passed: false, errors_count: 2, warnings_count: 3, generated_at: isoDateOnly(-14 * DAY), deep_link: { label: "View validation", path: "/review" } },
 ];
 
-const REVIEW_TASKS: ReadonlyArray<MockRecord> = [
-  { id: "rt-001", vessel_id: "vessel-001", vessel_name: "MV Aurelia", imo: "9074729", title: "Review BDN_Palma_2025-10-05 (low OCR confidence)", task_type: "DOCUMENT_REVIEW", status: "PENDING", assignee: "reviewer-01", created_at: "2025-10-07", deep_link: { label: "Open review", path: "/review/rt-001" } },
-  { id: "rt-002", vessel_id: "vessel-004", vessel_name: "MV Baltic Trader", imo: "9712345", title: "Escalate MRV 2024 validation errors", task_type: "VALIDATION_ESCALATION", status: "PENDING", assignee: "reviewer-02", created_at: "2025-03-29", deep_link: { label: "Open review", path: "/review/rt-002" } },
-  { id: "rt-003", vessel_id: "vessel-003", vessel_name: "MV Ocean Guardian", imo: "9412345", title: "Review BDN_Algeciras_2025-08-29", task_type: "DOCUMENT_REVIEW", status: "IN_PROGRESS", assignee: "reviewer-01", created_at: "2025-08-30", deep_link: { label: "Open review", path: "/review/rt-003" } },
-  { id: "rt-004", vessel_id: "vessel-002", vessel_name: "MV Poseidon Voyager", imo: "9812345", title: "Verify Class certificate renewal", task_type: "CERTIFICATE_CHECK", status: "PENDING", assignee: "reviewer-03", created_at: "2025-05-12", deep_link: { label: "Open review", path: "/review/rt-004" } },
-  { id: "rt-005", vessel_id: "vessel-001", vessel_name: "MV Aurelia", imo: "9074729", title: "Approve FuelEU annual report 2025", task_type: "REPORT_APPROVAL", status: "COMPLETED", assignee: "reviewer-02", created_at: "2025-12-15", deep_link: { label: "Open review", path: "/review/rt-005" } },
-  { id: "rt-006", vessel_id: "vessel-005", vessel_name: "MV Mediterranean Star", imo: "9912345", title: "Re-review bunker invoice extraction", task_type: "DOCUMENT_REVIEW", status: "IN_PROGRESS", assignee: "reviewer-01", created_at: "2025-04-11", deep_link: { label: "Open review", path: "/review/rt-006" } },
+const REVIEW_TASK_DEFS: ReadonlyArray<{
+  readonly id: string;
+  readonly vesselId: string | null;
+  readonly title: string;
+  readonly taskType: string;
+  readonly status: string;
+  readonly assignee: string | null;
+  readonly offsetMs: number;
+}> = [
+  { id: "rt-ocr-rotated", vesselId: null, title: "Review BDN scanned rotated 90°", taskType: "DOCUMENT_REVIEW", status: "in_progress", assignee: "user-marina", offsetMs: -1 * DAY },
+  { id: "rt-ocr-blurred", vesselId: null, title: "Review IAPP certificate scan (blurred)", taskType: "DOCUMENT_REVIEW", status: "pending", assignee: "user-marina", offsetMs: -1 * DAY },
+  { id: "rt-ocr-unreadable", vesselId: null, title: "Review unreadable noon report", taskType: "DOCUMENT_REVIEW", status: "pending", assignee: null, offsetMs: -1 * DAY },
+  { id: "rt-ocr-duplicate", vesselId: null, title: "Review BDN duplicate page scan", taskType: "DOCUMENT_REVIEW", status: "pending", assignee: "user-marina", offsetMs: -1 * DAY },
+  { id: "rt-ocr-wrongtype", vesselId: null, title: "Review document type mismatch (BDN uploaded as certificate)", taskType: "DOCUMENT_REVIEW", status: "pending", assignee: null, offsetMs: -1 * DAY },
+  { id: "rt-bdn-horizon", vesselId: "vsl-horizon", title: "Reconcile BDN — Horizon (Hamburg, 2026-07-30)", taskType: "BDN_RECONCILIATION", status: "in_progress", assignee: "user-marina", offsetMs: -1 * DAY },
+  { id: "rt-bdn-neptune", vesselId: "vsl-neptune", title: "Assign vessel for BDN — Neptune (Algeciras, 2026-07-31)", taskType: "BDN_RECONCILIATION", status: "pending", assignee: null, offsetMs: -1 * DAY },
+  { id: "rt-mrv-atlas", vesselId: "vsl-atlas", title: "Verify MRV 2025 report — Atlas", taskType: "REPORT_APPROVAL", status: "completed", assignee: "user-marina", offsetMs: -3 * DAY },
+  { id: "rt-ocr-damaged", vesselId: null, title: "Review damaged EU ETS report scan", taskType: "DOCUMENT_REVIEW", status: "pending", assignee: null, offsetMs: -1 * DAY },
 ];
 
-const REPORTS: ReadonlyArray<MockRecord> = [
-  { id: "rep-001", vessel_id: "vessel-001", vessel_name: "MV Aurelia", imo: "9074729", report_type: "THETIS", year: 2024, title: "THETIS 2024 inspection report for MV Aurelia", status: "COMPLETED", generated_at: "2025-01-20", submission_deadline: null, deep_link: { label: "View report", path: "/documents/doc-001" } },
-  { id: "rep-002", vessel_id: "vessel-001", vessel_name: "MV Aurelia", imo: "9074729", report_type: "FuelEU", year: 2025, title: "FuelEU Maritime annual report 2025", status: "DRAFT", generated_at: "2025-12-20", submission_deadline: "2026-04-30", deep_link: { label: "View vessel", path: "/fleet/9074729" } },
-  { id: "rep-003", vessel_id: "vessel-001", vessel_name: "MV Aurelia", imo: "9074729", report_type: "EU_ETS", year: 2025, title: "EU ETS emissions report 2025", status: "DRAFT", generated_at: "2025-12-20", submission_deadline: "2026-09-30", deep_link: { label: "View vessel", path: "/fleet/9074729" } },
-  { id: "rep-004", vessel_id: "vessel-001", vessel_name: "MV Aurelia", imo: "9074729", report_type: "MRV", year: 2024, title: "MRV emissions report 2024", status: "SUBMITTED", generated_at: "2025-04-10", submission_deadline: "2025-04-30", deep_link: { label: "View vessel", path: "/fleet/9074729" } },
-  { id: "rep-005", vessel_id: "vessel-002", vessel_name: "MV Poseidon Voyager", imo: "9812345", report_type: "FuelEU", year: 2025, title: "FuelEU Maritime annual report 2025", status: "DRAFT", generated_at: "2025-12-22", submission_deadline: "2026-04-30", deep_link: { label: "View vessel", path: "/fleet/9812345" } },
-  { id: "rep-006", vessel_id: "vessel-002", vessel_name: "MV Poseidon Voyager", imo: "9812345", report_type: "EU_ETS", year: 2024, title: "EU ETS emissions report 2024", status: "SUBMITTED", generated_at: "2025-04-11", submission_deadline: "2025-09-30", deep_link: { label: "View vessel", path: "/fleet/9812345" } },
-  { id: "rep-007", vessel_id: "vessel-003", vessel_name: "MV Ocean Guardian", imo: "9412345", report_type: "MRV", year: 2025, title: "MRV emissions report 2025", status: "DRAFT", generated_at: "2025-12-21", submission_deadline: "2026-04-30", deep_link: { label: "View vessel", path: "/fleet/9412345" } },
-  { id: "rep-008", vessel_id: "vessel-005", vessel_name: "MV Mediterranean Star", imo: "9912345", report_type: "FuelEU", year: 2026, title: "FuelEU Maritime annual report 2026", status: "NOT_STARTED", generated_at: null, submission_deadline: "2027-04-30", deep_link: { label: "View vessel", path: "/fleet/9912345" } },
+const REVIEW_TASKS: ReadonlyArray<MockRecord> = REVIEW_TASK_DEFS.map((t) => {
+  const vessel = t.vesselId ? VESSEL_LOOKUP[t.vesselId] : undefined;
+  return {
+    id: t.id,
+    vessel_id: t.vesselId,
+    vessel_name: vessel?.name ?? null,
+    imo: vessel?.imo ?? null,
+    title: t.title,
+    task_type: t.taskType,
+    status: t.status,
+    assignee: t.assignee,
+    created_at: isoDateOnly(t.offsetMs),
+    deep_link: { label: "Open review", path: `/review/${t.id}` },
+  };
+});
+
+const REPORT_DEFS: ReadonlyArray<{
+  readonly id: string;
+  readonly vesselId: string | null;
+  readonly reportType: string;
+  readonly year: number;
+  readonly title: string;
+  readonly status: string;
+  readonly generatedOffsetMs: number | null;
+  readonly submissionDeadline: string | null;
+  readonly deepPath: string;
+}> = [
+  { id: "cr-fueleu-fleet-2026", vesselId: null, reportType: "fueleu", year: 2026, title: "FuelEU Maritime — Fleet 2026 (provisional)", status: "GENERATED", generatedOffsetMs: -4 * DAY, submissionDeadline: "2027-04-30", deepPath: "/compliance" },
+  { id: "cr-fueleu-atlas-2025", vesselId: "vsl-atlas", reportType: "fueleu", year: 2025, title: "FuelEU Maritime — Atlas 2025", status: "GENERATED", generatedOffsetMs: -5 * DAY, submissionDeadline: "2026-04-30", deepPath: "/fleet/9432891" },
+  { id: "cr-mrv-atlas-2025", vesselId: "vsl-atlas", reportType: "thetis_mrv", year: 2025, title: "THETIS-MRV — Atlas 2025", status: "GENERATED", generatedOffsetMs: -6 * DAY, submissionDeadline: "2026-04-30", deepPath: "/fleet/9432891" },
+  { id: "cr-mrv-aurelia-2025", vesselId: "vsl-aurelia", reportType: "thetis_mrv", year: 2025, title: "THETIS-MRV — Aurelia 2025", status: "GENERATED", generatedOffsetMs: -7 * DAY, submissionDeadline: "2026-04-30", deepPath: "/fleet/9074729" },
+  { id: "cr-mrv-neptune-2025", vesselId: "vsl-neptune", reportType: "thetis_mrv", year: 2025, title: "THETIS-MRV — Neptune 2025", status: "FAILED", generatedOffsetMs: -2 * DAY, submissionDeadline: "2026-04-30", deepPath: "/fleet/9338490" },
+  { id: "cr-ets-fleet-2025", vesselId: null, reportType: "fleet_summary", year: 2025, title: "EU ETS — Fleet surrender plan 2025", status: "DRAFT", generatedOffsetMs: null, submissionDeadline: "2026-09-30", deepPath: "/compliance" },
+  { id: "cr-green-fleet-2026", vesselId: null, reportType: "green_zone", year: 2026, title: "Green Zone — fleet exposure Q2 2026", status: "DRAFT", generatedOffsetMs: null, submissionDeadline: null, deepPath: "/compliance" },
+  { id: "cr-esg-2025", vesselId: null, reportType: "esg_package", year: 2025, title: "ESG package — FY2025", status: "DRAFT", generatedOffsetMs: null, submissionDeadline: null, deepPath: "/compliance" },
 ];
 
-const VERIFIER_PACKAGES: ReadonlyArray<MockRecord> = [
-  { id: "vp-001", vessel_id: "vessel-001", vessel_name: "MV Aurelia", imo: "9074729", year: 2024, title: "Verifier package 2024 — Aurelia", status: "SUBMITTED", generated_at: "2025-05-01", deep_link: { label: "View package", path: "/fleet/9074729" } },
-  { id: "vp-002", vessel_id: "vessel-001", vessel_name: "MV Aurelia", imo: "9074729", year: 2025, title: "Verifier package 2025 — Aurelia", status: "IN_PROGRESS", generated_at: "2026-01-10", deep_link: { label: "View package", path: "/fleet/9074729" } },
-  { id: "vp-003", vessel_id: "vessel-002", vessel_name: "MV Poseidon Voyager", imo: "9812345", year: 2024, title: "Verifier package 2024 — Poseidon Voyager", status: "SUBMITTED", generated_at: "2025-04-30", deep_link: { label: "View package", path: "/fleet/9812345" } },
-  { id: "vp-004", vessel_id: "vessel-003", vessel_name: "MV Ocean Guardian", imo: "9412345", year: 2025, title: "Verifier package 2025 — Ocean Guardian", status: "NOT_STARTED", generated_at: null, deep_link: { label: "View package", path: "/fleet/9412345" } },
+const REPORTS: ReadonlyArray<MockRecord> = REPORT_DEFS.map((r) => {
+  const vessel = r.vesselId ? VESSEL_LOOKUP[r.vesselId] : undefined;
+  return {
+    id: r.id,
+    vessel_id: r.vesselId,
+    vessel_name: vessel?.name ?? null,
+    imo: vessel?.imo ?? null,
+    report_type: r.reportType,
+    year: r.year,
+    title: r.title,
+    status: r.status,
+    generated_at: r.generatedOffsetMs === null ? null : isoDateOnly(r.generatedOffsetMs),
+    submission_deadline: r.submissionDeadline,
+    deep_link: { label: "View report", path: r.deepPath },
+  };
+});
+
+const VERIFIER_PACKAGE_DEFS: ReadonlyArray<{
+  readonly id: string;
+  readonly vesselId: string;
+  readonly year: number;
+  readonly status: string;
+  readonly generatedOffsetMs: number | null;
+}> = [
+  { id: "vp-atlas-2025", vesselId: "vsl-atlas", year: 2025, status: "GENERATED", generatedOffsetMs: -4 * DAY },
+  { id: "vp-aurelia-2025", vesselId: "vsl-aurelia", year: 2025, status: "GENERATED", generatedOffsetMs: -5 * DAY },
+  { id: "vp-neptune-2025", vesselId: "vsl-neptune", year: 2025, status: "FAILED", generatedOffsetMs: null },
 ];
+
+const VERIFIER_PACKAGES: ReadonlyArray<MockRecord> = VERIFIER_PACKAGE_DEFS.map((p) => {
+  const vessel = VESSEL_LOOKUP[p.vesselId]!;
+  return {
+    id: p.id,
+    vessel_id: p.vesselId,
+    vessel_name: vessel.name,
+    imo: vessel.imo,
+    year: p.year,
+    title: `${vessel.name} — verifier package ${p.year}`,
+    status: p.status,
+    generated_at: p.generatedOffsetMs === null ? null : isoDateOnly(p.generatedOffsetMs),
+    deep_link: { label: "View package", path: `/fleet/${vessel.imo}` },
+  };
+});
 
 const AUDIT_EVENTS: ReadonlyArray<MockRecord> = [
-  { id: "audit-001", organization_id: "org-001", vessel_id: "vessel-001", vessel_name: "MV Aurelia", imo: "9074729", title: "Search executed", actor: "user-001", actor_role: "OPERATOR", event_type: "SEARCH_EXECUTED", entity: "search", entity_id: null, description: "User executed a search across documents", timestamp: "2026-07-30T09:12:00Z", deep_link: { label: "Open analytics", path: "/analytics" } },
-  { id: "audit-002", organization_id: "org-001", vessel_id: "vessel-001", vessel_name: "MV Aurelia", imo: "9074729", title: "Document uploaded", actor: "user-001", actor_role: "OPERATOR", event_type: "DOCUMENT_UPLOAD", entity: "document", entity_id: "doc-002", description: "BDN uploaded via email (Palma, 2025-06-18)", timestamp: "2025-06-19T08:40:00Z", deep_link: { label: "Open document", path: "/documents/doc-002" } },
-  { id: "audit-003", organization_id: "org-001", vessel_id: "vessel-001", vessel_name: "MV Aurelia", imo: "9074729", title: "Validation run", actor: "user-001", actor_role: "OPERATOR", event_type: "VALIDATION_RUN", entity: "validation", entity_id: "vr-001", description: "FuelEU 2025 validation run completed", timestamp: "2025-12-10T15:30:00Z", deep_link: { label: "View validation", path: "/review" } },
-  { id: "audit-004", organization_id: "org-001", vessel_id: "vessel-001", vessel_name: "MV Aurelia", imo: "9074729", title: "Report generated", actor: "user-002", actor_role: "COMPLIANCE_OFFICER", event_type: "REPORT_GENERATED", entity: "report", entity_id: "rep-002", description: "FuelEU annual report generated", timestamp: "2025-12-20T10:00:00Z", deep_link: { label: "View report", path: "/fleet/9074729" } },
-  { id: "audit-005", organization_id: "org-001", vessel_id: "vessel-001", vessel_name: "MV Aurelia", imo: "9074729", title: "Review task created", actor: "user-003", actor_role: "REVIEWER", event_type: "REVIEW_TASK_CREATED", entity: "review_task", entity_id: "rt-001", description: "Review task created for low-confidence BDN", timestamp: "2025-10-07T11:20:00Z", deep_link: { label: "Open review", path: "/review/rt-001" } },
-  { id: "audit-006", organization_id: "org-001", vessel_id: "vessel-001", vessel_name: "MV Aurelia", imo: "9074729", title: "Tool executed", actor: "user-001", actor_role: "OPERATOR", event_type: "TOOL_EXECUTED", entity: "tool", entity_id: "get_vessel_compliance_score", description: "Compliance score tool executed", timestamp: "2026-07-15T13:45:00Z", deep_link: { label: "Open analytics", path: "/analytics" } },
-  { id: "audit-007", organization_id: "org-001", title: "User signed in", actor: "user-002", actor_role: "COMPLIANCE_OFFICER", event_type: "LOGIN", entity: "session", entity_id: null, description: "User signed in", timestamp: "2026-07-30T08:00:00Z", deep_link: { label: "Open analytics", path: "/analytics" } },
-  { id: "audit-008", organization_id: "org-001", vessel_id: "vessel-002", vessel_name: "MV Poseidon Voyager", imo: "9812345", title: "Saved search created", actor: "user-001", actor_role: "OPERATOR", event_type: "SAVED_SEARCH_CREATED", entity: "saved_search", entity_id: "saved-1", description: "Saved search 'BDN audit' created", timestamp: "2026-07-28T16:10:00Z", deep_link: { label: "Open analytics", path: "/analytics" } },
+  { id: "audit-001", organization_id: "org-001", vessel_id: "vsl-aurelia", vessel_name: "Aurelia", imo: "9074729", title: "Search executed", actor: "user-001", actor_role: "OPERATOR", event_type: "SEARCH_EXECUTED", entity: "search", entity_id: null, description: "User executed a search across documents", timestamp: isoDateTime(-3 * HOUR), deep_link: { label: "Open analytics", path: "/analytics" } },
+  { id: "audit-002", organization_id: "org-001", vessel_id: "vsl-aurelia", vessel_name: "Aurelia", imo: "9074729", title: "Document uploaded", actor: "user-001", actor_role: "OPERATOR", event_type: "DOCUMENT_UPLOAD", entity: "document", entity_id: "doc-bdn-aurelia-valencia", description: "BDN uploaded via email (Valencia, 2026-07-26)", timestamp: isoDateTime(-8 * DAY), deep_link: { label: "Open document", path: "/documents/doc-bdn-aurelia-valencia" } },
+  { id: "audit-003", organization_id: "org-001", vessel_id: "vsl-aurelia", vessel_name: "Aurelia", imo: "9074729", title: "Validation run", actor: "user-001", actor_role: "OPERATOR", event_type: "VALIDATION_RUN", entity: "validation", entity_id: "mrv-aurelia-2025", description: "MRV 2025 validation run completed", timestamp: isoDateTime(-14 * DAY), deep_link: { label: "View validation", path: "/review" } },
+  { id: "audit-004", organization_id: "org-001", vessel_id: "vsl-aurelia", vessel_name: "Aurelia", imo: "9074729", title: "Report generated", actor: "user-002", actor_role: "COMPLIANCE_OFFICER", event_type: "REPORT_GENERATED", entity: "report", entity_id: "cr-mrv-aurelia-2025", description: "THETIS-MRV 2025 report generated", timestamp: isoDateTime(-7 * DAY), deep_link: { label: "View report", path: "/fleet/9074729" } },
+  { id: "audit-005", organization_id: "org-001", vessel_id: "vsl-aurelia", vessel_name: "Aurelia", imo: "9074729", title: "Review task created", actor: "user-003", actor_role: "REVIEWER", event_type: "REVIEW_TASK_CREATED", entity: "review_task", entity_id: "rt-ocr-rotated", description: "Review task created for rotated BDN scan", timestamp: isoDateTime(-1 * DAY), deep_link: { label: "Open review", path: "/review/rt-ocr-rotated" } },
+  { id: "audit-006", organization_id: "org-001", vessel_id: "vsl-aurelia", vessel_name: "Aurelia", imo: "9074729", title: "Fuel delivery reconciled", actor: "user-001", actor_role: "OPERATOR", event_type: "FUEL_DELIVERY_RECONCILED", entity: "fuel_delivery", entity_id: "fuel-aur-1", description: "BDN-2026-0726 reconciled to voyage voy-aur-1", timestamp: isoDateTime(-8 * DAY), deep_link: { label: "View BDN", path: "/documents/doc-bdn-aurelia-valencia" } },
+  { id: "audit-007", organization_id: "org-001", title: "User signed in", actor: "user-002", actor_role: "COMPLIANCE_OFFICER", event_type: "LOGIN", entity: "session", entity_id: null, description: "User signed in", timestamp: isoDateTime(-2 * HOUR), deep_link: { label: "Open analytics", path: "/analytics" } },
+  { id: "audit-008", organization_id: "org-001", vessel_id: "vsl-odyssey", vessel_name: "Odyssey", imo: "9712215", title: "Document uploaded", actor: "user-001", actor_role: "OPERATOR", event_type: "DOCUMENT_UPLOAD", entity: "document", entity_id: "doc-bdn-odyssey-singapore", description: "BDN uploaded via email (Singapore, 2026-07-29)", timestamp: isoDateTime(-5 * DAY), deep_link: { label: "Open document", path: "/documents/doc-bdn-odyssey-singapore" } },
 ];
 
 const REGULATORY_KB: ReadonlyArray<MockRecord> = [

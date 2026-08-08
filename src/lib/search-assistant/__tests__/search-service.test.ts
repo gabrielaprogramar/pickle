@@ -22,21 +22,17 @@ function makeService(): SearchService {
 }
 
 describe("SearchService", () => {
-  it('searches "Find all BDNs from Palma last year"', async () => {
+  it('searches "Find all BDNs from Rotterdam"', async () => {
     const svc = makeService();
-    const res = await svc.search({ query: "Find all BDNs from Palma last year", ...USER });
+    const res = await svc.search({ query: "Find all BDNs from Rotterdam", ...USER });
     expect(res.success).toBe(true);
     expect(res.data).toBeTruthy();
     expect(res.data!.entity).toBe("fuel_deliveries");
-    expect(res.data!.total).toBe(3);
+    expect(res.data!.total).toBe(2);
     expect(res.data!.toolsCalled).toEqual(["search_fuel_deliveries"]);
 
     const chips = res.data!.suggestedFilters;
-    expect(chips.some((c) => c.label === "Palma" && c.value === "port=palma")).toBe(true);
-    const expectedYear = new Date().getFullYear() - 1;
-    expect(
-      chips.some((c) => c.label === String(expectedYear) && c.value === `year=${expectedYear}`),
-    ).toBe(true);
+    expect(chips.some((c) => c.label === "Rotterdam" && c.value === "port=rotterdam")).toBe(true);
   });
 
   it('hands off "What is Aurelia\'s EUA obligation?" to compliance', async () => {
@@ -60,15 +56,15 @@ describe("SearchService", () => {
     expect(res.data!.toolsCalled).toEqual(["search_documents"]);
   });
 
-  it('finds the 2024 THETIS report for Aurelia', async () => {
+  it('finds the 2025 THETIS-MRV report for Atlas', async () => {
     const svc = makeService();
     const res = await svc.search({
-      query: "find the 2024 THETIS report for Aurelia",
+      query: "find the 2025 THETIS report for Atlas",
       ...USER,
     });
     expect(res.success).toBe(true);
     expect(res.data!.total).toBe(1);
-    expect(res.data!.results[0]!.id).toBe("rep-001");
+    expect(res.data!.results[0]!.id).toBe("cr-mrv-atlas-2025");
   });
 
   it("rejects SQL injection attempts", async () => {
@@ -101,7 +97,7 @@ describe("SearchService", () => {
     expect(paged.data!.page).toBe(2);
     expect(paged.data!.pageSize).toBe(2);
     expect(paged.data!.results.length).toBe(2);
-    expect(paged.data!.total).toBe(10);
+    expect(paged.data!.total).toBe(12);
 
     const clamped = await svc.search({
       query: "find all documents",
@@ -135,8 +131,8 @@ describe("SearchService", () => {
   it("saves, lists, renames, deletes, and reruns saved searches", async () => {
     const svc = makeService();
     const saved = svc.saveSearch(
-      "Palma BDNs",
-      "Find all BDNs from Palma last year",
+      "Rotterdam BDNs",
+      "Find all BDNs from Rotterdam",
       USER.userId,
       USER.organizationId,
     );
@@ -157,14 +153,14 @@ describe("SearchService", () => {
     expect(svc.listSaved(USER.userId, USER.organizationId).length).toBe(0);
 
     const again = svc.saveSearch(
-      "Palma BDNs",
-      "Find all BDNs from Palma last year",
+      "Rotterdam BDNs",
+      "Find all BDNs from Rotterdam",
       USER.userId,
       USER.organizationId,
     );
     const rerun = await svc.rerunSavedSearch(again.savedSearch!.id, USER.userId, USER.organizationId);
     expect(rerun.success).toBe(true);
-    expect(rerun.data!.total).toBe(3);
+    expect(rerun.data!.total).toBe(2);
     expect(rerun.data!.toolsCalled).toEqual(["search_fuel_deliveries"]);
   });
 
@@ -181,9 +177,9 @@ describe("SearchService", () => {
 
   it("records recent searches newest first, scoped by user", async () => {
     const svc = makeService();
-    await svc.search({ query: "find all BDNs from Palma", ...USER });
+    await svc.search({ query: "find all BDNs from Rotterdam", ...USER });
     await svc.search({ query: "show documents with confidence below 0.8", ...USER });
-    await svc.search({ query: "find the 2024 THETIS report for Aurelia", ...USER });
+    await svc.search({ query: "find the 2025 THETIS report for Atlas", ...USER });
     await svc.search({
       query: "show voyages for Aurelia",
       userId: "user-002",
@@ -192,10 +188,10 @@ describe("SearchService", () => {
 
     const recent = svc.listRecent(USER.userId, USER.organizationId);
     expect(recent.length).toBe(3);
-    expect(recent[0]!.query).toBe("find the 2024 THETIS report for Aurelia");
+    expect(recent[0]!.query).toBe("find the 2025 THETIS report for Atlas");
     expect(recent[0]!.entity).toBe("reports");
     expect(recent[1]!.query).toBe("show documents with confidence below 0.8");
-    expect(recent[2]!.query).toBe("find all BDNs from Palma");
+    expect(recent[2]!.query).toBe("find all BDNs from Rotterdam");
 
     const other = svc.listRecent("user-002", "org-001");
     expect(other.length).toBe(1);
@@ -204,9 +200,9 @@ describe("SearchService", () => {
 
   it("writes audit records for searches and saves", async () => {
     const svc = makeService();
-    await svc.search({ query: "Find all BDNs from Palma last year", ...USER });
+    await svc.search({ query: "Find all BDNs from Rotterdam", ...USER });
     await svc.search({ query: "show documents with confidence below 0.8", ...USER });
-    await svc.search({ query: "find the 2024 THETIS report for Aurelia", ...USER });
+    await svc.search({ query: "find the 2025 THETIS report for Atlas", ...USER });
     svc.saveSearch("Audit test", "find all documents", USER.userId, USER.organizationId);
 
     const log = svc.getAuditLog();
@@ -250,9 +246,9 @@ describe("SearchService", () => {
   it("never emits complianceBalance or euaObligation fields from search results", async () => {
     const svc = makeService();
     const queries = [
-      "Find all BDNs from Palma last year",
+      "Find all BDNs from Rotterdam",
       "find all documents",
-      "find the 2024 THETIS report for Aurelia",
+      "find the 2025 THETIS report for Atlas",
       "show audit events for IMO 9074729",
       "which vessels have pending review tasks?",
     ];

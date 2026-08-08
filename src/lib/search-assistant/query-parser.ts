@@ -58,10 +58,10 @@ const ENTITY_KEYWORDS: Record<SearchEntity, ReadonlyArray<string>> = {
 
 const VESSEL_NAMES: ReadonlyArray<string> = [
   "aurelia",
-  "poseidon voyager",
-  "ocean guardian",
-  "baltic trader",
-  "mv poseidon",
+  "atlas",
+  "horizon",
+  "neptune",
+  "odyssey",
 ];
 
 const IMO_PATTERN = /\b9\d{6}\b/;
@@ -201,8 +201,9 @@ function detectSource(query: string): string | undefined {
 function detectPort(query: string): string | undefined {
   const lower = query.toLowerCase();
   const ports = [
-    "palma", "rotterdam", "algeciras", "barcelona", "valencia",
-    "antwerp", "hamburg", "genoa", "pirp", "singapore", "zeebrugge",
+    "rotterdam", "algeciras", "barcelona", "valencia", "hamburg",
+    "genoa", "piraeus", "marseille", "singapore", "fujairah",
+    "le havre", "cadiz",
   ];
   return ports.find((p) => lower.includes(p));
 }

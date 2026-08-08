@@ -4,11 +4,11 @@ import { createQueryParser } from "../query-parser";
 describe("QueryParser", () => {
   const parser = createQueryParser();
 
-  it("parses BDNs from Palma last year", () => {
+  it("parses BDNs from Piraeus last year", () => {
     const expectedYear = new Date().getFullYear() - 1;
-    const ast = parser.parse("find all BDNs from Palma last year");
+    const ast = parser.parse("find all BDNs from Piraeus last year");
     expect(ast.entity).toBe("fuel_deliveries");
-    expect(ast.filters.port).toBe("palma");
+    expect(ast.filters.port).toBe("piraeus");
     expect(ast.filters.year).toBe(expectedYear);
   });
 
@@ -87,8 +87,8 @@ describe("QueryParser", () => {
   });
 
   it("normalizes whitespace in queries", () => {
-    expect(parser.normalizedQuery("  find   all   BDNs   from   Palma  ")).toBe(
-      "find all BDNs from Palma",
+    expect(parser.normalizedQuery("  find   all   BDNs   from   Piraeus  ")).toBe(
+      "find all BDNs from Piraeus",
     );
   });
 

@@ -60,8 +60,8 @@ describe("QueryValidator", () => {
 
     it("passes a valid read-only query", () => {
       const result = validator.validate(
-        "find all BDNs from Palma",
-        astFor("find all BDNs from Palma"),
+        "find all BDNs from Piraeus",
+        astFor("find all BDNs from Piraeus"),
         "org-001",
       );
       expect(result.valid).toBe(true);

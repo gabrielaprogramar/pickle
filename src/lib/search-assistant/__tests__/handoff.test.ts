@@ -36,7 +36,7 @@ describe("SearchAssistant handoff detector", () => {
   });
 
   it("does not hand off BDN retrieval", () => {
-    const d = detector.detect("Find all BDNs from Palma");
+    const d = detector.detect("Find all BDNs from Piraeus");
     expect(d.handoff).toBe(false);
   });
 

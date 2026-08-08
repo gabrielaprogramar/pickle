@@ -82,15 +82,15 @@ describe("SearchToolRegistry", () => {
     expect(outcome.result.results[0]!.id).toBe("cert-iscc");
   });
 
-  it("returns the 3 Palma 2025 BDNs", async () => {
+  it("returns the 2 Rotterdam BDNs", async () => {
     const registry = createSearchToolRegistry();
     const outcome = await registry.execute(
-      ast("fuel_deliveries", { port: "Palma", year: 2025 }),
+      ast("fuel_deliveries", { port: "Rotterdam" }),
       CONTEXT,
     );
-    expect(outcome.result.total).toBe(3);
+    expect(outcome.result.total).toBe(2);
     const ids = outcome.result.results.map((r) => r.id).sort();
-    expect(ids).toEqual(["bdn-001", "bdn-002", "bdn-003"]);
+    expect(ids).toEqual(["fuel-atl-2", "fuel-hrz-1"]);
   });
 
   it("filters documents by confidenceMax 0.8", async () => {
@@ -98,26 +98,33 @@ describe("SearchToolRegistry", () => {
     const outcome = await registry.execute(ast("documents", { confidenceMax: 0.8 }), CONTEXT);
     expect(outcome.result.total).toBe(2);
     const ids = outcome.result.results.map((r) => r.id).sort();
-    expect(ids).toEqual(["doc-003", "doc-007"]);
-    expect(ids.includes("doc-001")).toBe(false);
+    expect(ids).toEqual(["doc-bdn-horizon-hamburg", "doc-corr-harbourmaster"]);
+    expect(ids.includes("doc-bdn-aurelia-valencia")).toBe(false);
   });
 
-  it("returns the 2024 THETIS report for Aurelia", async () => {
+  it("returns the 2025 THETIS-MRV report for Atlas", async () => {
     const registry = createSearchToolRegistry();
     const outcome = await registry.execute(
-      ast("reports", { documentType: "THETIS", year: 2024, vesselName: "Aurelia" }),
+      ast("reports", { documentType: "THETIS", year: 2025, vesselName: "Atlas" }),
       CONTEXT,
     );
     expect(outcome.result.total).toBe(1);
-    expect(outcome.result.results[0]!.id).toBe("rep-001");
+    expect(outcome.result.results[0]!.id).toBe("cr-mrv-atlas-2025");
   });
 
   it("returns pending review tasks", async () => {
     const registry = createSearchToolRegistry();
     const outcome = await registry.execute(ast("review_tasks", { status: "PENDING" }), CONTEXT);
-    expect(outcome.result.total).toBe(3);
+    expect(outcome.result.total).toBe(6);
     const ids = outcome.result.results.map((r) => r.id).sort();
-    expect(ids).toEqual(["rt-001", "rt-002", "rt-004"]);
+    expect(ids).toEqual([
+      "rt-bdn-neptune",
+      "rt-ocr-blurred",
+      "rt-ocr-damaged",
+      "rt-ocr-duplicate",
+      "rt-ocr-unreadable",
+      "rt-ocr-wrongtype",
+    ]);
   });
 
   it("returns Aurelia audit events", async () => {
@@ -138,16 +145,16 @@ describe("SearchToolRegistry", () => {
   it("paginates while preserving the total", async () => {
     const registry = createSearchToolRegistry();
     const full = await registry.execute(ast("fuel_deliveries", {}, 1, 50), CONTEXT);
-    expect(full.result.total).toBe(10);
+    expect(full.result.total).toBe(9);
 
     const page1 = await registry.execute(ast("fuel_deliveries", {}, 1, 2), CONTEXT);
-    expect(page1.result.total).toBe(10);
+    expect(page1.result.total).toBe(9);
     expect(page1.result.results.length).toBe(2);
     expect(page1.result.results[0]!.id).toBe(full.result.results[0]!.id);
     expect(page1.result.results[1]!.id).toBe(full.result.results[1]!.id);
 
     const page2 = await registry.execute(ast("fuel_deliveries", {}, 2, 2), CONTEXT);
-    expect(page2.result.total).toBe(10);
+    expect(page2.result.total).toBe(9);
     expect(page2.result.results.length).toBe(2);
     expect(page2.result.results[0]!.id).toBe(full.result.results[2]!.id);
     expect(page2.result.results[1]!.id).toBe(full.result.results[3]!.id);
@@ -157,8 +164,8 @@ describe("SearchToolRegistry", () => {
     const registry = createSearchToolRegistry();
     const outcome = await registry.execute(ast("fuel_deliveries", {}, 1, 100), CONTEXT);
     expect(SEARCH_HARD_LIMIT).toBe(50);
-    expect(outcome.result.total).toBe(10);
-    expect(outcome.result.results.length).toBe(10);
+    expect(outcome.result.total).toBe(9);
+    expect(outcome.result.results.length).toBe(9);
   });
 
   it("returns id, entity, title, and sourceRecordId on every result", async () => {
@@ -184,7 +191,10 @@ describe("SearchToolRegistry", () => {
     expect(voyage.deepLink!.path).toContainString("/voyages/");
 
     const vessels = await registry.execute(ast("vessels"), CONTEXT);
-    expect(vessels.result.results[0]!.deepLink).toBeFalsy();
+    const vessel = vessels.result.results[0]!;
+    expect(vessel.deepLink).toBeTruthy();
+    expect(vessel.deepLink!.label).toBeTruthy();
+    expect(vessel.deepLink!.path).toContainString("/fleet/");
   });
 
   it("passes organization context through to tools", async () => {
