@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Waves, Search, RefreshCw, Play } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
+import { LivePulse } from "@/components/ui/live-pulse";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -244,6 +245,13 @@ export default function NoonPage() {
         label="Noon Reports"
         title="Noon Reports"
         description="Deterministic noon-report intelligence: consumption, engine performance, weather and voyage deviations."
+        meta={
+          activeImo ? (
+            <LivePulse tone="teal" label="Reporting window open" />
+          ) : (
+            <LivePulse tone="muted" label="Awaiting vessel selection" />
+          )
+        }
         actions={
           activeImo && (
             <Button

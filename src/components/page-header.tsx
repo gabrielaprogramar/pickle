@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils/cn";
 interface PageHeaderProps {
   readonly title: string;
   readonly description?: string;
+  readonly meta?: React.ReactNode;
   readonly actions?: React.ReactNode;
   readonly label?: string;
   readonly className?: string;
@@ -11,6 +12,7 @@ interface PageHeaderProps {
 export function PageHeader({
   title,
   description,
+  meta,
   actions,
   label,
   className,
@@ -36,6 +38,11 @@ export function PageHeader({
           <p className="mt-0.5 text-xs text-muted-foreground">
             {description}
           </p>
+        )}
+        {meta && (
+          <div className="mt-1.5 flex items-center gap-3 font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground/80">
+            {meta}
+          </div>
         )}
       </div>
       {actions && <div className="flex items-center gap-2 shrink-0">{actions}</div>}

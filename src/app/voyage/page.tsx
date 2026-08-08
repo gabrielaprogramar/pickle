@@ -157,22 +157,22 @@ const QUICK_ACTIONS: ReadonlyArray<{ readonly label: string; readonly query: str
 ];
 
 const TIER_STYLES: Record<AisGapTier, string> = {
-  NONE: "border-border bg-card text-[#F4F2EC]/40",
-  INTERPOLATION_OK: "border-[#00B89F]/50 bg-[#00B89F]/15 text-[#00B89F]",
-  FLAGGED: "border-[#C9A84C]/50 bg-[#C9A84C]/15 text-[#C9A84C]",
-  MANUAL_REQUIRED: "border-[#E8890C]/50 bg-[#E8890C]/15 text-[#F2A65A]",
-  CRITICAL_ESCALATION: "border-[#D94F4F]/70 bg-[#D94F4F]/25 text-[#FF8A8A]",
+  NONE: "border-border bg-card text-foreground/40",
+  INTERPOLATION_OK: "border-primary/50 bg-primary/15 text-primary",
+  FLAGGED: "border-warning/50 bg-warning/15 text-warning",
+  MANUAL_REQUIRED: "border-warning/50 bg-warning/15 text-[hsl(var(--warning-soft))]",
+  CRITICAL_ESCALATION: "border-destructive/70 bg-destructive/25 text-[hsl(var(--destructive-soft))]",
 };
 
 const SEVERITY_STYLES: Record<string, string> = {
-  LOW: "border-[#7FB3A6]/50 bg-[#7FB3A6]/15 text-[#7FB3A6]",
-  MEDIUM: "border-[#C9A84C]/50 bg-[#C9A84C]/15 text-[#C9A84C]",
-  HIGH: "border-[#D94F4F]/70 bg-[#D94F4F]/25 text-[#FF8A8A]",
+  LOW: "border-[hsl(var(--success-soft))]/50 bg-[hsl(var(--success-soft))]/15 text-[hsl(var(--success-soft))]",
+  MEDIUM: "border-warning/50 bg-warning/15 text-warning",
+  HIGH: "border-destructive/70 bg-destructive/25 text-[hsl(var(--destructive-soft))]",
 };
 
 function SectionLabel({ children }: { readonly children: React.ReactNode }) {
   return (
-    <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#C9A84C]">
+    <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-warning">
       {children}
     </p>
   );
@@ -190,7 +190,7 @@ function TierPill({ tier }: { readonly tier: AisGapTier }) {
 }
 
 function SeverityTag({ severity }: { readonly severity: string }) {
-  const style = SEVERITY_STYLES[severity] ?? "border-border bg-card text-[#F4F2EC]/50";
+  const style = SEVERITY_STYLES[severity] ?? "border-border bg-card text-foreground/50";
   return (
     <span className={`inline-flex rounded border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.1em] ${style}`}>
       {severity}
@@ -275,18 +275,18 @@ export default function VoyagePage() {
   return (
     <AssistantPageContainer>
       <div className="flex items-center gap-3">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-[#00B89F]/40 bg-[#00B89F]/10">
-          <Compass className="h-6 w-6 text-[#00B89F]" />
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-primary/40 bg-primary/10">
+          <Compass className="h-6 w-6 text-primary" />
         </div>
         <div className="min-w-0 flex-1">
-          <h1 className="font-serif text-2xl font-semibold leading-none text-[#F4F2EC]">
+          <h1 className="font-serif text-2xl font-light leading-none text-foreground">
             Aurelia
           </h1>
-          <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.14em] text-[#F4F2EC]/50">
+          <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.14em] text-foreground/50">
             IMO 9074729 · Voyage Console
           </p>
         </div>
-        <span className="inline-flex items-center gap-1 rounded-md border border-[#C9A84C]/40 bg-[#C9A84C]/10 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.12em] text-[#C9A84C]">
+        <span className="inline-flex items-center gap-1 rounded-md border border-warning/40 bg-warning/10 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.12em] text-warning">
           <ShieldAlert className="h-3 w-3" />
           Mock Mode
         </span>
@@ -299,8 +299,8 @@ export default function VoyagePage() {
             onClick={() => setScenario(s.key)}
             className={`shrink-0 rounded-full border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.1em] transition-colors ${
               scenario === s.key
-                ? "border-[#00B89F]/60 bg-[#00B89F]/15 text-[#00B89F]"
-                : "border-border bg-card text-[#F4F2EC]/50"
+                ? "border-primary/60 bg-primary/15 text-primary"
+                : "border-border bg-card text-foreground/50"
             }`}
           >
             {s.label}
@@ -317,19 +317,19 @@ export default function VoyagePage() {
             <>
               <SectionLabel>Voyage ledger</SectionLabel>
               <div className="flex items-start gap-3 rounded-xl border border-border bg-card p-4">
-                <Route className="mt-0.5 h-4 w-4 shrink-0 text-[#00B89F]" />
+                <Route className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-[#F4F2EC]">
+                  <p className="text-sm font-semibold text-foreground">
                     {answer.voyage.voyageNumber}
-                    <span className="ml-2 font-mono text-[10px] uppercase tracking-[0.1em] text-[#00B89F]">
+                    <span className="ml-2 font-mono text-[10px] uppercase tracking-[0.1em] text-primary">
                       {answer.voyage.classification}
                     </span>
                   </p>
-                  <p className="mt-0.5 font-mono text-[11px] text-[#F4F2EC]/70">
+                  <p className="mt-0.5 font-mono text-[11px] text-foreground/70">
                     {answer.voyage.departurePort.name} ({answer.voyage.departurePort.locode}) →{" "}
                     {answer.voyage.arrivalPort.name} ({answer.voyage.arrivalPort.locode})
                   </p>
-                  <p className="mt-0.5 font-mono text-[11px] text-[#F4F2EC]/60">
+                  <p className="mt-0.5 font-mono text-[11px] text-foreground/60">
                     {fmtDate(answer.voyage.departureTs)} → {fmtDate(answer.voyage.arrivalTs)}
                     {answer.voyage.distanceNm !== null
                       ? ` · ${answer.voyage.distanceNm} nm`
@@ -340,7 +340,7 @@ export default function VoyagePage() {
                     {" · "}
                     {answer.voyage.dataQuality}
                   </p>
-                  <p className="mt-1 font-mono text-[10px] text-[#F4F2EC]/40">{answer.voyage.source}</p>
+                  <p className="mt-1 font-mono text-[10px] text-foreground/40">{answer.voyage.source}</p>
                 </div>
               </div>
             </>
@@ -352,12 +352,12 @@ export default function VoyagePage() {
               <SectionLabel>AIS data gaps</SectionLabel>
               {answer.gapSummary && (
                 <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-4">
-                  <Gauge className="h-4 w-4 shrink-0 text-[#00B89F]" />
+                  <Gauge className="h-4 w-4 shrink-0 text-primary" />
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-[#F4F2EC]">
+                    <p className="text-sm font-medium text-foreground">
                       {answer.gapSummary.totalGaps} gap(s) · {answer.gapSummary.coveragePct}% coverage
                     </p>
-                    <p className="font-mono text-[10px] text-[#F4F2EC]/50">
+                    <p className="font-mono text-[10px] text-foreground/50">
                       {answer.gapSummary.flaggedGaps} flagged · {answer.gapSummary.manualGaps} manual ·{" "}
                       {answer.gapSummary.criticalGaps} critical
                     </p>
@@ -371,25 +371,25 @@ export default function VoyagePage() {
                     key={g.id}
                     className="flex items-start gap-3 rounded-xl border border-border bg-card p-4"
                   >
-                    <Waves className="mt-0.5 h-4 w-4 shrink-0 text-[#00B89F]" />
+                    <Waves className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <p className="text-sm font-semibold text-[#F4F2EC]">
+                        <p className="text-sm font-semibold text-foreground">
                           {g.durationMinutes} min gap
                         </p>
                         <TierPill tier={g.tier} />
                         {g.escalation && (
-                          <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-[#FF8A8A]">
+                          <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-[hsl(var(--destructive-soft))]">
                             escalation
                           </span>
                         )}
                       </div>
-                      <p className="mt-0.5 font-mono text-[11px] text-[#F4F2EC]/60">
+                      <p className="mt-0.5 font-mono text-[11px] text-foreground/60">
                         {fmtTs(g.from)} → {fmtTs(g.to)}
                       </p>
-                      <p className="mt-1 text-xs text-[#F4F2EC]/75">{g.actionRequired}</p>
+                      <p className="mt-1 text-xs text-foreground/75">{g.actionRequired}</p>
                       {g.notes && (
-                        <p className="mt-1 font-mono text-[10px] text-[#F4F2EC]/40">{g.notes}</p>
+                        <p className="mt-1 font-mono text-[10px] text-foreground/40">{g.notes}</p>
                       )}
                     </div>
                   </div>
@@ -408,17 +408,17 @@ export default function VoyagePage() {
                     key={`${p.locode}-${idx}`}
                     className="flex items-start gap-3 rounded-xl border border-border bg-card p-4"
                   >
-                    <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#00B89F]" />
+                    <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-[#F4F2EC]">
+                      <p className="text-sm font-semibold text-foreground">
                         {p.portName}
                         {p.greenZone && (
-                          <span className="ml-2 font-mono text-[10px] uppercase tracking-[0.1em] text-[#00B89F]">
+                          <span className="ml-2 font-mono text-[10px] uppercase tracking-[0.1em] text-primary">
                             green zone port
                           </span>
                         )}
                       </p>
-                      <p className="mt-0.5 font-mono text-[11px] text-[#F4F2EC]/60">
+                      <p className="mt-0.5 font-mono text-[11px] text-foreground/60">
                         {p.locode} · {p.country} ·{" "}
                         {p.arrTs ? `arrived ${fmtDate(p.arrTs)}` : `departed ${p.depTs ? fmtDate(p.depTs) : "n/a"}`}
                       </p>
@@ -437,21 +437,21 @@ export default function VoyagePage() {
                 {answer.greenZoneEncounters.map((g) => (
                   <div
                     key={g.zoneName}
-                    className="flex items-start gap-3 rounded-xl border border-[#00B89F]/40 bg-[#00B89F]/10 p-4"
+                    className="flex items-start gap-3 rounded-xl border border-primary/40 bg-primary/10 p-4"
                   >
-                    <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-[#00B89F]" />
+                    <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-[#F4F2EC]">
+                      <p className="text-sm font-semibold text-foreground">
                         {g.zoneName}
-                        <span className="ml-2 font-mono text-[10px] uppercase tracking-[0.1em] text-[#00B89F]">
+                        <span className="ml-2 font-mono text-[10px] uppercase tracking-[0.1em] text-primary">
                           {g.zoneCategory}
                         </span>
                       </p>
-                      <p className="mt-0.5 font-mono text-[11px] text-[#F4F2EC]/60">
+                      <p className="mt-0.5 font-mono text-[11px] text-foreground/60">
                         entered {fmtDate(g.enteredAt)}
                         {g.durationMinutes !== null ? ` · ${g.durationMinutes} min in zone` : ""}
                       </p>
-                      <p className="mt-1 text-xs text-[#F4F2EC]/75">{g.actionRequired}</p>
+                      <p className="mt-1 text-xs text-foreground/75">{g.actionRequired}</p>
                     </div>
                   </div>
                 ))}
@@ -467,18 +467,18 @@ export default function VoyagePage() {
                 {answer.violations.map((v) => (
                   <div
                     key={v.id}
-                    className="flex items-start gap-3 rounded-xl border border-[#C9A84C]/40 bg-[#C9A84C]/5 p-4"
+                    className="flex items-start gap-3 rounded-xl border border-warning/40 bg-warning/5 p-4"
                   >
-                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[#C9A84C]" />
+                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <p className="font-mono text-[11px] font-semibold text-[#F4F2EC]">{v.code}</p>
+                        <p className="font-mono text-[11px] font-semibold text-foreground">{v.code}</p>
                         <SeverityTag severity={v.severity} />
                       </div>
-                      <p className="mt-1 text-sm font-medium text-[#F4F2EC]">{v.title}</p>
-                      <p className="mt-1 text-xs leading-relaxed text-[#F4F2EC]/85">{v.description}</p>
-                      <p className="mt-1 font-mono text-[10px] text-[#F4F2EC]/45">Rule: {v.ruleReference}</p>
-                      <p className="mt-1 text-xs text-[#C9A84C]">→ {v.recommendation}</p>
+                      <p className="mt-1 text-sm font-medium text-foreground">{v.title}</p>
+                      <p className="mt-1 text-xs leading-relaxed text-foreground/85">{v.description}</p>
+                      <p className="mt-1 font-mono text-[10px] text-foreground/45">Rule: {v.ruleReference}</p>
+                      <p className="mt-1 text-xs text-warning">→ {v.recommendation}</p>
                     </div>
                   </div>
                 ))}
@@ -492,18 +492,18 @@ export default function VoyagePage() {
               <SectionLabel>Voyage compliance context</SectionLabel>
               <div className="flex flex-col gap-2">
                 <div className="flex items-start gap-3 rounded-xl border border-border bg-card p-4">
-                  <FileCheck2 className="mt-0.5 h-4 w-4 shrink-0 text-[#00B89F]" />
+                  <FileCheck2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-[#F4F2EC]">
+                    <p className="text-sm font-semibold text-foreground">
                       ETS coverage{" "}
                       {answer.complianceContext.etsCoverageRate !== null
                         ? `${answer.complianceContext.etsCoverageRate}%`
                         : "not on file"}
-                      <span className="ml-2 font-mono text-[10px] uppercase tracking-[0.1em] text-[#F4F2EC]/50">
+                      <span className="ml-2 font-mono text-[10px] uppercase tracking-[0.1em] text-foreground/50">
                         {answer.complianceContext.classification}
                       </span>
                     </p>
-                    <p className="mt-0.5 font-mono text-[11px] text-[#F4F2EC]/60">
+                    <p className="mt-0.5 font-mono text-[11px] text-foreground/60">
                       {answer.complianceContext.voyage.voyageNumber} ·{" "}
                       {answer.complianceContext.voyage.departurePort.name} →{" "}
                       {answer.complianceContext.voyage.arrivalPort.name}
@@ -518,7 +518,7 @@ export default function VoyagePage() {
                         className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2"
                       >
                         <SeverityTag severity={a.severity} />
-                        <span className="text-xs text-[#F4F2EC]/85">{a.label}</span>
+                        <span className="text-xs text-foreground/85">{a.label}</span>
                       </div>
                     ))}
                   </div>
@@ -529,10 +529,10 @@ export default function VoyagePage() {
 
           {/* Handoff banner */}
           {answer?.handoff && (
-            <div className="flex items-start gap-3 rounded-xl border border-[#C9A84C]/40 bg-[#C9A84C]/10 p-4">
-              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[#C9A84C]" />
+            <div className="flex items-start gap-3 rounded-xl border border-warning/40 bg-warning/10 p-4">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-[#C9A84C]">
+                <p className="text-sm font-semibold text-warning">
                   Routed to{" "}
                   {answer.handoff.target === "captain"
                     ? "Captain Assistant"
@@ -540,7 +540,7 @@ export default function VoyagePage() {
                       ? "Compliance Assistant"
                       : "Search Assistant"}
                 </p>
-                <p className="mt-0.5 text-xs text-[#F4F2EC]/70">{answer.handoff.reason}</p>
+                <p className="mt-0.5 text-xs text-foreground/70">{answer.handoff.reason}</p>
               </div>
             </div>
           )}
@@ -548,7 +548,7 @@ export default function VoyagePage() {
           {/* Raw answer text fallback */}
           {answer?.text && !hasStructured && (
             <div className="rounded-xl border border-border bg-card p-4">
-              <p className="whitespace-pre-wrap font-mono text-[12px] leading-relaxed text-[#F4F2EC]/85">
+              <p className="whitespace-pre-wrap font-mono text-[12px] leading-relaxed text-foreground/85">
                 {answer.text}
               </p>
             </div>
@@ -563,14 +563,14 @@ export default function VoyagePage() {
               <Button
                 key={action.query}
                 variant="outline"
-                className="h-14 justify-start gap-2 rounded-xl border-border bg-card px-4 text-left text-sm font-medium text-[#F4F2EC]/90 hover:bg-secondary"
+                className="h-14 justify-start gap-2 rounded-xl border-border bg-card px-4 text-left text-sm font-medium text-foreground/90 hover:bg-secondary"
                 onClick={() => {
                   setQuery(action.query);
                   void ask(action.query, scenario);
                 }}
                 disabled={loading}
               >
-                <ArrowRight className="h-4 w-4 shrink-0 text-[#00B89F]" />
+                <ArrowRight className="h-4 w-4 shrink-0 text-primary" />
                 <span className="leading-tight">{action.label}</span>
               </Button>
             ))}
@@ -581,39 +581,39 @@ export default function VoyagePage() {
             <div
               className={`flex flex-col gap-2 rounded-xl border p-4 ${
                 answer.manualDraft.status === "CONFIRMED"
-                  ? "border-[#00B89F]/50 bg-[#00B89F]/10"
-                  : "border-[#E8890C]/40 bg-[#E8890C]/10"
+                  ? "border-primary/50 bg-primary/10"
+                  : "border-warning/40 bg-warning/10"
               }`}
             >
               <div className="flex items-center justify-between gap-2">
-                <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#C9A84C]">
+                <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-warning">
                   Manual voyage draft
                 </p>
                 {answer.manualDraft.status === "CONFIRMED" ? (
-                  <span className="inline-flex items-center gap-1 rounded-md border border-[#00B89F]/50 bg-[#00B89F]/15 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.1em] text-[#00B89F]">
+                  <span className="inline-flex items-center gap-1 rounded-md border border-primary/50 bg-primary/15 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.1em] text-primary">
                     <CheckCircle2 className="h-3 w-3" />
                     confirmed
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 rounded-md border border-[#E8890C]/50 bg-[#E8890C]/15 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.1em] text-[#F2A65A]">
+                  <span className="inline-flex items-center gap-1 rounded-md border border-warning/50 bg-warning/15 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.1em] text-[hsl(var(--warning-soft))]">
                     <Clock className="h-3 w-3" />
                     draft
                   </span>
                 )}
               </div>
-              <p className="text-sm font-semibold text-[#F4F2EC]">
+              <p className="text-sm font-semibold text-foreground">
                 {answer.manualDraft.departurePort.name} → {answer.manualDraft.arrivalPort.name}
               </p>
-              <p className="font-mono text-[11px] text-[#F4F2EC]/60">
+              <p className="font-mono text-[11px] text-foreground/60">
                 {fmtDate(answer.manualDraft.departureTs)} → {fmtDate(answer.manualDraft.arrivalTs)}
                 {answer.manualDraft.distanceNm !== null
                   ? ` · ${answer.manualDraft.distanceNm} nm (stored)`
                   : ""}
               </p>
-              <p className="text-xs leading-relaxed text-[#F4F2EC]/80">{answer.manualDraft.reason}</p>
+              <p className="text-xs leading-relaxed text-foreground/80">{answer.manualDraft.reason}</p>
               {answer.manualDraft.status === "DRAFT" && lastDraftQuery.current && (
                 <Button
-                  className="mt-1 h-9 w-full gap-2 rounded-lg bg-[#E8890C] text-[#060F1E] hover:bg-[#C97A0A]"
+                  className="mt-1 h-9 w-full gap-2 rounded-lg bg-warning text-background hover:bg-[hsl(var(--warning-hover))]"
                   onClick={() => void ask(`${lastDraftQuery.current} confirm`, scenario)}
                   disabled={loading}
                 >
@@ -622,7 +622,7 @@ export default function VoyagePage() {
                 </Button>
               )}
               {answer.manualDraft.status === "CONFIRMED" && (
-                <p className="font-mono text-[10px] text-[#00B89F]">
+                <p className="font-mono text-[10px] text-primary">
                   The draft is on the ledger and substantiates the covered segment.
                 </p>
               )}
@@ -634,33 +634,33 @@ export default function VoyagePage() {
             <div
               className={`flex flex-col gap-2 rounded-xl border p-4 ${
                 answer.aisSync.status === "CONFIRMED"
-                  ? "border-[#00B89F]/50 bg-[#00B89F]/10"
-                  : "border-[#C9A84C]/40 bg-[#C9A84C]/10"
+                  ? "border-primary/50 bg-primary/10"
+                  : "border-warning/40 bg-warning/10"
               }`}
             >
               <div className="flex items-center justify-between gap-2">
-                <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#C9A84C]">
+                <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-warning">
                   AIS backfill request
                 </p>
                 {answer.aisSync.status === "CONFIRMED" ? (
-                  <span className="inline-flex items-center gap-1 rounded-md border border-[#00B89F]/50 bg-[#00B89F]/15 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.1em] text-[#00B89F]">
+                  <span className="inline-flex items-center gap-1 rounded-md border border-primary/50 bg-primary/15 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.1em] text-primary">
                     <CheckCircle2 className="h-3 w-3" />
                     confirmed
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 rounded-md border border-[#C9A84C]/50 bg-[#C9A84C]/15 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.1em] text-[#C9A84C]">
+                  <span className="inline-flex items-center gap-1 rounded-md border border-warning/50 bg-warning/15 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.1em] text-warning">
                     <RefreshCw className="h-3 w-3" />
                     draft
                   </span>
                 )}
               </div>
-              <p className="font-mono text-[11px] text-[#F4F2EC]/70">
+              <p className="font-mono text-[11px] text-foreground/70">
                 {fmtTs(answer.aisSync.from)} → {fmtTs(answer.aisSync.to)}
               </p>
-              <p className="text-xs leading-relaxed text-[#F4F2EC]/80">{answer.aisSync.reason}</p>
+              <p className="text-xs leading-relaxed text-foreground/80">{answer.aisSync.reason}</p>
               {answer.aisSync.status === "DRAFT" && lastSyncQuery.current && (
                 <Button
-                  className="mt-1 h-9 w-full gap-2 rounded-lg bg-[#00B89F] text-[#060F1E] hover:bg-[#007A6A]"
+                  className="mt-1 h-9 w-full gap-2 rounded-lg bg-primary text-background hover:bg-[hsl(var(--primary-dim))]"
                   onClick={() => void ask(`${lastSyncQuery.current} confirm`, scenario)}
                   disabled={loading}
                 >
@@ -669,7 +669,7 @@ export default function VoyagePage() {
                 </Button>
               )}
               {answer.aisSync.status === "CONFIRMED" && (
-                <p className="font-mono text-[10px] text-[#00B89F]">
+                <p className="font-mono text-[10px] text-primary">
                   Backfill queued from source providers. Positions are never fabricated.
                 </p>
               )}
@@ -689,10 +689,10 @@ export default function VoyagePage() {
               }}
               rows={2}
               placeholder="Ask your voyage console…"
-              className="min-h-[64px] flex-1 resize-none rounded-xl border border-input bg-card px-4 py-3 text-sm text-[#F4F2EC] placeholder:text-[#F4F2EC]/35 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#00B89F]"
+              className="min-h-[64px] flex-1 resize-none rounded-xl border border-input bg-card px-4 py-3 text-sm text-foreground placeholder:text-foreground/35 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
             />
             <Button
-              className="h-[64px] w-16 shrink-0 rounded-xl bg-[#00B89F] text-[#060F1E] hover:bg-[#007A6A]"
+              className="h-[64px] w-16 shrink-0 rounded-xl bg-primary text-background hover:bg-[hsl(var(--primary-dim))]"
               onClick={() => void ask(query, scenario)}
               disabled={loading || !query.trim()}
               title="Ask"
@@ -718,18 +718,18 @@ export default function VoyagePage() {
       </div>
 
       {error && (
-        <div className="rounded-xl border border-[#D94F4F]/40 bg-[#D94F4F]/10 p-3">
-          <p className="text-xs text-[#D94F4F]">{error}</p>
+        <div className="rounded-xl border border-destructive/40 bg-destructive/10 p-3">
+          <p className="text-xs text-destructive">{error}</p>
         </div>
       )}
 
       <div className="mt-2 flex items-center gap-2">
         {answer?.gapSummary && answer.gapSummary.totalGaps === 0 ? (
-          <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-[#00B89F]" />
+          <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-primary" />
         ) : (
-          <XCircle className="h-3.5 w-3.5 shrink-0 text-[#F4F2EC]/40" />
+          <XCircle className="h-3.5 w-3.5 shrink-0 text-foreground/40" />
         )}
-        <p className="font-mono text-[10px] text-[#F4F2EC]/40">
+        <p className="font-mono text-[10px] text-foreground/40">
           Stored voyage facts only · no fabricated positions · gap ladder deterministic
         </p>
       </div>

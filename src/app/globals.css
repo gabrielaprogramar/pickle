@@ -247,3 +247,27 @@
     border-radius: 3px;
   }
 }
+
+/* ──────────────────────────────────────────────────────────────
+   Poseidon Ledger — Premium Design Pass
+   Primary hover + calm blinking dot (LivePulse) + dark-map chrome.
+   ──────────────────────────────────────────────────────────── */
+:root {
+  --primary-hover: 172 100% 42%;   /* bright teal #00D4B8, btn hover */
+  --primary-dim: 172 100% 24%;     /* teal dim #007A6A, primary hover-dim */
+  --destructive-soft: 0 100% 77%;  /* light red #FF8A8A on navy */
+  --success-soft: 172 28% 64%;     /* muted teal-green #7FB3A6 */
+  --warning-soft: 33 86% 65%;      /* soft orange #F2A65A */
+  --warning-hover: 37 89% 41%;     /* deeper gold #C97A0A, warning hover */
+}
+
+@layer components {
+  @keyframes live-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+  }
+
+  .leaflet-container {
+    background: #060F1E;
+  }
+}

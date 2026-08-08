@@ -17,6 +17,7 @@ import { ErrorBanner } from "@/components/error-banner";
 import { getAnalyticsSummary, type AnalyticsSummary } from "@/services/analytics.service";
 import { ApiError } from "@/services/api-client";
 import { cn } from "@/lib/utils/cn";
+import { StatValue } from "@/components/ui/stat-value";
 
 const W = 560;
 const H = 220;
@@ -176,7 +177,7 @@ function StatTile({
         <div className="text-muted-foreground/60">{icon}</div>
       </CardHeader>
       <CardContent>
-        <div className="text-lg font-semibold tabular-nums">{value}</div>
+        <StatValue size="sm">{value}</StatValue>
         {hint && (
           <div className="mt-0.5 font-mono text-[10px] uppercase tracking-wide text-muted-foreground">
             {hint}

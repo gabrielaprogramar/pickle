@@ -11,18 +11,18 @@ import { useCertificates } from "@/hooks/use-certificates";
 import { certificateTypeLabel } from "@/lib/certificates";
 import { cn } from "@/lib/utils/cn";
 
-const STATUS_STYLE: Record<string, string> = {
-  VALID: "border-teal-500/40 bg-teal-500/10 text-teal-400",
-  EXPIRING_SOON: "border-yellow-500/40 bg-yellow-500/10 text-yellow-400",
-  EXPIRED: "border-red-500/40 bg-red-500/10 text-red-400",
-  INVALID: "border-red-500/40 bg-red-500/10 text-red-400",
-  MISSING: "border-muted/40 bg-muted/10 text-muted-foreground",
-  UNKNOWN: "border-muted/40 bg-muted/10 text-muted-foreground",
-  PENDING_REVIEW: "border-amber-500/40 bg-amber-500/10 text-amber-400",
+const STATUS_VARIANT: Record<string, "success" | "warning" | "destructive" | "muted"> = {
+  VALID: "success",
+  EXPIRING_SOON: "warning",
+  EXPIRED: "destructive",
+  INVALID: "destructive",
+  MISSING: "muted",
+  UNKNOWN: "muted",
+  PENDING_REVIEW: "warning",
 };
 
-function statusStyle(status: string): string {
-  return STATUS_STYLE[status] ?? "border-muted/40 bg-muted/10 text-muted-foreground";
+function statusVariant(status: string): "success" | "warning" | "destructive" | "muted" {
+  return STATUS_VARIANT[status] ?? "muted";
 }
 
 function formatDate(iso: string | null): string {
@@ -123,7 +123,9 @@ export function CertificatesCard({ imo }: { readonly imo: string }) {
                         {record.version > 1 ? ` · v${record.version}` : ""}
                       </p>
                     </div>
-                    <Badge className={cn("text-[9px]", statusStyle(status))}>{status}</Badge>
+                    <Badge variant={statusVariant(status)} className="text-[9px]">
+                      {status}
+                    </Badge>
                   </div>
                   <Separator className="my-1.5" />
                   <div className="grid grid-cols-2 gap-x-4">
@@ -135,7 +137,7 @@ export function CertificatesCard({ imo }: { readonly imo: string }) {
                     />
                   </div>
                   {(blocking || reviewRequired) && (
-                    <p className="mt-1 text-[10px] text-red-400/80">
+                    <p className="mt-1 text-[10px] text-destructive/80">
                       {blocking ? "Blocking" : ""}
                       {blocking && reviewRequired ? " · " : ""}
                       {reviewRequired ? `Review: ${(reasonCode ?? "PENDING_REVIEW").replaceAll("_", " ").toLowerCase()}` : ""}

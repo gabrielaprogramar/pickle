@@ -14,6 +14,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { LivePulse } from "@/components/ui/live-pulse";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -67,9 +68,11 @@ function StatCard({
         ) : (
           <>
             <span
-              className={`text-lg font-semibold tabular-nums ${
-                mono ? "font-mono-technical" : ""
-              }`}
+              className={
+                mono
+                  ? "font-mono-technical text-lg tabular-nums text-muted-foreground"
+                  : "font-serif text-lg font-light leading-none tracking-tight tabular-nums"
+              }
             >
               {value}
             </span>
@@ -167,6 +170,17 @@ export default function DashboardPage() {
         <p className="mt-0.5 font-mono text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
           Fleet overview and system status
         </p>
+        <div className="mt-2 flex items-center gap-3 font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground/80">
+          <LivePulse
+            tone={stats.latestUpdate && Date.now() - new Date(stats.latestUpdate).getTime() < 30 * 60 * 1000 ? "teal" : "gold"}
+            label={stats.latestUpdate ? "AIS LIVE" : "AIS OFFLINE"}
+          />
+          <span>
+            {stats.latestUpdate
+              ? `last sync ${formatTimestamp(stats.latestUpdate)}`
+              : "no position signal yet"}
+          </span>
+        </div>
       </div>
 
       {stats.error && (

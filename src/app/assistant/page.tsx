@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useRef, useEffect } from "react";
-import { Send, Plus, ChevronDown, ChevronRight, Bot, AlertTriangle } from "lucide-react";
+import { Send, Plus, Bot, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ErrorBanner } from "@/components/error-banner";
 import { EmptyState } from "@/components/empty-state";
+import { AssistantMessage } from "@/components/shared/chat/assistant-message";
+import { UserMessage } from "@/components/shared/chat/user-message";
 import { STANDARD_DISCLAIMER } from "@/lib/assistant/safety";
 
 // --- Types ---
@@ -65,7 +67,6 @@ export default function AssistantPage() {
   const [sending, setSending] = useState(false);
   const [conversationsError, setConversationsError] = useState<string | null>(null);
   const [messagesError, setMessagesError] = useState<string | null>(null);
-  const [expandedToolCalls, setExpandedToolCalls] = useState<Set<string>>(new Set());
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -225,14 +226,6 @@ export default function AssistantPage() {
     }
   }
 
-  function toggleToolCall(id: string) {
-    setExpandedToolCalls((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
-    });
-  }
-
   const activeConversation = conversations.find((c) => c.id === activeConversationId);
 
   return (
@@ -329,74 +322,18 @@ export default function AssistantPage() {
                 </div>
               )}
 
-              {messages.map((msg) => (
-                <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                  <div className={`max-w-[75%] rounded-lg px-3 py-2 text-sm ${
-                    msg.role === "user"
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-foreground"
-                  }`}>
-                    <p className="whitespace-pre-wrap break-words">{msg.content}</p>
-
-                    {/* Citations (assistant only) */}
-                    {msg.role === "assistant" && msg.citations && msg.citations.length > 0 && (
-                      <div className="mt-2 pt-2 border-t border-border/50">
-                        <p className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground mb-1">
-                          Sources
-                        </p>
-                        <div className="space-y-1">
-                          {msg.citations.map((cit, i) => (
-                            <div key={i} className="flex items-start gap-1.5">
-                              <span className="font-mono text-[10px] text-muted-foreground shrink-0 mt-0.5">
-                                [{i + 1}]
-                              </span>
-                              <div>
-                                <p className="text-[11px] leading-tight text-muted-foreground">
-                                  {cit.source}
-                                  {cit.article_section && <span className="opacity-70"> &mdash; {cit.article_section}</span>}
-                                </p>
-                                <p className="text-[10px] leading-tight text-muted-foreground/60 mt-0.5 line-clamp-2">
-                                  {cit.excerpt}
-                                </p>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Tool calls (assistant only) */}
-                    {msg.role === "assistant" && msg.toolCalls && msg.toolCalls.length > 0 && (
-                      <div className="mt-2 pt-2 border-t border-border/50">
-                        <button
-                          onClick={() => toggleToolCall(msg.id)}
-                          className="flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground hover:text-foreground transition-colors"
-                        >
-                          {expandedToolCalls.has(msg.id) ? (
-                            <ChevronDown className="h-3 w-3" />
-                          ) : (
-                            <ChevronRight className="h-3 w-3" />
-                          )}
-                          View tool activity ({msg.toolCalls.length})
-                        </button>
-                        {expandedToolCalls.has(msg.id) && (
-                          <div className="mt-1.5 space-y-1">
-                            {msg.toolCalls.map((tc, i) => (
-                              <div key={i} className="flex items-center gap-2 text-[11px] text-muted-foreground">
-                                <span className={`inline-block h-1.5 w-1.5 rounded-full ${
-                                  tc.success ? "bg-success" : "bg-destructive"
-                                }`} />
-                                <span className="font-mono">{tc.toolName}</span>
-                                <span className="text-[10px] opacity-60">{tc.latencyMs}ms</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
+              {messages.map((msg) =>
+                msg.role === "user" ? (
+                  <UserMessage key={msg.id} content={msg.content} />
+                ) : (
+                  <AssistantMessage
+                    key={msg.id}
+                    content={msg.content}
+                    citations={msg.citations}
+                    toolCalls={msg.toolCalls}
+                  />
+                ),
+              )}
 
               {/* Loading indicator */}
               {sending && (

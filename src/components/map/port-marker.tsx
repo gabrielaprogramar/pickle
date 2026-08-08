@@ -30,7 +30,7 @@ export function PortMarker({
         markerRef.current.remove();
       }
 
-      const color = type === "departure" ? "#00B89F" : "#D94F4F";
+      const color = type === "departure" ? "#00B89F" : "#C9A84C";
       const icon = L.divIcon({
         className: "port-marker",
         html: `<div style="

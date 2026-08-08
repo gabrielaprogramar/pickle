@@ -4,8 +4,6 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import {
   Send,
   Plus,
-  ChevronDown,
-  ChevronRight,
   Bot,
   AlertTriangle,
   Ship,
@@ -20,6 +18,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ErrorBanner } from "@/components/error-banner";
 import { EmptyState } from "@/components/empty-state";
+import { AssistantMessage } from "@/components/shared/chat/assistant-message";
+import { UserMessage } from "@/components/shared/chat/user-message";
 import { STANDARD_DISCLAIMER } from "@/lib/assistant/safety";
 
 // --- Types ---
@@ -202,14 +202,6 @@ function getToolCallStatus(toolCall: ToolCallInfo): "success" | "error" | "parti
   return "error";
 }
 
-function getToolCallColor(status: "success" | "error" | "partial"): string {
-  switch (status) {
-    case "success": return "bg-green-500";
-    case "error": return "bg-red-500";
-    case "partial": return "bg-yellow-500";
-  }
-}
-
 // --- Sub-Components ---
 
 function SectionBlock({ section }: { readonly section: ParsedSection }) {
@@ -310,7 +302,6 @@ export default function ComplianceAssistantPage() {
   const [sending, setSending] = useState(false);
   const [conversationsError, setConversationsError] = useState<string | null>(null);
   const [messagesError, setMessagesError] = useState<string | null>(null);
-  const [expandedToolCalls, setExpandedToolCalls] = useState<Set<string>>(new Set());
   const [selectedVesselId, setSelectedVesselId] = useState<string>(VESSELS[0]!.id);
   const [sourcePanelOpen, setSourcePanelOpen] = useState(false);
   const [selectedCitation, setSelectedCitation] = useState<Citation | null>(null);
@@ -514,14 +505,6 @@ export default function ComplianceAssistantPage() {
   function handleSuggestedQuestion(q: string) {
     setInput(q);
     setTimeout(() => textareaRef.current?.focus(), 50);
-  }
-
-  function toggleToolCall(id: string) {
-    setExpandedToolCalls((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
-    });
   }
 
   function openSourcePanel(citation: Citation) {
@@ -748,96 +731,31 @@ export default function ComplianceAssistantPage() {
                 const handoff = msg.role === "assistant" ? detectHandoff(msg.content) : null;
                 const hasStructuredSections = sections.length > 1 || sections[0]?.type !== "text";
 
-                return (
-                  <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                    <div className={`max-w-[75%] rounded-lg px-3 py-2 text-sm ${
-                      msg.role === "user"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted text-foreground"
-                    }`}>
-                      {msg.role === "user" ? (
-                        <p className="whitespace-pre-wrap break-words">{msg.content}</p>
-                      ) : hasStructuredSections ? (
-                        <div className="space-y-1">
-                          {sections.map((section, i) => (
-                            <SectionBlock key={i} section={section} />
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="whitespace-pre-wrap break-words">{msg.content}</p>
-                      )}
-
-                      {/* Handoff banner */}
-                      {handoff && <HandoffBanner handoff={handoff} />}
-
-                      {/* Citations (assistant only) */}
-                      {msg.role === "assistant" && msg.citations && msg.citations.length > 0 && (
-                        <div className="mt-2 pt-2 border-t border-border/50">
-                          <p className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground mb-1">
-                            Sources
-                          </p>
+                return msg.role === "user" ? (
+                  <UserMessage key={msg.id} content={msg.content} />
+                ) : (
+                  <AssistantMessage
+                    key={msg.id}
+                    content={msg.content}
+                    citations={msg.citations}
+                    toolCalls={msg.toolCalls}
+                    onCitationClick={openSourcePanel}
+                    toolStatusFn={getToolCallStatus}
+                    renderContent={(content) => (
+                      <>
+                        {hasStructuredSections ? (
                           <div className="space-y-1">
-                            {msg.citations.map((cit, i) => (
-                              <button
-                                key={i}
-                                onClick={() => openSourcePanel(cit)}
-                                className="w-full text-left flex items-start gap-1.5 hover:bg-background/50 rounded-sm px-1 py-0.5 transition-colors"
-                              >
-                                <span className="font-mono text-[10px] text-muted-foreground shrink-0 mt-0.5">
-                                  [{i + 1}]
-                                </span>
-                                <div>
-                                  <p className="text-[11px] leading-tight text-muted-foreground">
-                                    {cit.source}
-                                    {cit.article_section && <span className="opacity-70"> &mdash; {cit.article_section}</span>}
-                                  </p>
-                                  <p className="text-[10px] leading-tight text-muted-foreground/60 mt-0.5 line-clamp-2">
-                                    {cit.excerpt}
-                                  </p>
-                                </div>
-                              </button>
+                            {sections.map((section, i) => (
+                              <SectionBlock key={i} section={section} />
                             ))}
                           </div>
-                        </div>
-                      )}
-
-                      {/* Tool calls (assistant only) */}
-                      {msg.role === "assistant" && msg.toolCalls && msg.toolCalls.length > 0 && (
-                        <div className="mt-2 pt-2 border-t border-border/50">
-                          <button
-                            onClick={() => toggleToolCall(msg.id)}
-                            className="flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground hover:text-foreground transition-colors"
-                          >
-                            {expandedToolCalls.has(msg.id) ? (
-                              <ChevronDown className="h-3 w-3" />
-                            ) : (
-                              <ChevronRight className="h-3 w-3" />
-                            )}
-                            View tool activity ({msg.toolCalls.length})
-                          </button>
-                          {expandedToolCalls.has(msg.id) && (
-                            <div className="mt-1.5 space-y-1">
-                              {msg.toolCalls.map((tc, i) => {
-                                const status = getToolCallStatus(tc);
-                                return (
-                                  <div key={i} className="flex items-center gap-2 text-[11px] text-muted-foreground">
-                                    <span className={`inline-block h-1.5 w-1.5 rounded-full ${getToolCallColor(status)}`} />
-                                    <span className="font-mono">{tc.toolName}</span>
-                                    <span className="text-[10px] opacity-60">{tc.latencyMs}ms</span>
-                                    {status === "partial" && (
-                                      <span className="text-[9px] text-yellow-600 dark:text-yellow-400 font-mono uppercase">
-                                        partial
-                                      </span>
-                                    )}
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                        ) : (
+                          <p className="whitespace-pre-wrap break-words">{content}</p>
+                        )}
+                        {handoff && <HandoffBanner handoff={handoff} />}
+                      </>
+                    )}
+                  />
                 );
               })}
 

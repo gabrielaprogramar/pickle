@@ -36,6 +36,9 @@ import { getVessels } from "@/services/vessels.service";
 import { ApiError } from "@/services/api-client";
 import { cn } from "@/lib/utils/cn";
 import type { VerifierPackageRow } from "@/lib/supabase/types";
+import { StatValue } from "@/components/ui/stat-value";
+import { LivePulse } from "@/components/ui/live-pulse";
+import { EnforcementCountdown } from "@/components/compliance/enforcement-countdown";
 
 const STATUS_VARIANT: Record<string, "success" | "warning" | "destructive" | "outline" | "muted"> = {
   GENERATED: "success",
@@ -83,7 +86,7 @@ function StatTile({
         <div className="text-muted-foreground/60">{icon}</div>
       </CardHeader>
       <CardContent>
-        <div className="text-lg font-semibold tabular-nums">{value}</div>
+        <StatValue size="sm">{value}</StatValue>
         {hint && (
           <div className="mt-0.5 font-mono text-[10px] uppercase tracking-wide text-muted-foreground">
             {hint}
@@ -151,6 +154,25 @@ export default function ComplianceWorkspacePage() {
           <p className="mt-0.5 font-mono text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
             Reports, verifier packages and zone monitoring
           </p>
+          <div className="mt-2 flex items-center gap-3 font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground/80">
+            <LivePulse
+              tone={
+                watch.some((s) => s.status === "NON_CONFORMING")
+                  ? "red"
+                  : watch.some((s) => s.status === "WARNING")
+                    ? "gold"
+                    : "teal"
+              }
+              label={
+                watch.some((s) => s.status === "NON_CONFORMING")
+                  ? "Sox Alert"
+                  : watch.some((s) => s.status === "WARNING")
+                    ? "Sox Warning"
+                    : "Sox Clear"
+              }
+            />
+            <span>fleet SOx watch · {watch.length} vessels</span>
+          </div>
         </div>
         <Button variant="outline" size="sm" onClick={fetchAll} disabled={isLoading} className="h-8">
           {isLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RotateCw className="h-3.5 w-3.5" />}
@@ -163,6 +185,10 @@ export default function ComplianceWorkspacePage() {
           <ErrorBanner message={error.message} code={error.code} onRetry={fetchAll} />
         </div>
       )}
+
+      <div className="mb-4">
+        <EnforcementCountdown />
+      </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatTile

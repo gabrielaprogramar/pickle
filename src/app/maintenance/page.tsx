@@ -98,17 +98,17 @@ const QUICK_ACTIONS: ReadonlyArray<{ readonly label: string; readonly query: str
 ];
 
 const STATUS_STYLES: Record<SurveyStatus, string> = {
-  CURRENT: "border-[#00B89F]/50 bg-[#00B89F]/15 text-[#00B89F]",
-  UPCOMING: "border-[#7FB3A6]/50 bg-[#7FB3A6]/15 text-[#7FB3A6]",
-  DUE_SOON: "border-[#C9A84C]/50 bg-[#C9A84C]/15 text-[#C9A84C]",
-  OVERDUE: "border-[#D94F4F]/50 bg-[#D94F4F]/15 text-[#D94F4F]",
-  BLOCKING: "border-[#D94F4F]/70 bg-[#D94F4F]/25 text-[#FF8A8A]",
-  UNKNOWN: "border-border bg-card text-[#F4F2EC]/40",
+  CURRENT: "border-primary/50 bg-primary/15 text-primary",
+  UPCOMING: "border-[hsl(var(--success-soft))]/50 bg-[hsl(var(--success-soft))]/15 text-[hsl(var(--success-soft))]",
+  DUE_SOON: "border-warning/50 bg-warning/15 text-warning",
+  OVERDUE: "border-destructive/50 bg-destructive/15 text-destructive",
+  BLOCKING: "border-destructive/70 bg-destructive/25 text-[hsl(var(--destructive-soft))]",
+  UNKNOWN: "border-border bg-card text-foreground/40",
 };
 
 function SectionLabel({ children }: { readonly children: React.ReactNode }) {
   return (
-    <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#C9A84C]">
+    <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-warning">
       {children}
     </p>
   );
@@ -127,10 +127,10 @@ function StatusPill({ status }: { readonly status: SurveyStatus }) {
 function ImpactTag({ impact }: { readonly impact: string }) {
   const style =
     impact === "DETERMINISTIC_IMPACT"
-      ? "border-[#C9A84C]/40 bg-[#C9A84C]/10 text-[#C9A84C]"
+      ? "border-warning/40 bg-warning/10 text-warning"
       : impact === "ADVISORY_RECOMMENDATION"
-        ? "border-[#00B89F]/40 bg-[#00B89F]/10 text-[#00B89F]"
-        : "border-border bg-card text-[#F4F2EC]/50";
+        ? "border-primary/40 bg-primary/10 text-primary"
+        : "border-border bg-card text-foreground/50";
   return (
     <span className={`inline-flex rounded border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.1em] ${style}`}>
       {impact.replace(/_/g, " ")}
@@ -187,18 +187,18 @@ export default function MaintenancePage() {
   return (
     <AssistantPageContainer>
       <div className="flex items-center gap-3">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-[#00B89F]/40 bg-[#00B89F]/10">
-          <Wrench className="h-6 w-6 text-[#00B89F]" />
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-primary/40 bg-primary/10">
+          <Wrench className="h-6 w-6 text-primary" />
         </div>
         <div className="min-w-0 flex-1">
-          <h1 className="font-serif text-2xl font-semibold leading-none text-[#F4F2EC]">
+          <h1 className="font-serif text-2xl font-semibold leading-none text-foreground">
             Aurelia
           </h1>
-          <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.14em] text-[#F4F2EC]/50">
+          <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.14em] text-foreground/50">
             IMO 9074729 · Maintenance Console
           </p>
         </div>
-        <span className="inline-flex items-center gap-1 rounded-md border border-[#C9A84C]/40 bg-[#C9A84C]/10 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.12em] text-[#C9A84C]">
+        <span className="inline-flex items-center gap-1 rounded-md border border-warning/40 bg-warning/10 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.12em] text-warning">
           <ShieldAlert className="h-3 w-3" />
           Mock Mode
         </span>
@@ -211,8 +211,8 @@ export default function MaintenancePage() {
             onClick={() => setScenario(s.key)}
             className={`shrink-0 rounded-full border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.1em] transition-colors ${
               scenario === s.key
-                ? "border-[#00B89F]/60 bg-[#00B89F]/15 text-[#00B89F]"
-                : "border-border bg-card text-[#F4F2EC]/50"
+                ? "border-primary/60 bg-primary/15 text-primary"
+                : "border-border bg-card text-foreground/50"
             }`}
           >
             {s.label}
@@ -234,19 +234,19 @@ export default function MaintenancePage() {
                     key={s.surveyType}
                     className="flex items-start gap-3 rounded-xl border border-border bg-card p-4"
                   >
-                    <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-[#00B89F]" />
+                    <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <p className="text-sm font-semibold text-[#F4F2EC]">
+                        <p className="text-sm font-semibold text-foreground">
                           {s.surveyType} survey
                         </p>
                         <StatusPill status={s.status} />
                       </div>
-                      <p className="mt-0.5 font-mono text-[11px] text-[#F4F2EC]/60">
+                      <p className="mt-0.5 font-mono text-[11px] text-foreground/60">
                         due {s.dueDate.slice(0, 10)}
                         {s.lastCompleted ? ` · last completed ${s.lastCompleted.slice(0, 10)}` : ""}
                       </p>
-                      <p className="mt-1 font-mono text-[10px] text-[#F4F2EC]/40">{s.source}</p>
+                      <p className="mt-1 font-mono text-[10px] text-foreground/40">{s.source}</p>
                     </div>
                   </div>
                 ))}
@@ -264,10 +264,10 @@ export default function MaintenancePage() {
                     key={c.certificateType}
                     className="flex items-start gap-3 rounded-xl border border-border bg-card p-4"
                   >
-                    <FileBadge className="mt-0.5 h-4 w-4 shrink-0 text-[#00B89F]" />
+                    <FileBadge className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-[#F4F2EC]">{c.title}</p>
-                      <p className="mt-0.5 font-mono text-[11px] uppercase text-[#F4F2EC]/60">
+                      <p className="text-sm font-semibold text-foreground">{c.title}</p>
+                      <p className="mt-0.5 font-mono text-[11px] uppercase text-foreground/60">
                         {c.status}
                         {c.expiresAt ? ` · expires ${c.expiresAt.slice(0, 10)}` : " · no expiry on file"}
                       </p>
@@ -286,15 +286,15 @@ export default function MaintenancePage() {
                 {answer.impacts.map((i, idx) => (
                   <div
                     key={idx}
-                    className="flex items-start gap-3 rounded-xl border border-[#C9A84C]/40 bg-[#C9A84C]/5 p-4"
+                    className="flex items-start gap-3 rounded-xl border border-warning/40 bg-warning/5 p-4"
                   >
-                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[#C9A84C]" />
+                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <ImpactTag impact={i.impact} />
                       </div>
-                      <p className="mt-1.5 text-xs leading-relaxed text-[#F4F2EC]/85">{i.claim}</p>
-                      <p className="mt-1 font-mono text-[10px] text-[#F4F2EC]/40">{i.basis}</p>
+                      <p className="mt-1.5 text-xs leading-relaxed text-foreground/85">{i.claim}</p>
+                      <p className="mt-1 font-mono text-[10px] text-foreground/40">{i.basis}</p>
                     </div>
                   </div>
                 ))}
@@ -312,10 +312,10 @@ export default function MaintenancePage() {
                     key={d.label}
                     className="flex items-center gap-3 rounded-xl border border-border bg-card p-4"
                   >
-                    <Clock className="h-4 w-4 shrink-0 text-[#00B89F]" />
+                    <Clock className="h-4 w-4 shrink-0 text-primary" />
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-[#F4F2EC]">{d.label}</p>
-                      <p className="font-mono text-[11px] text-[#F4F2EC]/60">
+                      <p className="text-sm font-medium text-foreground">{d.label}</p>
+                      <p className="font-mono text-[11px] text-foreground/60">
                         {d.dueDate.slice(0, 10)}
                         {d.daysRemaining >= 0
                           ? ` · ${d.daysRemaining}d`
@@ -324,7 +324,7 @@ export default function MaintenancePage() {
                     </div>
                     <div className="flex items-center gap-2">
                       {d.blocking && (
-                        <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-[#FF8A8A]">
+                        <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-[hsl(var(--destructive-soft))]">
                           blocking
                         </span>
                       )}
@@ -346,21 +346,21 @@ export default function MaintenancePage() {
                     key={e.period}
                     className={`flex items-start gap-3 rounded-xl border p-4 ${
                       e.maintenanceWindow
-                        ? "border-[#00B89F]/50 bg-[#00B89F]/10"
+                        ? "border-primary/50 bg-primary/10"
                         : "border-border bg-card"
                     }`}
                   >
-                    <Ship className="mt-0.5 h-4 w-4 shrink-0 text-[#00B89F]" />
+                    <Ship className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-[#F4F2EC]">
+                      <p className="text-sm font-semibold text-foreground">
                         {e.period}
                         {e.maintenanceWindow && (
-                          <span className="ml-2 font-mono text-[10px] uppercase tracking-[0.1em] text-[#00B89F]">
+                          <span className="ml-2 font-mono text-[10px] uppercase tracking-[0.1em] text-primary">
                             maintenance window
                           </span>
                         )}
                       </p>
-                      <p className="mt-0.5 font-mono text-[11px] text-[#F4F2EC]/60">
+                      <p className="mt-0.5 font-mono text-[11px] text-foreground/60">
                         {e.startDate.slice(0, 10)} → {e.endDate.slice(0, 10)} · {e.counterParty} ·{" "}
                         {e.portCalls.join(", ")}
                       </p>
@@ -374,14 +374,14 @@ export default function MaintenancePage() {
           {/* Class society / plan status */}
           {answer?.classSociety && (
             <div className="flex items-start gap-3 rounded-xl border border-border bg-card p-4">
-              <Building2 className="mt-0.5 h-4 w-4 shrink-0 text-[#00B89F]" />
+              <Building2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-[#F4F2EC]">
+                <p className="text-sm font-semibold text-foreground">
                   {answer.classSociety.known
                     ? `${answer.classSociety.classSociety} · ${answer.classSociety.classificationStatus}`
                     : "Class society unknown"}
                 </p>
-                <p className="mt-0.5 font-mono text-[11px] text-[#F4F2EC]/60">
+                <p className="mt-0.5 font-mono text-[11px] text-foreground/60">
                   {answer.classSociety.known ? "In class" : "No class record on file"}
                 </p>
               </div>
@@ -390,12 +390,12 @@ export default function MaintenancePage() {
 
           {answer?.planStatus && (
             <div className="flex items-start gap-3 rounded-xl border border-border bg-card p-4">
-              <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-[#00B89F]" />
+              <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-[#F4F2EC]">
+                <p className="text-sm font-semibold text-foreground">
                   Monitoring plan v{answer.planStatus.planVersion}
                 </p>
-                <p className="mt-0.5 font-mono text-[11px] text-[#F4F2EC]/60">
+                <p className="mt-0.5 font-mono text-[11px] text-foreground/60">
                   {answer.planStatus.nextReviewDue
                     ? `next review due ${answer.planStatus.nextReviewDue.slice(0, 10)}`
                     : "no review date on file"}
@@ -409,10 +409,10 @@ export default function MaintenancePage() {
 
           {/* Handoff banner */}
           {answer?.handoff && (
-            <div className="flex items-start gap-3 rounded-xl border border-[#C9A84C]/40 bg-[#C9A84C]/10 p-4">
-              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[#C9A84C]" />
+            <div className="flex items-start gap-3 rounded-xl border border-warning/40 bg-warning/10 p-4">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-[#C9A84C]">
+                <p className="text-sm font-semibold text-warning">
                   Routed to{" "}
                   {answer.handoff.target === "captain"
                     ? "Captain Assistant"
@@ -420,7 +420,7 @@ export default function MaintenancePage() {
                       ? "Compliance Assistant"
                       : "Search Assistant"}
                 </p>
-                <p className="mt-0.5 text-xs text-[#F4F2EC]/70">{answer.handoff.reason}</p>
+                <p className="mt-0.5 text-xs text-foreground/70">{answer.handoff.reason}</p>
               </div>
             </div>
           )}
@@ -434,7 +434,7 @@ export default function MaintenancePage() {
             !answer.classSociety &&
             !answer.planStatus && (
               <div className="rounded-xl border border-border bg-card p-4">
-                <p className="whitespace-pre-wrap font-mono text-[12px] leading-relaxed text-[#F4F2EC]/85">
+                <p className="whitespace-pre-wrap font-mono text-[12px] leading-relaxed text-foreground/85">
                   {answer.text}
                 </p>
               </div>
@@ -449,14 +449,14 @@ export default function MaintenancePage() {
               <Button
                 key={action.query}
                 variant="outline"
-                className="h-14 justify-start gap-2 rounded-xl border-border bg-card px-4 text-left text-sm font-medium text-[#F4F2EC]/90 hover:bg-secondary"
+                className="h-14 justify-start gap-2 rounded-xl border-border bg-card px-4 text-left text-sm font-medium text-foreground/90 hover:bg-secondary"
                 onClick={() => {
                   setQuery(action.query);
                   void ask(action.query, scenario);
                 }}
                 disabled={loading}
               >
-                <ArrowRight className="h-4 w-4 shrink-0 text-[#00B89F]" />
+                <ArrowRight className="h-4 w-4 shrink-0 text-primary" />
                 <span className="leading-tight">{action.label}</span>
               </Button>
             ))}
@@ -475,10 +475,10 @@ export default function MaintenancePage() {
               }}
               rows={2}
               placeholder="Ask your maintenance console…"
-              className="min-h-[64px] flex-1 resize-none rounded-xl border border-input bg-card px-4 py-3 text-sm text-[#F4F2EC] placeholder:text-[#F4F2EC]/35 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#00B89F]"
+              className="min-h-[64px] flex-1 resize-none rounded-xl border border-input bg-card px-4 py-3 text-sm text-foreground placeholder:text-foreground/35 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
             />
             <Button
-              className="h-[64px] w-16 shrink-0 rounded-xl bg-[#00B89F] text-[#060F1E] hover:bg-[#007A6A]"
+              className="h-[64px] w-16 shrink-0 rounded-xl bg-primary text-background hover:bg-[hsl(var(--primary-dim))]"
               onClick={() => void ask(query, scenario)}
               disabled={loading || !query.trim()}
               title="Ask"
@@ -504,14 +504,14 @@ export default function MaintenancePage() {
       </div>
 
       {error && (
-        <div className="rounded-xl border border-[#D94F4F]/40 bg-[#D94F4F]/10 p-3">
-          <p className="text-xs text-[#D94F4F]">{error}</p>
+        <div className="rounded-xl border border-destructive/40 bg-destructive/10 p-3">
+          <p className="text-xs text-destructive">{error}</p>
         </div>
       )}
 
       <div className="mt-2 flex items-center gap-2">
-        <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-[#F4F2EC]/40" />
-        <p className="font-mono text-[10px] text-[#F4F2EC]/40">
+        <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-foreground/40" />
+        <p className="font-mono text-[10px] text-foreground/40">
           Survey posture only · deterministic statuses · not a CMMS
         </p>
       </div>

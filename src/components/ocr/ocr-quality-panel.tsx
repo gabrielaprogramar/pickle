@@ -1,6 +1,7 @@
 "use client";
 
 import { ScanLine, RefreshCw, ShieldCheck } from "lucide-react";
+import { cn } from "@/lib/utils/cn";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -33,6 +34,13 @@ function scoreLabel(value: number | null): string {
   return value == null ? "—" : `${(value * 100).toFixed(0)}%`;
 }
 
+function confidenceTone(value: number | null): string {
+  if (value == null) return "bg-muted-foreground/40";
+  if (value >= 0.9) return "bg-success";
+  if (value >= 0.7) return "bg-warning";
+  return "bg-destructive";
+}
+
 function ScoreBar({ label, value }: { readonly label: string; readonly value: number | null }) {
   const pct = value == null ? 0 : Math.round(value * 100);
   return (
@@ -42,11 +50,11 @@ function ScoreBar({ label, value }: { readonly label: string; readonly value: nu
       </span>
       <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
         <div
-          className="h-full rounded-full bg-primary transition-all"
+          className={cn("h-full rounded-full transition-all", confidenceTone(value))}
           style={{ width: `${pct}%` }}
         />
       </div>
-      <span className="w-10 shrink-0 text-right font-mono-technical text-[11px] tabular-nums">
+      <span className="w-10 shrink-0 text-right font-mono-technical tabular-nums text-xs">
         {scoreLabel(value)}
       </span>
     </div>

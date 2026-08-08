@@ -93,23 +93,23 @@ const LEVEL_STYLES: Record<
   { readonly bar: string; readonly chip: string }
 > = {
   GREEN: {
-    bar: "border-[#00B89F]/40 bg-[#00B89F]/10 text-[#00B89F]",
-    chip: "bg-[#00B89F]/20 text-[#00B89F] border-[#00B89F]/50",
+    bar: "border-primary/40 bg-primary/10 text-primary",
+    chip: "bg-primary/20 text-primary border-primary/50",
   },
   AMBER: {
-    bar: "border-[#C9A84C]/40 bg-[#C9A84C]/10 text-[#C9A84C]",
-    chip: "bg-[#C9A84C]/20 text-[#C9A84C] border-[#C9A84C]/50",
+    bar: "border-warning/40 bg-warning/10 text-warning",
+    chip: "bg-warning/20 text-warning border-warning/50",
   },
   RED: {
-    bar: "border-[#D94F4F]/40 bg-[#D94F4F]/10 text-[#D94F4F]",
-    chip: "bg-[#D94F4F]/20 text-[#D94F4F] border-[#D94F4F]/50",
+    bar: "border-destructive/40 bg-destructive/10 text-destructive",
+    chip: "bg-destructive/20 text-destructive border-destructive/50",
   },
 };
 
 const CHECK_STYLES: Record<"GREEN" | "AMBER" | "RED", string> = {
-  GREEN: "border-[#00B89F]/30 text-[#00B89F]",
-  AMBER: "border-[#C9A84C]/30 text-[#C9A84C]",
-  RED: "border-[#D94F4F]/30 text-[#D94F4F]",
+  GREEN: "border-primary/30 text-primary",
+  AMBER: "border-warning/30 text-warning",
+  RED: "border-destructive/30 text-destructive",
 };
 
 function LevelIcon({ level }: { readonly level: "GREEN" | "AMBER" | "RED" }) {
@@ -122,7 +122,7 @@ function LevelIcon({ level }: { readonly level: "GREEN" | "AMBER" | "RED" }) {
 
 function SectionLabel({ children }: { readonly children: React.ReactNode }) {
   return (
-    <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#C9A84C]">
+    <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-warning">
       {children}
     </p>
   );
@@ -139,16 +139,16 @@ function ChecklistItemRow({ item }: { readonly item: ChecklistItem }) {
           {item.status === "GREEN" ? "G" : item.status === "AMBER" ? "A" : "R"}
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-[#F4F2EC]">{item.requirement}</p>
-          <p className="mt-0.5 text-xs text-[#F4F2EC]/70">
+          <p className="text-sm font-semibold text-foreground">{item.requirement}</p>
+          <p className="mt-0.5 text-xs text-foreground/70">
             Evidence: {item.evidence}
             {item.missing ? ` · Missing: ${item.missing}` : ""}
           </p>
           {item.deadline && (
-            <p className="mt-0.5 font-mono text-[11px] text-[#C9A84C]">Deadline: {item.deadline}</p>
+            <p className="mt-0.5 font-mono text-[11px] text-warning">Deadline: {item.deadline}</p>
           )}
-          <p className="mt-1 text-xs text-[#F4F2EC]/80">→ {item.recommendedAction}</p>
-          <p className="mt-1.5 font-mono text-[10px] leading-relaxed text-[#F4F2EC]/40">
+          <p className="mt-1 text-xs text-foreground/80">→ {item.recommendedAction}</p>
+          <p className="mt-1.5 font-mono text-[10px] leading-relaxed text-foreground/40">
             {item.source}
           </p>
         </div>
@@ -211,18 +211,18 @@ export default function CaptainPage() {
     <AssistantPageContainer>
       {/* Vessel header */}
       <div className="flex items-center gap-3">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-[#00B89F]/40 bg-[#00B89F]/10">
-          <Ship className="h-6 w-6 text-[#00B89F]" />
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-primary/40 bg-primary/10">
+          <Ship className="h-6 w-6 text-primary" />
         </div>
         <div className="min-w-0 flex-1">
-          <h1 className="font-serif text-2xl font-semibold leading-none text-[#F4F2EC]">
+          <h1 className="font-serif text-2xl font-semibold leading-none text-foreground">
             Aurelia
           </h1>
-          <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.14em] text-[#F4F2EC]/50">
+          <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.14em] text-foreground/50">
             IMO 9074729 · Captain Console
           </p>
         </div>
-        <span className="inline-flex items-center gap-1 rounded-md border border-[#C9A84C]/40 bg-[#C9A84C]/10 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.12em] text-[#C9A84C]">
+        <span className="inline-flex items-center gap-1 rounded-md border border-warning/40 bg-warning/10 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.12em] text-warning">
           <ShieldAlert className="h-3 w-3" />
           Mock Mode
         </span>
@@ -236,8 +236,8 @@ export default function CaptainPage() {
             onClick={() => setScenario(s.key)}
             className={`shrink-0 rounded-full border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.1em] transition-colors ${
               scenario === s.key
-                ? "border-[#00B89F]/60 bg-[#00B89F]/15 text-[#00B89F]"
-                : "border-border bg-card text-[#F4F2EC]/50"
+                ? "border-primary/60 bg-primary/15 text-primary"
+                : "border-border bg-card text-foreground/50"
             }`}
           >
             {s.label}
@@ -253,20 +253,20 @@ export default function CaptainPage() {
           <div className="flex items-center gap-3">
             <LevelIcon level={readiness.level} />
             <div className="min-w-0 flex-1">
-              <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#F4F2EC]/60">
+              <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-foreground/60">
                 Port Vauban · {readiness.port}
               </p>
               <p className="font-serif text-3xl font-semibold leading-tight">
                 {readiness.level}
               </p>
               {readiness.arrivalDate && (
-                <p className="font-mono text-[11px] text-[#F4F2EC]/60">
+                <p className="font-mono text-[11px] text-foreground/60">
                   Arrival {readiness.arrivalDate.slice(0, 10)}
                 </p>
               )}
             </div>
           </div>
-          <p className="mt-3 text-sm leading-relaxed text-[#F4F2EC]/85">
+          <p className="mt-3 text-sm leading-relaxed text-foreground/85">
             {readiness.summary}
           </p>
         </div>
@@ -290,7 +290,7 @@ export default function CaptainPage() {
           {/* Answer text */}
           {answer?.text && !readiness && (
             <div className="rounded-xl border border-border bg-card p-4">
-              <p className="whitespace-pre-wrap font-mono text-[12px] leading-relaxed text-[#F4F2EC]/85">
+              <p className="whitespace-pre-wrap font-mono text-[12px] leading-relaxed text-foreground/85">
                 {answer.text}
               </p>
             </div>
@@ -306,14 +306,14 @@ export default function CaptainPage() {
               <Button
                 key={action.query}
                 variant="outline"
-                className="h-14 justify-start gap-2 rounded-xl border-border bg-card px-4 text-left text-sm font-medium text-[#F4F2EC]/90 hover:bg-secondary"
+                className="h-14 justify-start gap-2 rounded-xl border-border bg-card px-4 text-left text-sm font-medium text-foreground/90 hover:bg-secondary"
                 onClick={() => {
                   setQuery(action.query);
                   void ask(action.query, scenario);
                 }}
                 disabled={loading}
               >
-                <ArrowRight className="h-4 w-4 shrink-0 text-[#00B89F]" />
+                <ArrowRight className="h-4 w-4 shrink-0 text-primary" />
                 <span className="leading-tight">{action.label}</span>
               </Button>
             ))}
@@ -332,10 +332,10 @@ export default function CaptainPage() {
               }}
               rows={2}
               placeholder="Ask your captain console…"
-              className="min-h-[64px] flex-1 resize-none rounded-xl border border-input bg-card px-4 py-3 text-sm text-[#F4F2EC] placeholder:text-[#F4F2EC]/35 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#00B89F]"
+              className="min-h-[64px] flex-1 resize-none rounded-xl border border-input bg-card px-4 py-3 text-sm text-foreground placeholder:text-foreground/35 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
             />
             <Button
-              className="h-[64px] w-16 shrink-0 rounded-xl bg-[#00B89F] text-[#060F1E] hover:bg-[#007A6A]"
+              className="h-[64px] w-16 shrink-0 rounded-xl bg-primary text-background hover:bg-[hsl(var(--primary-dim))]"
               onClick={() => void ask(query, scenario)}
               disabled={loading || !query.trim()}
               title="Ask"
@@ -368,10 +368,10 @@ export default function CaptainPage() {
                     key={i}
                     className="flex items-start gap-3 rounded-xl border border-border bg-card p-4"
                   >
-                    <Inbox className="mt-0.5 h-4 w-4 shrink-0 text-[#00B89F]" />
+                    <Inbox className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                     <div className="min-w-0 flex-1">
-                      <p className="font-mono text-[11px] text-[#F4F2EC]/80">{ev.fileName}</p>
-                      <p className="mt-0.5 text-xs text-[#F4F2EC]/60">
+                      <p className="font-mono text-[11px] text-foreground/80">{ev.fileName}</p>
+                      <p className="mt-0.5 text-xs text-foreground/60">
                         {ev.status.replace(/_/g, " ")} · received {ev.receivedAt.slice(0, 10)}
                       </p>
                     </div>
@@ -391,14 +391,14 @@ export default function CaptainPage() {
                     key={i}
                     className="flex items-center gap-3 rounded-xl border border-border bg-card p-4"
                   >
-                    <Anchor className="h-4 w-4 shrink-0 text-[#00B89F]" />
+                    <Anchor className="h-4 w-4 shrink-0 text-primary" />
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-[#F4F2EC]">{pc.port}</p>
-                      <p className="font-mono text-[11px] text-[#F4F2EC]/60">
+                      <p className="text-sm font-semibold text-foreground">{pc.port}</p>
+                      <p className="font-mono text-[11px] text-foreground/60">
                         {pc.arrivalDate.slice(0, 10)} → {pc.departureDate.slice(0, 10)}
                       </p>
                     </div>
-                    <CalendarDays className="h-4 w-4 text-[#F4F2EC]/40" />
+                    <CalendarDays className="h-4 w-4 text-foreground/40" />
                   </div>
                 ))}
               </div>
@@ -407,13 +407,13 @@ export default function CaptainPage() {
 
           {/* Handoff banner */}
           {answer?.handoff && (
-            <div className="flex items-start gap-3 rounded-xl border border-[#C9A84C]/40 bg-[#C9A84C]/10 p-4">
-              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[#C9A84C]" />
+            <div className="flex items-start gap-3 rounded-xl border border-warning/40 bg-warning/10 p-4">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-[#C9A84C]">
+                <p className="text-sm font-semibold text-warning">
                   Routed to {answer.handoff.target === "compliance" ? "Compliance Assistant" : "Search Assistant"}
                 </p>
-                <p className="mt-0.5 text-xs text-[#F4F2EC]/70">{answer.handoff.reason}</p>
+                <p className="mt-0.5 text-xs text-foreground/70">{answer.handoff.reason}</p>
               </div>
             </div>
           )}
@@ -421,15 +421,15 @@ export default function CaptainPage() {
       </div>
 
       {error && (
-        <div className="rounded-xl border border-[#D94F4F]/40 bg-[#D94F4F]/10 p-3">
-          <p className="text-xs text-[#D94F4F]">{error}</p>
+        <div className="rounded-xl border border-destructive/40 bg-destructive/10 p-3">
+          <p className="text-xs text-destructive">{error}</p>
         </div>
       )}
 
       {/* Footer / advisory */}
       <div className="mt-2 flex items-center gap-2">
-        <Mail className="h-3.5 w-3.5 shrink-0 text-[#F4F2EC]/40" />
-        <p className="font-mono text-[10px] text-[#F4F2EC]/40">
+        <Mail className="h-3.5 w-3.5 shrink-0 text-foreground/40" />
+        <p className="font-mono text-[10px] text-foreground/40">
           BDN inbox: imo9074729@docs.poseidonledger.com · Advisory only
         </p>
       </div>

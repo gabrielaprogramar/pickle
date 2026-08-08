@@ -16,6 +16,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorBanner } from "@/components/error-banner";
+import { StatValue } from "@/components/ui/stat-value";
+import { LivePulse } from "@/components/ui/live-pulse";
 import {
   Table,
   TableBody,
@@ -78,7 +80,7 @@ function StatTile({
         <div className="text-muted-foreground/60">{icon}</div>
       </CardHeader>
       <CardContent>
-        <div className="text-lg font-semibold tabular-nums">{value}</div>
+        <StatValue size="sm">{value}</StatValue>
         {hint && (
           <div className="mt-0.5 font-mono text-[10px] uppercase tracking-wide text-muted-foreground">
             {hint}
@@ -133,6 +135,13 @@ export default function OcrWorkspacePage() {
           <p className="mt-0.5 font-mono text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
             Scanned documents, quality assessment and review
           </p>
+          <div className="mt-2 flex items-center gap-3 font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground/80">
+            <LivePulse
+              tone={(data?.totals.needsReview ?? 0) > 0 ? "gold" : "teal"}
+              label={(data?.totals.needsReview ?? 0) > 0 ? "Review Required" : "Queue Clear"}
+            />
+            <span>{(data?.totals.total ?? 0)} scans in queue</span>
+          </div>
         </div>
         <Button
           variant="outline"

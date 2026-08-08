@@ -16,7 +16,7 @@ export function VesselMarker({
   lat,
   lng,
   label,
-  color = "#00B89F",
+  color = "hsl(var(--primary))",
 }: VesselMarkerProps) {
   const markerRef = useRef<L.Marker | null>(null);
 

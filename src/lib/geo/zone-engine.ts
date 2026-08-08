@@ -122,7 +122,7 @@ export function getZoneColor(category: string): string {
     case "MED_BALLAST":
       return "#00B89F";
     case "PORT_CONTROL":
-      return "#0D1F38";
+      return "#C9A84C";
     default:
       return "#00B89F";
   }

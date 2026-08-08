@@ -28,6 +28,7 @@ import { useEnvironmentalZones } from "@/hooks/use-environmental-zones";
 import { VesselMapView } from "@/components/map/vessel-map-view";
 import { SoxWatchCard } from "@/components/sox/sox-watch-card";
 import { CertificatesCard } from "@/components/certificates/certificates-card";
+import { VesselReadinessStrip } from "@/components/vessel/vessel-readiness-strip";
 import { MAJOR_MED_PORTS } from "@/lib/geo/constants";
 import { ROUTES } from "@/constants/routes";
 
@@ -116,6 +117,12 @@ export default function VesselDetailPage() {
           />
         </div>
       )}
+
+      <VesselReadinessStrip
+        imo={imo}
+        position={latestPosition}
+        voyage={latestVoyage}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card>
