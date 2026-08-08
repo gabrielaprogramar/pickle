@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { BrandLogo } from "@/components/brand/logo";
 
 interface AuthShellProps {
   readonly title: string;
@@ -15,13 +15,7 @@ export function AuthShell({ title, subtitle, label, children }: AuthShellProps) 
     <div className="flex min-h-screen items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="mb-6 flex flex-col items-center gap-3">
-          <Image
-            src="/logo.png"
-            alt="Poseidon Ledger"
-            width={140}
-            height={24}
-            priority
-          />
+          <BrandLogo width={140} height={24} priority />
         </div>
         <Card>
           <CardHeader>

@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { useSettingsAppearance } from "@/components/settings/settings-provider";
+import { BrandLogo } from "@/components/brand/logo";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
@@ -134,9 +134,7 @@ function SidebarContent({
           href="/"
           className="flex items-center text-sidebar-foreground hover:text-sidebar-foreground"
         >
-          <Image
-            src="/logo.png"
-            alt="Poseidon Ledger"
+          <BrandLogo
             width={collapsed ? 22 : 150}
             height={collapsed ? 22 : 26}
             className="shrink-0"
