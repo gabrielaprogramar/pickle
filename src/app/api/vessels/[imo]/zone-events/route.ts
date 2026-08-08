@@ -30,7 +30,11 @@ export async function GET(
     });
     const page = await ais.findByVesselImo(imo, { limit: 100, offset: 0 });
     const track = processAisTrack(page.rows);
-    const trackPoints = track.points.map((p) => ({ lat: p.lat, lng: p.lng }));
+    const trackPoints = track.points.map((p) => ({
+      lat: p.lat,
+      lng: p.lng,
+      ts: p.ts,
+    }));
 
     const zoneDomains = zones.map((z) => ({
       id: z.id,

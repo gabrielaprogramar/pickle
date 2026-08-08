@@ -25,6 +25,7 @@ import { useLatestVoyage } from "@/hooks/use-latest-voyage";
 import { useLatestAisPosition } from "@/hooks/use-latest-ais-position";
 import { useVesselTrack } from "@/hooks/use-vessel-track";
 import { useEnvironmentalZones } from "@/hooks/use-environmental-zones";
+import { useZoneEvents } from "@/hooks/use-zone-events";
 import { VesselMapView } from "@/components/map/vessel-map-view";
 import { SoxWatchCard } from "@/components/sox/sox-watch-card";
 import { CertificatesCard } from "@/components/certificates/certificates-card";
@@ -89,6 +90,7 @@ export default function VesselDetailPage() {
 
   const { track } = useVesselTrack(imo);
   const { zones } = useEnvironmentalZones();
+  const { alerts: zoneAlerts } = useZoneEvents(imo);
 
   const depPort = latestVoyage ? MAJOR_MED_PORTS[latestVoyage.departure_port_name] ?? null : null;
   const arrPort = latestVoyage ? MAJOR_MED_PORTS[latestVoyage.arrival_port_name] ?? null : null;
@@ -361,9 +363,11 @@ export default function VesselDetailPage() {
               trackPoints={track?.points}
               vesselPosition={latestPosition ? { lat: latestPosition.latitude, lng: latestPosition.longitude } : null}
               vesselLabel={vessel?.name}
+              vesselBearing={latestPosition?.heading ?? null}
               departurePort={depPort ? { lat: depPort.lat, lng: depPort.lng, name: latestVoyage!.departure_port_name } : null}
               arrivalPort={arrPort ? { lat: arrPort.lat, lng: arrPort.lng, name: latestVoyage!.arrival_port_name } : null}
               zones={zones.map((z) => ({ id: z.id, name: z.name, category: z.category, geometryCoordinates: z.geometry_coordinates, description: z.description }))}
+              zoneAlerts={zoneAlerts}
               height="h-80"
             />
           </CardContent>

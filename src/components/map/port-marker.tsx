@@ -49,20 +49,30 @@ export function PortMarker({
         popupAnchor: [0, -14],
       });
 
-      L.marker([lat, lng], { icon })
-        .addTo(map)
-        .bindPopup(
-          `<div style="font-family: monospace; font-size: 11px;">
-            <strong>${name}</strong><br/>
-            ${lat.toFixed(4)}, ${lng.toFixed(4)}
-          </div>`,
-        );
+      const marker = L.marker([lat, lng], { icon }).addTo(map);
+
+      marker.bindTooltip(name, {
+        permanent: true,
+        direction: "top",
+        offset: [0, -14],
+        className: "port-label",
+      });
+
+      marker.bindPopup(
+        `<div style="font-family: monospace; font-size: 11px;">
+          <strong>${name}</strong><br/>
+          ${lat.toFixed(4)}, ${lng.toFixed(4)}
+        </div>`,
+      );
+
+      markerRef.current = marker;
     };
 
     init();
 
     return () => {
-      // handled by parent
+      markerRef.current?.remove();
+      markerRef.current = null;
     };
   }, [map, lat, lng, name, type]);
 

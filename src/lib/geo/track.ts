@@ -2,7 +2,11 @@ import type {
   GeoPoint,
   ProcessedTrack,
   ProcessedTrackPoint,
+  TrackDayMarker,
   TrackGap,
+  TrackPlaybackWindow,
+  TrackSplit,
+  TrackStats,
 } from "./types";
 import type { AisPositionRow } from "../supabase/types";
 
@@ -122,4 +126,107 @@ export function simplifyTrack(
   }
   result.push(points[points.length - 1]!);
   return result;
+}
+
+export function computeTrackStats(
+  points: readonly ProcessedTrackPoint[],
+): TrackStats {
+  if (points.length === 0) {
+    return {
+      pointCount: 0,
+      distanceNm: null,
+      startTs: "",
+      endTs: "",
+      durationHours: null,
+    };
+  }
+
+  let distanceNm = 0;
+  for (let i = 1; i < points.length; i++) {
+    distanceNm += haversineDistanceNm(points[i - 1]!, points[i]!);
+  }
+
+  const firstTs = new Date(points[0]!.ts).getTime();
+  const lastTs = new Date(points[points.length - 1]!.ts).getTime();
+  const durationHours = Number.isFinite(firstTs) && Number.isFinite(lastTs)
+    ? (lastTs - firstTs) / 3_600_000
+    : null;
+
+  return {
+    pointCount: points.length,
+    distanceNm: points.length > 1 ? Math.round(distanceNm * 100) / 100 : null,
+    startTs: points[0]!.ts,
+    endTs: points[points.length - 1]!.ts,
+    durationHours:
+      durationHours !== null ? Math.round(durationHours * 10) / 10 : null,
+  };
+}
+
+export function splitTrackAt(
+  points: readonly ProcessedTrackPoint[],
+  ts: string | null,
+): TrackSplit {
+  if (!ts || points.length === 0) {
+    return { lived: [...points], future: [] };
+  }
+
+  const target = new Date(ts).getTime();
+  const lived: ProcessedTrackPoint[] = [];
+  const future: ProcessedTrackPoint[] = [];
+
+  for (const point of points) {
+    if (new Date(point.ts).getTime() <= target) {
+      lived.push(point);
+    } else {
+      future.push(point);
+    }
+  }
+
+  return { lived, future };
+}
+
+export function computePlaybackWindow(
+  points: readonly ProcessedTrackPoint[],
+): TrackPlaybackWindow | null {
+  if (points.length < 2) return null;
+  const startTs = points[0]!.ts;
+  const endTs = points[points.length - 1]!.ts;
+  const durationMs =
+    new Date(endTs).getTime() - new Date(startTs).getTime();
+  if (!Number.isFinite(durationMs) || durationMs <= 0) return null;
+  return { startTs, endTs, durationMs };
+}
+
+export function computeDayMarkers(
+  points: readonly ProcessedTrackPoint[],
+): TrackDayMarker[] {
+  if (points.length < 2) return [];
+
+  const startMs = new Date(points[0]!.ts).getTime();
+  const endMs = new Date(points[points.length - 1]!.ts).getTime();
+  if (!Number.isFinite(startMs) || !Number.isFinite(endMs)) return [];
+
+  const DAY_MS = 24 * 60 * 60 * 1000;
+  const markers: TrackDayMarker[] = [];
+
+  let dayIndex = 0;
+  let boundaryMs = startMs + DAY_MS;
+  while (boundaryMs <= endMs) {
+    dayIndex += 1;
+    const position = interpolateTrackPoint(
+      points,
+      new Date(boundaryMs).toISOString(),
+    );
+    if (position) {
+      markers.push({
+        lat: position.lat,
+        lng: position.lng,
+        ts: new Date(boundaryMs).toISOString(),
+        dayIndex,
+      });
+    }
+    boundaryMs += DAY_MS;
+  }
+
+  return markers;
 }

@@ -102,3 +102,27 @@ export interface TrackGap {
   readonly toPoint: GeoPoint;
   readonly durationMinutes: number;
 }
+
+export interface TrackDayMarker extends GeoPoint {
+  readonly ts: string;
+  readonly dayIndex: number;
+}
+
+export interface TrackPlaybackWindow {
+  readonly startTs: string;
+  readonly endTs: string;
+  readonly durationMs: number;
+}
+
+export interface TrackSplit {
+  readonly lived: readonly ProcessedTrackPoint[];
+  readonly future: readonly ProcessedTrackPoint[];
+}
+
+export interface TrackStats {
+  readonly pointCount: number;
+  readonly distanceNm: number | null;
+  readonly startTs: string;
+  readonly endTs: string;
+  readonly durationHours: number | null;
+}

@@ -74,7 +74,7 @@ export function detectZoneTransition(
 }
 
 export function checkZoneAlerts(
-  trackPoints: readonly GeoPoint[],
+  trackPoints: readonly (GeoPoint & { ts?: string })[],
   zones: readonly EnvironmentalZone[],
   vesselId: string,
   now: string,
@@ -87,15 +87,19 @@ export function checkZoneAlerts(
       const prev: GeoPoint | null = i > 0 ? (trackPoints[i - 1] ?? null) : null;
       const eventType = detectZoneTransition(prev, current, zone);
       if (eventType === null) continue;
+      // Emit WITHIN only at the start of a contiguous run (prev is null),
+      // otherwise every inside point would generate a spurious event.
+      if (eventType === "WITHIN" && prev !== null) continue;
+      const eventTs = current.ts ?? now;
       const event: ZoneEvent = {
         id: "",
         vesselId,
         zoneId: zone.id,
         eventType,
         aisPositionId: null,
-        detectedAt: now,
-        entryTs: eventType === "ENTRY" ? now : null,
-        exitTs: eventType === "EXIT" ? now : null,
+        detectedAt: eventTs,
+        entryTs: eventType === "ENTRY" ? eventTs : null,
+        exitTs: eventType === "EXIT" ? eventTs : null,
         durationMinutes: null,
         coordinates: current,
         details: null,

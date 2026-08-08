@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAisPositions } from "@/hooks/use-ais-positions";
 import { useEnvironmentalZones } from "@/hooks/use-environmental-zones";
+import { useZoneEvents } from "@/hooks/use-zone-events";
 import { VesselMapView } from "@/components/map/vessel-map-view";
 import type { AisPositionRow } from "@/lib/supabase/types";
 
@@ -112,6 +113,7 @@ export default function AisPage() {
   } = useAisPositions(activeImo, 25);
 
   const { zones } = useEnvironmentalZones();
+  const { alerts: zoneAlerts } = useZoneEvents(activeImo);
 
   const handleLookup = () => {
     const trimmed = imoInput.trim();
@@ -226,7 +228,9 @@ export default function AisPage() {
                   }))}
                   vesselPosition={latestPos ? { lat: latestPos.latitude, lng: latestPos.longitude } : null}
                   vesselLabel={`IMO ${activeImo}`}
+                  vesselBearing={latestPos?.heading ?? null}
                   zones={zones.map((z) => ({ id: z.id, name: z.name, category: z.category, geometryCoordinates: z.geometry_coordinates, description: z.description }))}
+                  zoneAlerts={zoneAlerts}
                   height="h-64"
                 />
               </CardContent>

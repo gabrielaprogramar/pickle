@@ -20,6 +20,7 @@ import Link from "next/link";
 import { useVoyageDetail } from "@/hooks/use-voyage-detail";
 import { useVesselTrack } from "@/hooks/use-vessel-track";
 import { useEnvironmentalZones } from "@/hooks/use-environmental-zones";
+import { useZoneEvents } from "@/hooks/use-zone-events";
 import { VesselMapView } from "@/components/map/vessel-map-view";
 import { MAJOR_MED_PORTS } from "@/lib/geo/constants";
 
@@ -70,6 +71,7 @@ export default function VoyageDetailPage() {
   const imo = (voyageData?.vessel_imo as string | undefined) ?? null;
   const { track } = useVesselTrack(imo);
   const { zones } = useEnvironmentalZones();
+  const { alerts: zoneAlerts } = useZoneEvents(imo);
 
   const depCoords = voyage ? (MAJOR_MED_PORTS[voyage.departure_port_name] ?? null) : null;
   const arrCoords = voyage ? (MAJOR_MED_PORTS[voyage.arrival_port_name] ?? null) : null;
@@ -174,6 +176,7 @@ export default function VoyageDetailPage() {
               departurePort={depPort}
               arrivalPort={arrPort}
               zones={zones.map((z) => ({ id: z.id, name: z.name, category: z.category, geometryCoordinates: z.geometry_coordinates, description: z.description }))}
+              zoneAlerts={zoneAlerts}
               height="h-64"
             />
           </CardContent>

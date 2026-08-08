@@ -21,6 +21,7 @@ export function MapContainer({
 }: MapContainerProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<LMap | null>(null);
+  const observerRef = useRef<ResizeObserver | null>(null);
 
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
@@ -35,6 +36,7 @@ export function MapContainer({
         zoom,
         zoomControl: true,
         scrollWheelZoom: true,
+        preferCanvas: true,
       });
 
       L.tileLayer(
@@ -46,6 +48,13 @@ export function MapContainer({
         },
       ).addTo(map);
 
+      const el = mapRef.current;
+      const observer = new ResizeObserver(() => {
+        map.invalidateSize();
+      });
+      observer.observe(el!);
+      observerRef.current = observer;
+
       mapInstanceRef.current = map;
       onMapReady?.(map);
     };
@@ -53,16 +62,13 @@ export function MapContainer({
     initMap();
 
     return () => {
+      observerRef.current?.disconnect();
+      observerRef.current = null;
       mapInstanceRef.current?.remove();
       mapInstanceRef.current = null;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  useEffect(() => {
-    const map = mapInstanceRef.current;
-    if (!map) return;
-    map.setView([center.lat, center.lng], zoom);
-  }, [center.lat, center.lng, zoom]);
 
   return (
     <div ref={mapRef} className={className}>

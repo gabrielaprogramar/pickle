@@ -1,9 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import dynamic from "next/dynamic";
+import type { Map as LMap } from "leaflet";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { ProcessedTrackPoint } from "@/lib/geo/types";
+import type { ProcessedTrackPoint, ZoneAlert } from "@/lib/geo/types";
+import { computeDayMarkers, computeTrackStats, interpolateTrackPoint } from "@/lib/geo/track";
+import { useTrackPlayback } from "@/hooks/use-track-playback";
+import { DistanceScale } from "./distance-scale";
+import { NorthIndicator } from "./north-indicator";
+import { TrackLegend } from "./track-legend";
+import { Graticule } from "./graticule";
+import { TrackPlaybackBar } from "./track-playback-bar";
 
 const MapContainer = dynamic(
   () => import("./map-container").then((m) => ({ default: m.MapContainer })),
@@ -30,6 +38,16 @@ const ZoneLayer = dynamic(
   { ssr: false },
 );
 
+const ZoneEventMarkers = dynamic(
+  () => import("./zone-event-markers").then((m) => ({ default: m.ZoneEventMarkers })),
+  { ssr: false },
+);
+
+const DayMarkers = dynamic(
+  () => import("./day-markers").then((m) => ({ default: m.DayMarkers })),
+  { ssr: false },
+);
+
 interface ZoneDisplayData {
   id: string;
   name: string;
@@ -42,9 +60,11 @@ interface VesselMapViewProps {
   trackPoints?: readonly ProcessedTrackPoint[];
   vesselPosition?: { lat: number; lng: number } | null;
   vesselLabel?: string;
+  vesselBearing?: number | null;
   departurePort?: { lat: number; lng: number; name: string } | null;
   arrivalPort?: { lat: number; lng: number; name: string } | null;
   zones?: ZoneDisplayData[];
+  zoneAlerts?: ZoneAlert[];
   height?: string;
   className?: string;
 }
@@ -53,13 +73,30 @@ export function VesselMapView({
   trackPoints,
   vesselPosition,
   vesselLabel,
+  vesselBearing,
   departurePort,
   arrivalPort,
   zones,
+  zoneAlerts = [],
   height = "h-96",
   className = "",
 }: VesselMapViewProps) {
-  const [mapInstance, setMapInstance] = useState<L.Map | null>(null);
+  const [mapInstance, setMapInstance] = useState<LMap | null>(null);
+
+  const stats = useMemo(() => computeTrackStats(trackPoints ?? []), [trackPoints]);
+  const dayMarkers = useMemo(
+    () => computeDayMarkers(trackPoints ?? []),
+    [trackPoints],
+  );
+  const playback = useTrackPlayback(trackPoints);
+
+  const effectivePosition =
+    playback.playbackTs != null
+      ? interpolateTrackPoint(trackPoints ?? [], playback.playbackTs)
+      : (vesselPosition ?? null);
+
+  const showVessel =
+    playback.playbackTs != null ? effectivePosition != null : vesselPosition != null;
 
   if (!trackPoints && !vesselPosition && !departurePort && !arrivalPort) {
     return (
@@ -74,44 +111,81 @@ export function VesselMapView({
   }
 
   return (
-    <MapContainer
-      className={`${height} w-full rounded-md ${className}`}
-      center={vesselPosition ?? departurePort ?? { lat: 38.0, lng: 15.0 }}
-      zoom={vesselPosition ? 8 : 6}
-      onMapReady={setMapInstance}
-    >
-      {mapInstance && trackPoints && trackPoints.length >= 2 && (
-        <TrackLayer map={mapInstance} points={trackPoints} />
-      )}
-      {mapInstance && vesselPosition && (
-        <VesselMarker
-          map={mapInstance}
-          lat={vesselPosition.lat}
-          lng={vesselPosition.lng}
-          label={vesselLabel}
+    <div className={`relative ${className}`}>
+      <MapContainer
+        className={`${height} w-full rounded-md`}
+        center={vesselPosition ?? departurePort ?? { lat: 38.0, lng: 15.0 }}
+        zoom={vesselPosition ? 8 : 6}
+        onMapReady={setMapInstance}
+      >
+        {mapInstance && trackPoints && trackPoints.length >= 2 && (
+          <TrackLayer
+            map={mapInstance}
+            points={trackPoints}
+            cutoffTs={playback.playbackTs}
+          />
+        )}
+        {mapInstance && showVessel && effectivePosition && (
+          <VesselMarker
+            map={mapInstance}
+            lat={effectivePosition.lat}
+            lng={effectivePosition.lng}
+            label={vesselLabel}
+            bearing={playback.playbackTs != null ? null : vesselBearing}
+            timestamp={playback.playbackTs}
+          />
+        )}
+        {mapInstance && departurePort && (
+          <PortMarker
+            map={mapInstance}
+            lat={departurePort.lat}
+            lng={departurePort.lng}
+            name={departurePort.name}
+            type="departure"
+          />
+        )}
+        {mapInstance && arrivalPort && (
+          <PortMarker
+            map={mapInstance}
+            lat={arrivalPort.lat}
+            lng={arrivalPort.lng}
+            name={arrivalPort.name}
+            type="arrival"
+          />
+        )}
+        {mapInstance && zones && zones.length > 0 && (
+          <ZoneLayer map={mapInstance} zones={zones} />
+        )}
+        {mapInstance && (
+          <>
+            <ZoneEventMarkers map={mapInstance} alerts={zoneAlerts} />
+            <DayMarkers map={mapInstance} markers={dayMarkers} />
+            <Graticule map={mapInstance} />
+            <DistanceScale map={mapInstance} />
+            <NorthIndicator
+              map={mapInstance}
+              target={effectivePosition ?? departurePort ?? null}
+              bearing={vesselBearing}
+            />
+            <TrackLegend
+              stats={stats}
+              zoneEventCount={zoneAlerts.filter((a) => a.event.coordinates).length}
+            />
+          </>
+        )}
+      </MapContainer>
+
+      {playback.canPlayback && (
+        <TrackPlaybackBar
+          playbackTs={playback.playbackTs}
+          playing={playback.playing}
+          startTs={playback.startTs}
+          endTs={playback.endTs}
+          onScrub={playback.scrub}
+          onToggle={playback.toggle}
+          onReset={playback.reset}
         />
       )}
-      {mapInstance && departurePort && (
-        <PortMarker
-          map={mapInstance}
-          lat={departurePort.lat}
-          lng={departurePort.lng}
-          name={departurePort.name}
-          type="departure"
-        />
-      )}
-      {mapInstance && arrivalPort && (
-        <PortMarker
-          map={mapInstance}
-          lat={arrivalPort.lat}
-          lng={arrivalPort.lng}
-          name={arrivalPort.name}
-          type="arrival"
-        />
-      )}
-      {mapInstance && zones && zones.length > 0 && (
-        <ZoneLayer map={mapInstance} zones={zones} />
-      )}
-    </MapContainer>
+    </div>
   );
 }

@@ -89,6 +89,29 @@ describe("checkZoneAlerts", () => {
     expect(alerts).toHaveLength(0);
   });
 
+  it("does not emit repeated WITHIN for consecutive inside points", () => {
+    const track = [
+      { lat: 50.0, lng: -10.0 },
+      { lat: 38.0, lng: 15.0 },
+      { lat: 38.5, lng: 15.5 },
+      { lat: 39.0, lng: 16.0 },
+    ];
+    const alerts = checkZoneAlerts(track, [medSoxZone], "v1", "2026-01-01T00:00:00Z");
+    expect(alerts.filter((a) => a.event.eventType === "ENTRY")).toHaveLength(1);
+    expect(alerts.filter((a) => a.event.eventType === "WITHIN")).toHaveLength(0);
+  });
+
+  it("emits a single WITHIN for a track that starts inside the zone", () => {
+    const track = [
+      { lat: 38.0, lng: 15.0 },
+      { lat: 38.5, lng: 15.5 },
+      { lat: 39.0, lng: 16.0 },
+    ];
+    const alerts = checkZoneAlerts(track, [medSoxZone], "v1", "2026-01-01T00:00:00Z");
+    const within = alerts.filter((a) => a.event.eventType === "WITHIN");
+    expect(within).toHaveLength(1);
+  });
+
   it("skips inactive zones", () => {
     const inactive = { ...medSoxZone, isActive: false };
     const track = [{ lat: 50.0, lng: -10.0 }, { lat: 38.0, lng: 15.0 }];

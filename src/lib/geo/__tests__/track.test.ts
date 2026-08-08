@@ -1,5 +1,14 @@
 import { describe, it, expect } from "vitest";
-import { processAisTrack, validateCoordinate, simplifyTrack, interpolateTrackPoint } from "../track";
+import {
+  processAisTrack,
+  validateCoordinate,
+  simplifyTrack,
+  interpolateTrackPoint,
+  computeTrackStats,
+  splitTrackAt,
+  computePlaybackWindow,
+  computeDayMarkers,
+} from "../track";
 import type { AisPositionRow } from "../../supabase/types";
 
 function makePos(
@@ -143,5 +152,115 @@ describe("interpolateTrackPoint", () => {
     ];
     const result = interpolateTrackPoint(pts, "2026-01-01T04:00:00Z");
     expect(result!.lat).toBe(42.0);
+  });
+});
+
+describe("computeTrackStats", () => {
+  it("returns zeros for empty track", () => {
+    const stats = computeTrackStats([]);
+    expect(stats.pointCount).toBe(0);
+    expect(stats.distanceNm).toBeNull();
+    expect(stats.durationHours).toBeNull();
+  });
+
+  it("returns null distance for single point", () => {
+    const pts = [
+      { lat: 43.58, lng: 7.13, ts: "2026-01-01T00:00:00Z", sog: null, cog: null, heading: null, navStatus: null },
+    ];
+    const stats = computeTrackStats(pts);
+    expect(stats.pointCount).toBe(1);
+    expect(stats.distanceNm).toBeNull();
+    expect(stats.durationHours).toBe(0);
+  });
+
+  it("computes distance and duration across the track", () => {
+    const pts = [
+      { lat: 43.58, lng: 7.13, ts: "2026-01-01T00:00:00Z", sog: null, cog: null, heading: null, navStatus: null },
+      { lat: 39.57, lng: 2.64, ts: "2026-01-01T12:00:00Z", sog: null, cog: null, heading: null, navStatus: null },
+    ];
+    const stats = computeTrackStats(pts);
+    expect(stats.distanceNm).toBeGreaterThan(200);
+    expect(stats.durationHours).toBe(12);
+  });
+});
+
+describe("splitTrackAt", () => {
+  const pts = [
+    { lat: 40.0, lng: 5.0, ts: "2026-01-01T00:00:00Z", sog: null, cog: null, heading: null, navStatus: null },
+    { lat: 41.0, lng: 6.0, ts: "2026-01-01T01:00:00Z", sog: null, cog: null, heading: null, navStatus: null },
+    { lat: 42.0, lng: 7.0, ts: "2026-01-01T02:00:00Z", sog: null, cog: null, heading: null, navStatus: null },
+  ];
+
+  it("returns all lived when ts is null", () => {
+    const split = splitTrackAt(pts, null);
+    expect(split.lived).toHaveLength(3);
+    expect(split.future).toHaveLength(0);
+  });
+
+  it("splits at the given timestamp", () => {
+    const split = splitTrackAt(pts, "2026-01-01T01:00:00Z");
+    expect(split.lived).toHaveLength(2);
+    expect(split.future).toHaveLength(1);
+    expect(split.future[0]!.ts).toBe("2026-01-01T02:00:00Z");
+  });
+
+  it("returns empty lived before the first point", () => {
+    const split = splitTrackAt(pts, "2025-12-31T00:00:00Z");
+    expect(split.lived).toHaveLength(0);
+    expect(split.future).toHaveLength(3);
+  });
+});
+
+describe("computePlaybackWindow", () => {
+  it("returns null for fewer than 2 points", () => {
+    const pts = [
+      { lat: 40.0, lng: 5.0, ts: "2026-01-01T00:00:00Z", sog: null, cog: null, heading: null, navStatus: null },
+    ];
+    expect(computePlaybackWindow(pts)).toBeNull();
+    expect(computePlaybackWindow([])).toBeNull();
+  });
+
+  it("computes start, end and duration", () => {
+    const pts = [
+      { lat: 40.0, lng: 5.0, ts: "2026-01-01T00:00:00Z", sog: null, cog: null, heading: null, navStatus: null },
+      { lat: 41.0, lng: 6.0, ts: "2026-01-02T00:00:00Z", sog: null, cog: null, heading: null, navStatus: null },
+    ];
+    const window = computePlaybackWindow(pts);
+    expect(window).not.toBeNull();
+    expect(window!.durationMs).toBe(24 * 60 * 60 * 1000);
+  });
+
+  it("returns null when duration is zero", () => {
+    const pts = [
+      { lat: 40.0, lng: 5.0, ts: "2026-01-01T00:00:00Z", sog: null, cog: null, heading: null, navStatus: null },
+      { lat: 41.0, lng: 6.0, ts: "2026-01-01T00:00:00Z", sog: null, cog: null, heading: null, navStatus: null },
+    ];
+    expect(computePlaybackWindow(pts)).toBeNull();
+  });
+});
+
+describe("computeDayMarkers", () => {
+  const pts = [
+    { lat: 40.0, lng: 5.0, ts: "2026-01-01T00:00:00Z", sog: null, cog: null, heading: null, navStatus: null },
+    { lat: 41.0, lng: 6.0, ts: "2026-01-02T00:00:00Z", sog: null, cog: null, heading: null, navStatus: null },
+    { lat: 42.0, lng: 7.0, ts: "2026-01-03T12:00:00Z", sog: null, cog: null, heading: null, navStatus: null },
+  ];
+
+  it("places a marker at each 24h boundary within the track", () => {
+    const markers = computeDayMarkers(pts);
+    expect(markers).toHaveLength(2);
+    expect(markers[0]!.dayIndex).toBe(1);
+    expect(new Date(markers[0]!.ts).getTime()).toBe(
+      new Date("2026-01-02T00:00:00Z").getTime(),
+    );
+    expect(markers[0]!.lat).toBeCloseTo(41.0, 5);
+  });
+
+  it("returns empty for fewer than 2 points", () => {
+    const single = [
+      { lat: 40.0, lng: 5.0, ts: "2026-01-01T00:00:00Z", sog: null, cog: null, heading: null, navStatus: null },
+    ];
+    expect(computeDayMarkers(single)).toHaveLength(0);
+    expect(computeDayMarkers([])).toHaveLength(0);
   });
 });
