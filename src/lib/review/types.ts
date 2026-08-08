@@ -86,7 +86,7 @@ export interface ReviewProvider {
 }
 
 export const REVIEW_MOCK_REVIEWERS = [
-  "alice@poseidon-ledger.io",
-  "bob@poseidon-ledger.io",
-  "carol@poseidon-ledger.io",
+  "alice@poseidonledger.com",
+  "bob@poseidonledger.com",
+  "carol@poseidonledger.com",
 ] as const;

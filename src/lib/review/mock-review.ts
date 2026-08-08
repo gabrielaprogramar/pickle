@@ -6,7 +6,7 @@ import type {
 } from "./types";
 
 const NOW = "2026-07-29T10:00:00.000Z";
-const REVIEWER = "alice@poseidon-ledger.io";
+const REVIEWER = "alice@poseidonledger.com";
 
 function makeFieldReview(
   overrides: Partial<FieldReview> & { fieldName: string; extractedValue: unknown },
@@ -141,7 +141,7 @@ const EU_ETS_TASK: ReviewTaskDetail = {
   task: {
     id: "review-euets-001",
     document_id: "doc-euets-001",
-    assigned_to: "bob@poseidon-ledger.io",
+    assigned_to: "bob@poseidonledger.com",
     status: "in_progress",
     priority: "urgent",
     due_at: "2026-08-01T10:00:00.000Z",
@@ -185,7 +185,7 @@ const EU_ETS_TASK: ReviewTaskDetail = {
       reviewTaskId: "review-euets-001",
       action: "assigned",
       reviewer: "system",
-      notes: "Task assigned to bob@poseidon-ledger.io",
+      notes: "Task assigned to bob@poseidonledger.com",
       createdAt: "2026-07-27T14:00:00.000Z",
     },
   ],
@@ -195,7 +195,7 @@ const COMPLETED_TASK: ReviewTaskDetail = {
   task: {
     id: "review-completed-001",
     document_id: "doc-completed-001",
-    assigned_to: "carol@poseidon-ledger.io",
+    assigned_to: "carol@poseidonledger.com",
     status: "completed",
     priority: "high",
     due_at: "2026-07-20T10:00:00.000Z",
@@ -231,18 +231,18 @@ const COMPLETED_TASK: ReviewTaskDetail = {
   },
   ocrText: "BUNKER DELIVERY NOTE\n\nIMO: 9876543\nVessel: Test Vessel\nPort: Singapore\nDate: 2026-05-20\nFuel: VLSFO\nQty: 2,000 MT\nSulphur: 0.48%\nDensity: 978 kg/m³",
   fieldReviews: [
-    makeFieldReview({ fieldName: "imoNumber", extractedValue: "9876543", status: "approved", reviewedValue: "9876543", reviewer: "carol@poseidon-ledger.io", reviewedAt: "2026-07-19T15:30:00.000Z" }),
-    makeFieldReview({ fieldName: "vesselName", extractedValue: "Test Vessel", status: "approved", reviewedValue: "Test Vessel", reviewer: "carol@poseidon-ledger.io", reviewedAt: "2026-07-19T15:30:00.000Z" }),
-    makeFieldReview({ fieldName: "deliveryDate", extractedValue: "2026-05-20", status: "approved", reviewedValue: "2026-05-20", reviewer: "carol@poseidon-ledger.io", reviewedAt: "2026-07-19T15:30:00.000Z" }),
-    makeFieldReview({ fieldName: "quantityTonnes", extractedValue: 2000, status: "edited", reviewedValue: 2050, reviewer: "carol@poseidon-ledger.io", reviewedAt: "2026-07-19T15:45:00.000Z", comment: "Corrected per physical BDN: 2,050 MT" }),
-    makeFieldReview({ fieldName: "sulphurContentPct", extractedValue: 0.48, status: "approved", reviewedValue: 0.48, reviewer: "carol@poseidon-ledger.io", reviewedAt: "2026-07-19T15:30:00.000Z" }),
-    makeFieldReview({ fieldName: "port", extractedValue: "Singapore", status: "approved", reviewedValue: "Singapore", reviewer: "carol@poseidon-ledger.io", reviewedAt: "2026-07-19T15:30:00.000Z" }),
+    makeFieldReview({ fieldName: "imoNumber", extractedValue: "9876543", status: "approved", reviewedValue: "9876543", reviewer: "carol@poseidonledger.com", reviewedAt: "2026-07-19T15:30:00.000Z" }),
+    makeFieldReview({ fieldName: "vesselName", extractedValue: "Test Vessel", status: "approved", reviewedValue: "Test Vessel", reviewer: "carol@poseidonledger.com", reviewedAt: "2026-07-19T15:30:00.000Z" }),
+    makeFieldReview({ fieldName: "deliveryDate", extractedValue: "2026-05-20", status: "approved", reviewedValue: "2026-05-20", reviewer: "carol@poseidonledger.com", reviewedAt: "2026-07-19T15:30:00.000Z" }),
+    makeFieldReview({ fieldName: "quantityTonnes", extractedValue: 2000, status: "edited", reviewedValue: 2050, reviewer: "carol@poseidonledger.com", reviewedAt: "2026-07-19T15:45:00.000Z", comment: "Corrected per physical BDN: 2,050 MT" }),
+    makeFieldReview({ fieldName: "sulphurContentPct", extractedValue: 0.48, status: "approved", reviewedValue: 0.48, reviewer: "carol@poseidonledger.com", reviewedAt: "2026-07-19T15:30:00.000Z" }),
+    makeFieldReview({ fieldName: "port", extractedValue: "Singapore", status: "approved", reviewedValue: "Singapore", reviewer: "carol@poseidonledger.com", reviewedAt: "2026-07-19T15:30:00.000Z" }),
   ],
   auditHistory: [
-    { id: "audit-c-001", reviewTaskId: "review-completed-001", action: "assigned", reviewer: "system", notes: "Task assigned to carol@poseidon-ledger.io", createdAt: "2026-07-18T08:00:00.000Z" },
-    { id: "audit-c-002", reviewTaskId: "review-completed-001", action: "field_approved", fieldName: "imoNumber", reviewer: "carol@poseidon-ledger.io", createdAt: "2026-07-19T15:30:00.000Z" },
-    { id: "audit-c-003", reviewTaskId: "review-completed-001", action: "field_edited", fieldName: "quantityTonnes", previousValue: 2000, newValue: 2050, reviewer: "carol@poseidon-ledger.io", notes: "Corrected per physical BDN", createdAt: "2026-07-19T15:45:00.000Z" },
-    { id: "audit-c-004", reviewTaskId: "review-completed-001", action: "approved", reviewer: "carol@poseidon-ledger.io", notes: "All fields verified against physical BDN. Approved.", createdAt: "2026-07-19T16:00:00.000Z" },
+    { id: "audit-c-001", reviewTaskId: "review-completed-001", action: "assigned", reviewer: "system", notes: "Task assigned to carol@poseidonledger.com", createdAt: "2026-07-18T08:00:00.000Z" },
+    { id: "audit-c-002", reviewTaskId: "review-completed-001", action: "field_approved", fieldName: "imoNumber", reviewer: "carol@poseidonledger.com", createdAt: "2026-07-19T15:30:00.000Z" },
+    { id: "audit-c-003", reviewTaskId: "review-completed-001", action: "field_edited", fieldName: "quantityTonnes", previousValue: 2000, newValue: 2050, reviewer: "carol@poseidonledger.com", notes: "Corrected per physical BDN", createdAt: "2026-07-19T15:45:00.000Z" },
+    { id: "audit-c-004", reviewTaskId: "review-completed-001", action: "approved", reviewer: "carol@poseidonledger.com", notes: "All fields verified against physical BDN. Approved.", createdAt: "2026-07-19T16:00:00.000Z" },
   ],
 };
 

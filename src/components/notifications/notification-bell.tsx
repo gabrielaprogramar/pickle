@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Bell } from "lucide-react";
+import { NotificationPanel } from "@/components/notifications/notification-panel";
 
 interface NotificationBellProps {
   readonly recipientId?: string;
@@ -10,8 +12,9 @@ interface NotificationBellProps {
 export function NotificationBell({ recipientId = "default", onOpen }: NotificationBellProps) {
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
+  const refreshCount = useCallback(() => {
     fetch(`/api/notifications/unread-count?recipient_id=${encodeURIComponent(recipientId)}`)
       .then((r) => r.json())
       .then((json) => {
@@ -22,29 +25,56 @@ export function NotificationBell({ recipientId = "default", onOpen }: Notificati
       .catch(() => {});
   }, [recipientId]);
 
-  const handleClick = () => {
-    setIsOpen(!isOpen);
-    onOpen?.();
+  useEffect(() => {
+    refreshCount();
+  }, [refreshCount]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const onPointerDown = (e: PointerEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsOpen(false);
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [isOpen]);
+
+  const handleToggle = () => {
+    const next = !isOpen;
+    setIsOpen(next);
+    if (next) {
+      onOpen?.();
+      refreshCount();
+    }
   };
 
   return (
-    <div className="relative inline-block">
+    <div className="relative" ref={containerRef}>
       <button
-        onClick={handleClick}
-        className="relative p-2 text-gray-600 hover:text-gray-900 focus:outline-none"
+        type="button"
+        onClick={handleToggle}
+        aria-expanded={isOpen}
         aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ""}`}
+        className="relative inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-sidebar-accent/60 hover:text-foreground focus:outline-none focus-visible:ring-1 focus-visible:ring-ring"
       >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-          />
-        </svg>
+        <Bell className="h-4 w-4" />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-white bg-red-500 rounded-full">
+          <span className="absolute -right-0.5 -top-0.5 inline-flex min-w-[1.1rem] items-center justify-center rounded-full bg-primary px-1 py-px font-mono text-[9px] font-semibold leading-none text-primary-foreground ring-2 ring-card">
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}
       </button>
+      {isOpen && (
+        <NotificationPanel recipientId={recipientId} onClose={() => setIsOpen(false)} onChanged={refreshCount} />
+      )}
     </div>
   );
 }

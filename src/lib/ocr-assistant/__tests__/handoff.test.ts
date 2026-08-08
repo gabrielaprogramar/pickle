@@ -114,14 +114,14 @@ describe("complianceOcrExplanation — compliance surface", () => {
   it("explains what blocks a compliance decision with missing fields", () => {
     const text = complianceOcrExplanation({
       documentId: "ocr-doc-blurred-certificate",
-      title: "IAPP Certificate — Aurora (blurred)",
+      title: "IAPP Certificate — Aurelia (blurred)",
       level: "MEDIUM",
       priority: "HIGH",
       family: "CERTIFICATE",
       overallQualityScore: 0.777,
       missingMandatoryFields: ["validUntil"],
     });
-    expect(text).toContainString("IAPP Certificate — Aurora (blurred)");
+    expect(text).toContainString("IAPP Certificate — Aurelia (blurred)");
     expect(text).toContainString("OCR quality medium");
     expect(text).toContainString("certificate document");
     expect(text).toContainString("mandatory field(s) could not be read: validUntil");
@@ -133,7 +133,7 @@ describe("complianceOcrExplanation — compliance surface", () => {
   it("omits the missing-field sentence when everything was read", () => {
     const text = complianceOcrExplanation({
       documentId: "ocr-doc-perfect-bdn",
-      title: "BDN — Aurora (Singapore, 2026-07-18)",
+      title: "BDN — Aurelia (Singapore, 2026-07-18)",
       level: "HIGH",
       priority: "LOW",
       family: "BDN",

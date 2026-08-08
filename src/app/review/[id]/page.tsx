@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { DEMO_OWNER } from "@/constants/demo";
 import { ArrowLeft, Clock, History, MessageSquare, UserCheck, UserPlus } from "lucide-react";
 
 const STATUS_VARIANTS: Record<string, "default" | "warning" | "success" | "destructive" | "muted" | "outline" | "secondary"> = {
@@ -39,7 +40,7 @@ const ACTION_LABELS: Record<string, string> = {
   comment_added: "Comment",
 };
 
-const DEFAULT_REVIEWER = "reviewer@poseidon-ledger.io";
+const DEFAULT_REVIEWER = DEMO_OWNER.email;
 
 export default function ReviewDetailPage() {
   const params = useParams();

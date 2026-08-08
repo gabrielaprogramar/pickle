@@ -214,13 +214,13 @@ const OCR_MIRROR_DEFS: ReadonlyArray<{
   readonly confidence: number;
   readonly offsetMs: number;
 }> = [
-  { documentId: "ocr-doc-perfect-bdn", documentTitle: "BDN — Aurora (Singapore, 2026-07-18)", confidence: 0.95, offsetMs: -8 * DAY },
-  { documentId: "ocr-doc-rotated-bdn", documentTitle: "BDN — Aurora (rotated 90°)", confidence: 0.6, offsetMs: -7 * DAY },
-  { documentId: "ocr-doc-blurred-certificate", documentTitle: "IAPP Certificate — Aurora (blurred)", confidence: 0.45, offsetMs: -7 * DAY },
-  { documentId: "ocr-doc-unreadable-noon-report", documentTitle: "Noon Report — Aurora (unreadable)", confidence: 0.2, offsetMs: -7 * DAY },
-  { documentId: "ocr-doc-mixed-language", documentTitle: "BDN — Aurora (mixed-language supplier block)", confidence: 0.8, offsetMs: -6 * DAY },
-  { documentId: "ocr-doc-duplicate-scan", documentTitle: "BDN — Aurora (duplicate page scan)", confidence: 0.75, offsetMs: -6 * DAY },
-  { documentId: "ocr-doc-damaged-scan", documentTitle: "EU ETS Report — Aurora (damaged scan)", confidence: 0.3, offsetMs: -6 * DAY },
+  { documentId: "ocr-doc-perfect-bdn", documentTitle: "BDN — Aurelia (Singapore, 2026-07-18)", confidence: 0.95, offsetMs: -8 * DAY },
+  { documentId: "ocr-doc-rotated-bdn", documentTitle: "BDN — Aurelia (rotated 90°)", confidence: 0.6, offsetMs: -7 * DAY },
+  { documentId: "ocr-doc-blurred-certificate", documentTitle: "IAPP Certificate — Aurelia (blurred)", confidence: 0.45, offsetMs: -7 * DAY },
+  { documentId: "ocr-doc-unreadable-noon-report", documentTitle: "Noon Report — Aurelia (unreadable)", confidence: 0.2, offsetMs: -7 * DAY },
+  { documentId: "ocr-doc-mixed-language", documentTitle: "BDN — Aurelia (mixed-language supplier block)", confidence: 0.8, offsetMs: -6 * DAY },
+  { documentId: "ocr-doc-duplicate-scan", documentTitle: "BDN — Aurelia (duplicate page scan)", confidence: 0.75, offsetMs: -6 * DAY },
+  { documentId: "ocr-doc-damaged-scan", documentTitle: "EU ETS Report — Aurelia (damaged scan)", confidence: 0.3, offsetMs: -6 * DAY },
   { documentId: "ocr-doc-wrong-type", documentTitle: "Uploaded as Certificate — content is a BDN", confidence: 0.95, offsetMs: -5 * DAY },
 ];
 

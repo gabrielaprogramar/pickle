@@ -36,8 +36,8 @@ function words(counts: {
 const PERFECT_BDN_TEXT = [
   "BUNKER DELIVERY NOTE",
   "Delivery Note No.: BDN-2026-0718",
-  "Vessel: M/T Aurora",
-  "IMO No.: 9321483",
+  "Vessel: M/T Aurelia",
+  "IMO No.: 9074729",
   "Port of Delivery: Singapore",
   "Supplier: Oceania Marine Fuels Pte Ltd",
   "Delivery Date: 2026-07-18",
@@ -52,7 +52,7 @@ const PERFECT_BDN_TEXT = [
 const ROTATED_BDN_TEXT = [
   "BUNKER DELIVERY NOTE (scanned rotated 90deg)",
   "Delivery Note No.: BDN-2026-0719",
-  "Vessel: AURORA",
+  "Vessel: AURELIA",
   "IMO No.: 9321481",
   "Port of Delivery: Singapore",
   "SuppIier: Oceania Marine Fuels Pte Ltd",
@@ -67,15 +67,15 @@ const BLURRED_CERT_TEXT = [
   "Certificate No.: IAPP 2024 0581",
   "Issued by: DNV (Det Norske Veritas)",
   "Date of Issue: 2024-05-11",
-  "Vessel: M/T Aurora",
-  "IMO No.: 9321483",
+  "Vessel: M/T Aurelia",
+  "IMO No.: 9074729",
   "Class Society: DNV",
   "Flag State: Marshall Islands",
 ].join("\n");
 
 const UNREADABLE_NOON_TEXT = [
   "NOON REPORT",
-  "Vessel: AURORA",
+  "Vessel: AURELIA",
   "Pos1tion: ###",
   "D1stance: ###",
   "RPM: ###",
@@ -84,8 +84,8 @@ const UNREADABLE_NOON_TEXT = [
 
 const MIXED_LANGUAGE_BDN_TEXT = [
   "BUNKER DELIVERY NOTE",
-  "Vessel: AURORA",
-  "IMO No.: 9321483",
+  "Vessel: AURELIA",
+  "IMO No.: 9074729",
   "Port of Delivery: Singapore",
   "Supplier: Группа Океан Топливо",
   "Delivery Date: 2026-07-20",
@@ -95,8 +95,8 @@ const MIXED_LANGUAGE_BDN_TEXT = [
 
 const DUPLICATE_SCAN_TEXT = [
   "BUNKER DELIVERY NOTE",
-  "Vessel: AURORA",
-  "IMO No.: 9321483",
+  "Vessel: AURELIA",
+  "IMO No.: 9074729",
   "Port of Delivery: Singapore",
   "Delivery Date: 2026-07-21",
   "Fuel Type: VLSFO",
@@ -107,8 +107,8 @@ const DUPLICATE_SCAN_TEXT = [
 
 const DAMAGED_ETS_TEXT = [
   "EU ETS REP0RT",
-  "Vess@l: AURORA",
-  "IMO No.: 9321483",
+  "Vess@l: AURELIA",
+  "IMO No.: 9074729",
   "Reporting Period: 2025",
   "Tota1 C02 Em1ss1ons: ###",
   "EU Allowances: ###",
@@ -116,7 +116,7 @@ const DAMAGED_ETS_TEXT = [
 
 const CROPPED_STATEMENT_TEXT = [
   "ACCOUNT STATEMENT",
-  "Account Holder: Aurora Shipping Pte Ltd",
+  "Account Holder: Poseidon Shipping Ltd.",
   "Statement Period: 2026-07",
   "Opening Balance: USD 12,400.00",
   "[bottom cropped — closing balance not captured]",
@@ -125,8 +125,8 @@ const CROPPED_STATEMENT_TEXT = [
 const WRONG_TYPE_BDN_TEXT = [
   "BUNKER DELIVERY NOTE",
   "Delivery Note No.: BDN-2026-0722",
-  "Vessel: M/T Aurora",
-  "IMO No.: 9321483",
+  "Vessel: M/T Aurelia",
+  "IMO No.: 9074729",
   "Port of Delivery: Fujairah",
   "Supplier: Gulf Marine Bunkers FZE",
   "Delivery Date: 2026-07-22",
@@ -141,13 +141,13 @@ const WRONG_TYPE_BDN_TEXT = [
 export const OCR_MOCK_DOCUMENTS: ReadonlyArray<OcrMockDocument> = [
   {
     id: "ocr-doc-perfect-bdn",
-    title: "BDN — Aurora (Singapore, 2026-07-18)",
+    title: "BDN — Aurelia (Singapore, 2026-07-18)",
     declaredType: "BDN",
     family: "BDN",
     rawText: PERFECT_BDN_TEXT,
     extractedData: {
-      imoNumber: "9321483",
-      vesselName: "AURORA",
+      imoNumber: "9074729",
+      vesselName: "AURELIA",
       port: "Singapore",
       deliveryDate: "2026-07-18",
       fuelType: "VLSFO",
@@ -165,13 +165,13 @@ export const OCR_MOCK_DOCUMENTS: ReadonlyArray<OcrMockDocument> = [
   },
   {
     id: "ocr-doc-rotated-bdn",
-    title: "BDN — Aurora (rotated 90°)",
+    title: "BDN — Aurelia (rotated 90°)",
     declaredType: "BDN",
     family: "BDN",
     rawText: ROTATED_BDN_TEXT,
     extractedData: {
       imoNumber: "9321481",
-      vesselName: "AURORA",
+      vesselName: "AURELIA",
       port: "Singapore",
       fuelType: "VLSF0",
       quantityTonnes: 420,
@@ -186,7 +186,7 @@ export const OCR_MOCK_DOCUMENTS: ReadonlyArray<OcrMockDocument> = [
   },
   {
     id: "ocr-doc-blurred-certificate",
-    title: "IAPP Certificate — Aurora (blurred)",
+    title: "IAPP Certificate — Aurelia (blurred)",
     declaredType: "CERTIFICATE",
     family: "CERTIFICATE",
     rawText: BLURRED_CERT_TEXT,
@@ -195,8 +195,8 @@ export const OCR_MOCK_DOCUMENTS: ReadonlyArray<OcrMockDocument> = [
       certificateNumber: "IAPP 2024 0581",
       issuer: "DNV",
       issueDate: "2024-05-11",
-      vesselName: "AURORA",
-      imoNumber: "9321483",
+      vesselName: "AURELIA",
+      imoNumber: "9074729",
       classSociety: "DNV",
       flagState: "Marshall Islands",
     },
@@ -208,7 +208,7 @@ export const OCR_MOCK_DOCUMENTS: ReadonlyArray<OcrMockDocument> = [
   },
   {
     id: "ocr-doc-unreadable-noon-report",
-    title: "Noon Report — Aurora (unreadable)",
+    title: "Noon Report — Aurelia (unreadable)",
     declaredType: "NOON_REPORT",
     family: "NOON_REPORT",
     rawText: UNREADABLE_NOON_TEXT,
@@ -221,13 +221,13 @@ export const OCR_MOCK_DOCUMENTS: ReadonlyArray<OcrMockDocument> = [
   },
   {
     id: "ocr-doc-mixed-language",
-    title: "BDN — Aurora (mixed-language supplier block)",
+    title: "BDN — Aurelia (mixed-language supplier block)",
     declaredType: "BDN",
     family: "BDN",
     rawText: MIXED_LANGUAGE_BDN_TEXT,
     extractedData: {
-      imoNumber: "9321483",
-      vesselName: "AURORA",
+      imoNumber: "9074729",
+      vesselName: "AURELIA",
       port: "Singapore",
       deliveryDate: "2026-07-20",
       fuelType: "MGO",
@@ -242,13 +242,13 @@ export const OCR_MOCK_DOCUMENTS: ReadonlyArray<OcrMockDocument> = [
   },
   {
     id: "ocr-doc-duplicate-scan",
-    title: "BDN — Aurora (duplicate page scan)",
+    title: "BDN — Aurelia (duplicate page scan)",
     declaredType: "BDN",
     family: "BDN",
     rawText: DUPLICATE_SCAN_TEXT,
     extractedData: {
-      imoNumber: "9321483",
-      vesselName: "AURORA",
+      imoNumber: "9074729",
+      vesselName: "AURELIA",
       port: "Singapore",
       deliveryDate: "2026-07-21",
       fuelType: "VLSFO",
@@ -265,7 +265,7 @@ export const OCR_MOCK_DOCUMENTS: ReadonlyArray<OcrMockDocument> = [
   },
   {
     id: "ocr-doc-damaged-scan",
-    title: "EU ETS Report — Aurora (damaged scan)",
+    title: "EU ETS Report — Aurelia (damaged scan)",
     declaredType: "EU_ETS",
     family: "EU_ETS",
     rawText: DAMAGED_ETS_TEXT,
@@ -278,12 +278,12 @@ export const OCR_MOCK_DOCUMENTS: ReadonlyArray<OcrMockDocument> = [
   },
   {
     id: "ocr-doc-cropped-statement",
-    title: "Account Statement — Aurora Shipping (cropped)",
+    title: "Account Statement — Aurelia Shipping (cropped)",
     declaredType: "STATEMENT",
     family: "STATEMENT",
     rawText: CROPPED_STATEMENT_TEXT,
     extractedData: {
-      accountHolder: "Aurora Shipping Pte Ltd",
+      accountHolder: "Poseidon Shipping Ltd.",
       period: "2026-07",
       openingBalance: "USD 12,400.00",
     },
@@ -300,8 +300,8 @@ export const OCR_MOCK_DOCUMENTS: ReadonlyArray<OcrMockDocument> = [
     family: "BDN",
     rawText: WRONG_TYPE_BDN_TEXT,
     extractedData: {
-      imoNumber: "9321483",
-      vesselName: "AURORA",
+      imoNumber: "9074729",
+      vesselName: "AURELIA",
       port: "Fujairah",
       deliveryDate: "2026-07-22",
       fuelType: "IFO380",

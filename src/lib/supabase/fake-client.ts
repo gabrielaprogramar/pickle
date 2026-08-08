@@ -369,7 +369,7 @@ class FakeQueryBuilder {
           }
         }
 
-        return success(matched);
+        return successWithCount(matched, matched.length);
       }
 
       case "select": {
