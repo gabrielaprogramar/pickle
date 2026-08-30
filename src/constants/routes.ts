@@ -12,6 +12,7 @@ export const ROUTES = {
   reviewDetail: (id: string) => `/review/${id}`,
   ocr: "/ocr",
   compliance: "/compliance",
+  euEts: "/eu-ets",
   dnv: "/dnv",
   analytics: "/analytics",
   settings: "/settings",

@@ -17,6 +17,7 @@ import {
   Wrench,
   Compass,
   Waves,
+  Coins,
   type LucideIcon,
 } from "lucide-react";
 import { ROUTES } from "./routes";
@@ -105,6 +106,7 @@ export const NAVIGATION: readonly NavSection[] = [
     items: [
       { label: "OCR", href: ROUTES.ocr, icon: ScanEye },
       { label: "Compliance", href: ROUTES.compliance, icon: ShieldCheck },
+      { label: "EU ETS", href: ROUTES.euEts, icon: Coins },
       { label: "DNV", href: ROUTES.dnv, icon: Building2, disabled: true },
       { label: "Analytics", href: ROUTES.analytics, icon: BarChart3 },
     ],
