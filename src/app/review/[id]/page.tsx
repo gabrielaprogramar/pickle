@@ -48,7 +48,7 @@ export default function ReviewDetailPage() {
   const { detail, loading, error, refetch } = useReviewTaskDetail(taskId);
   const { submitAction, submitting, actionError } = useReviewActions(taskId ?? "");
 
-  const [reviewer, setReviewer] = useState(DEFAULT_REVIEWER);
+  const [reviewer, setReviewer] = useState<string>(DEFAULT_REVIEWER);
   const [notes, setNotes] = useState("");
   const [newFieldValue, setNewFieldValue] = useState<string>("");
   const [editingField, setEditingField] = useState<string | null>(null);

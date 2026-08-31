@@ -15,6 +15,7 @@
 import { NextRequest } from "next/server";
 import { apiCreated, apiError, parseJsonBody } from "@/app/api/_lib/http";
 import { VALIDATION_ERROR } from "@/app/api/_lib/errors";
+import { AUDIT_FLEET_SIZES } from "@/lib/constants";
 
 export interface AuditRequestPayload {
   readonly firstName?: unknown;
@@ -33,13 +34,6 @@ export interface AuditRequestPayload {
   readonly simRevenueRisk?: unknown;
   readonly simNetValue?: unknown;
 }
-
-export const AUDIT_FLEET_SIZES = [
-  "1–5 vessels",
-  "6–15 vessels",
-  "16–30 vessels",
-  "30+ vessels",
-] as const;
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
