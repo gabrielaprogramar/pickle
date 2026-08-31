@@ -293,7 +293,7 @@ export default function AnalyticsPage() {
             {isLoading ? (
               <Skeleton className="h-40 w-full" />
             ) : (
-              <GroupedBarChart series={ghgSeries} targetLabel="2026 target: 89.9 g/MJ" />
+              <GroupedBarChart series={ghgSeries} targetLabel="2026 target: 89.3 g/MJ" />
             )}
             <div className="mt-1 flex items-center justify-center gap-4 font-mono text-[10px] uppercase tracking-wide text-muted-foreground">
               <span className="flex items-center gap-1.5">

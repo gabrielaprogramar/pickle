@@ -172,12 +172,12 @@ export default function DashboardPage() {
         </p>
         <div className="mt-2 flex items-center gap-3 font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground/80">
           <LivePulse
-            tone={stats.latestUpdate && Date.now() - new Date(stats.latestUpdate).getTime() < 30 * 60 * 1000 ? "teal" : "gold"}
-            label={stats.latestUpdate ? "AIS LIVE" : "AIS OFFLINE"}
+            tone="muted"
+            label={stats.latestUpdate ? "AIS · seeded data" : "No AIS data"}
           />
           <span>
             {stats.latestUpdate
-              ? `last sync ${formatTimestamp(stats.latestUpdate)}`
+              ? `last position ${formatTimestamp(stats.latestUpdate)}`
               : "no position signal yet"}
           </span>
         </div>
@@ -315,7 +315,7 @@ export default function DashboardPage() {
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">MarineTraffic</span>
-                <Badge variant="muted" className="text-[9px]">Connected</Badge>
+                <Badge variant="outline" className="text-[9px]">Not connected</Badge>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">OCR Engine</span>

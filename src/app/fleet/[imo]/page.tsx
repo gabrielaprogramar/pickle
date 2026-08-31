@@ -243,7 +243,7 @@ export default function VesselDetailPage() {
               Latest AIS Position
             </CardTitle>
             {latestPosition && (
-              <Badge variant="success" className="text-[9px]">Latest</Badge>
+              <Badge variant="warning" className="text-[9px]">Seeded</Badge>
             )}
           </CardHeader>
           <CardContent>

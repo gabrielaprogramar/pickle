@@ -643,7 +643,7 @@ export function buildDemoSeedTables(): Record<string, readonly unknown[]> {
   // FuelEU 2025 + 2026 records (2026 in progress).
   const fueleuRecords = DEMO_VESSELS.map((v, i) => {
     const ghg2025 = 88.4 + (i % 3) * 1.7;
-    const target2025 = 91.16;
+    const target2025 = Number((91.16 * 0.98).toFixed(2));
     return {
       id: `fueleu-${v.id}-2025`,
       vessel_id: v.id,
@@ -680,8 +680,8 @@ export function buildDemoSeedTables(): Record<string, readonly unknown[]> {
       energy_input_mj: 640_000_000 + i * 110_000_000,
       total_wtw_emissions_gco2e: 44_800_000_000 + i * 7_500_000_000,
       ghg_intensity_gco2e_per_mj: Number((87.2 + (i % 2) * 1.1).toFixed(2)),
-      target_gco2e_per_mj: Number((91.16 * 0.986).toFixed(2)),
-      compliance_balance: Number((91.16 * 0.986 - (87.2 + (i % 2) * 1.1)).toFixed(2)),
+      target_gco2e_per_mj: Number((91.16 * 0.98).toFixed(2)),
+      compliance_balance: Number((91.16 * 0.98 - (87.2 + (i % 2) * 1.1)).toFixed(2)),
       surplus_or_deficit: "SURPLUS",
       penalty_exposure_estimate: null,
       penalty_formula_version: null,
@@ -991,7 +991,7 @@ export function buildDemoSeedTables(): Record<string, readonly unknown[]> {
 
   const assistantMessages = [
     { id: "msg-1-1", conversationId: "conv-1", role: "user", content: "Which vessels are off-target for FuelEU 2026 and by how much?", citations: [], metadata: {} },
-    { id: "msg-1-2", conversationId: "conv-1", role: "assistant", content: "Atlas is tracking a 1.6 gCO2e/MJ surplus against the 2026 target (91.16 × 0.986); the rest of the fleet is on track. The ISCC gap on Atlas B30 energy needs closure to keep the credit.", citations: [{ source: "fuel_eu_records", vesselId: "vsl-atlas", year: 2026 }], metadata: {} },
+    { id: "msg-1-2", conversationId: "conv-1", role: "assistant", content: "Atlas is tracking a 1.6 gCO2e/MJ surplus against the 2026 target (91.16 × 0.98); the rest of the fleet is on track. The ISCC gap on Atlas B30 energy needs closure to keep the credit.", citations: [{ source: "fuel_eu_records", vesselId: "vsl-atlas", year: 2026 }], metadata: {} },
     { id: "msg-2-1", conversationId: "conv-2", role: "user", content: "Summarise our EU ETS surrender position for 2025.", citations: [], metadata: {} },
     { id: "msg-2-2", conversationId: "conv-2", role: "assistant", content: "Fleet obligation ≈ 116,400 EUAs at €78.50 ≈ €9.1M. Neptune's MRV 2025 draft is incomplete and its surrender plan is flagged for review.", citations: [{ source: "eu_ets_records", year: 2025 }], metadata: {} },
     { id: "msg-3-1", conversationId: "conv-3", role: "user", content: "What should Neptune switch to before entering the Med SOx ECA?", citations: [], metadata: {} },
