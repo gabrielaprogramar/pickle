@@ -19,7 +19,7 @@ import { computeEtsEmissions } from "@/lib/eu-ets/emissions";
 import { deadlineStatus, computeDeadlines } from "@/lib/eu-ets/deadlines";
 import { EtsComplianceService } from "@/lib/eu-ets/service";
 
-import { makeDeliveryInput, makeVoyageInput, VESSEL_ID } from "./fixtures";
+import { makeDeliveryInput, makeVoyageInput, makeConsumptionRow, VESSEL_ID } from "./fixtures";
 
 // ── Scope ──────────────────────────────────────────────────────────────────
 
@@ -313,6 +313,12 @@ describe("EtsComplianceService", () => {
       vessel_id: VESSEL_ID,
       reporting_year: 2026,
       gt: 15000,
+      vessel_profile: { flag: "GR", vessel_type: "cargo", vessel_category: null },
+      applicability: { status: "APPLICABLE", is_decision_final: true },
+      consumption: [
+        makeConsumptionRow({ voyage_id: "v1", fuel_type: "hfo_380", quantity_mt: 100 }),
+        makeConsumptionRow({ voyage_id: "v2", fuel_type: "hfo_380", quantity_mt: 100 }),
+      ],
       deliveries: [makeDeliveryInput({ fuel_type: "hfo_380", quantity_mt: 100 })],
       voyages: [
         makeVoyageInput({ id: "v1", departure_port: "Rotterdam", arrival_port: "Hamburg" }),
@@ -331,6 +337,12 @@ describe("EtsComplianceService", () => {
     if (!result.surrender_deadline) throw new Error("Expected surrender deadline");
     if (!result.mrv_deadline) throw new Error("Expected MRV deadline");
     if (result.voyage_contributions.length !== 2) throw new Error("Expected 2 voyage contributions");
+    if (result.compliance_status !== "CALCULATED") {
+      throw new Error(`Expected CALCULATED, got ${result.compliance_status}`);
+    }
+    if (result.compliance_applicable !== true) throw new Error("Expected applicable");
+    if (result.allowance.source !== "CALCULATED") throw new Error("Expected CALCULATED allowance");
+    if (result.allowance.actual_balance_tonnes !== null) throw new Error("Expected no actual balance");
   });
 
   it("out of scope vessel has zero obligation", async () => {

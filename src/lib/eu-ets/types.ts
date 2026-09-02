@@ -1,4 +1,12 @@
-export const ETS_CALCULATION_VERSION = "1.0.0";
+export const ETS_CALCULATION_VERSION = "2.0.0";
+
+import type { Applicability } from "@/lib/regulatory/applicability";
+import type { VoyageConsumptionRow } from "@/lib/supabase/types";
+import type { EtsComplianceStatus, EtsException } from "./compliance";
+
+/** Value object re-exporting the compliance status + exception types. */
+export type { EtsComplianceStatus, EtsException } from "./compliance";
+export type { Applicability };
 
 // ── Scope ──────────────────────────────────────────────────────────────────
 
@@ -80,6 +88,35 @@ export interface EtsCalculationResult {
   /** Port names that could not be classified (not silently coerced). */
   readonly unknown_ports: ReadonlyArray<string>;
 
+  /**
+   * Part 2 — compliance surface. Backward-compatible additions; pre-existing
+   * callers keep reading the fields above.
+   */
+  readonly compliance_status: EtsComplianceStatus;
+  /** Machine-readable, user-explainable exceptions. Empty when fully resolved. */
+  readonly exceptions: ReadonlyArray<EtsException>;
+  /** True when EU ETS scope is definitively APPLICABLE. */
+  readonly compliance_applicable: boolean;
+  /** True when the scope determination is final (not UNKNOWN/REQUIRES_REVIEW). */
+  readonly compliance_scope_resolved: boolean;
+  readonly allowance: {
+    readonly calculated_obligation_tonnes: number | null;
+    readonly actual_balance_tonnes: number | null;
+    readonly source: "CALCULATED" | "AUTHORITATIVE" | "NONE";
+  };
+  /** Source identification for the EUA price (or why it is unavailable). */
+  readonly eua_price_source: string;
+  /** Deterministic emission breakdown per voyage (canonical consumption only). */
+  readonly emission_breakdown: ReadonlyArray<{
+    readonly voyage_id: string;
+    readonly fuel_type: string;
+    readonly quantity_mt: number;
+    readonly ttw_co2_tonnes: number;
+    readonly method: string;
+    readonly confidence: string;
+    readonly status: string;
+  }>;
+
   readonly calculated_at: string;
 }
 
@@ -102,6 +139,41 @@ export interface EtsCalculationInput {
   }>;
   readonly parameter_version_override?: string;
   readonly eua_price_eur?: number | null;
+
+  /**
+   * Part 2 — foundation inputs. All optional for backward compatibility. When
+   * provided, the engine consumes the Part 1 regulatory foundation instead of
+   * GT-only heuristics / delivery equal-share.
+   */
+  readonly vessel_profile?: {
+    readonly flag: string | null;
+    readonly vessel_type: string | null;
+    readonly vessel_category: string | null;
+  };
+  /** Precomputed EU_ETS applicability decision (from regulation_applicability). */
+  readonly applicability?: {
+    readonly status: Applicability;
+    readonly is_decision_final: boolean;
+    readonly rule_version?: number;
+    readonly rule_effective_from?: string;
+    readonly rule_effective_until?: string | null;
+    readonly basis?: Record<string, unknown>;
+    readonly notes?: string | null;
+  } | null;
+  /** Canonical per-voyage fuel consumption (voyage_consumption rows). */
+  readonly consumption?: ReadonlyArray<VoyageConsumptionRow>;
+  /** Authoritative allowance balance in tonnes; null/omitted → no real balance implied. */
+  readonly actual_allowance_tonnes?: number | null;
+  /** Override for EUA price source label (e.g. provider name). */
+  readonly eua_price_source?: string;
+  /**
+   * Optional compliance coverage rate (0..1) sourced from a versioned
+   * `regulatory_rules` entry (rule_key `ets_coverage`). When omitted the engine
+   * uses ITS built-in schedule — callers should supply it so the engine does
+   * not hardcode the regulatory phase-in.
+   */
+  readonly coverage_rate?: number;
+  readonly coverage_rate_source?: string;
 }
 
 // ── DB types ───────────────────────────────────────────────────────────────
