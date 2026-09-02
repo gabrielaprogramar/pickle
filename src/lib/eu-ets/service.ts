@@ -1,9 +1,9 @@
 import type { EuEtsRecordRepository } from "@/lib/supabase/repositories/eu_ets_records";
 import type { EtsCalculationInput, EtsCalculationResult, EuEtsRecordInsert } from "@/lib/eu-ets/types";
 import { ETS_CALCULATION_VERSION, etsScopeForGt, mrvScopeForGt } from "@/lib/eu-ets/types";
-import { ETS_CURRENT_PARAMETER_VERSION, getEtsCoverageRate } from "@/lib/eu-ets/parameters";
+import { ETS_PARAMETER_VERSION_WITH_CLASSIFIER, getEtsCoverageRate } from "@/lib/eu-ets/parameters";
 import { getVoyageCoverageFactor } from "@/lib/eu-ets/parameters";
-import { classifyVoyageCoverage } from "@/lib/eu-ets/port-classifier";
+import { classifyVoyagePortStatus, type VoyagePortStatus } from "@/lib/eu-ets/port-classifier";
 import { computeEtsEmissions } from "@/lib/eu-ets/emissions";
 import { computeDeadlines } from "@/lib/eu-ets/deadlines";
 import { getEuaPrice } from "@/lib/eua-price/provider";
@@ -16,7 +16,7 @@ export class EtsComplianceService {
   ) {}
 
   async calculate(input: EtsCalculationInput): Promise<EtsCalculationResult> {
-    const paramVer = input.parameter_version_override ?? ETS_CURRENT_PARAMETER_VERSION;
+    const paramVer = input.parameter_version_override ?? ETS_PARAMETER_VERSION_WITH_CLASSIFIER;
     const ts = new Date().toISOString();
 
     const etsScope = etsScopeForGt(input.gt);
@@ -26,11 +26,14 @@ export class EtsComplianceService {
     // 1. Emissions (TtW CO₂)
     const emissionRes = computeEtsEmissions(input.deliveries);
 
-    // 2. Voyage coverage
+    // 2. Voyage coverage — surface unknown ports explicitly instead of silently
+    //    treating them as NON_EU. UNKNOWN voyages get zero coverage factor but
+    //    are flagged so the caller can warn/flag for manual resolution.
     const voyageContribs = input.voyages.map((v) => {
-      const coverageType = classifyVoyageCoverage(v.departure_port, v.arrival_port);
+      const status = classifyVoyagePortStatus(v.departure_port, v.arrival_port);
+      const coverageType = status.type === "UNKNOWN" ? "NON_EU" : status.type;
       const coverageFactor = getVoyageCoverageFactor(coverageType);
-      return { ...v, coverageType, coverageFactor };
+      return { ...v, coverageType, coverageFactor, __status: status };
     });
 
     // 3. Covered CO₂ (prorate by voyage — simplified: use delivery-based total)
@@ -62,6 +65,9 @@ export class EtsComplianceService {
 
     // 8. Deadlines
     const deadlines = computeDeadlines(input.reporting_year);
+
+    // 9. Unknown ports (explicit, not silently coerced to NON_EU)
+    const unknownPorts = voyageContribs.flatMap((vc) => vc.__status.unknownPorts);
 
     const result: EtsCalculationResult = {
       calculation_version: ETS_CALCULATION_VERSION,
@@ -98,6 +104,8 @@ export class EtsComplianceService {
       })),
       voyage_ids: input.voyages.map((v) => v.id),
       delivery_ids: input.deliveries.map((d) => d.id),
+
+      unknown_ports: unknownPorts,
 
       calculated_at: ts,
     };
@@ -172,6 +180,7 @@ export class EtsComplianceService {
       voyage_contributions: [],
       voyage_ids: [],
       delivery_ids: [],
+      unknown_ports: [],
       calculated_at: row.calculated_at,
     };
   }

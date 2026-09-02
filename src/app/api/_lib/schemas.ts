@@ -9,6 +9,32 @@ export const vesselUpsertSchema = z.object({
   name: z.string().min(1, "Vessel name is required"),
   mmsi: z.string().nullable().optional(),
   ship_id: z.string().nullable().optional(),
+  gross_tonnage: z.number().nullable().optional(),
+  flag: z
+    .string()
+    .regex(/^[A-Z]{2,3}$/, "Flag must be ISO 3166-1 alpha-2/3 uppercase")
+    .nullable()
+    .optional(),
+  vessel_type: z
+    .enum([
+      "cargo",
+      "tanker",
+      "container",
+      "passenger",
+      "roro",
+      "offshore",
+      "tug",
+      "fishing",
+      "pleasure",
+      "other",
+      "unknown",
+    ])
+    .nullable()
+    .optional(),
+  vessel_category: z
+    .enum(["commercial", "private", "fishing", "other", "unknown"])
+    .nullable()
+    .optional(),
 }).strict();
 
 export type VesselUpsertInput = z.infer<typeof vesselUpsertSchema>;

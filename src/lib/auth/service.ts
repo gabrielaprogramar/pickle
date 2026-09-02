@@ -11,7 +11,7 @@ import type { OrganizationRow, OrganizationUserRow } from "@/lib/supabase/types"
 import type { OrganizationRepository } from "@/lib/supabase/repositories/organizations";
 import type { OrganizationUserRepository } from "@/lib/supabase/repositories/organization_users";
 import type { AuthTokenRepository } from "@/lib/supabase/repositories/auth_tokens";
-import { hashPassword, verifyPassword } from "./passwords";
+import { hashPassword, verifyPassword, isLegacyMockHash } from "./passwords";
 import { generateToken, hashToken, resetExpiry, sessionExpiry } from "./tokens";
 import {
   InvalidCredentialsError,
@@ -126,6 +126,12 @@ export class AuthService {
     const user = await this.deps.userRepo.findByEmail(email.trim().toLowerCase());
     if (!user || !verifyPassword(password, user.password_hash)) {
       throw new InvalidCredentialsError();
+    }
+    // Transparently upgrade legacy mock$v1$ hashes to bcrypt on login.
+    if (isLegacyMockHash(user.password_hash)) {
+      await this.deps.userRepo.update(user.id, {
+        password_hash: hashPassword(password),
+      });
     }
     if (user.status !== "active") {
       throw new UserNotActiveError();

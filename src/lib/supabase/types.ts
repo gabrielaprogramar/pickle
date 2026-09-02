@@ -32,6 +32,9 @@ export type VesselRow = {
   readonly mmsi: string | null;
   readonly ship_id: string | null;
   readonly gross_tonnage: number | null;
+  readonly flag: string | null;
+  readonly vessel_type: string | null;
+  readonly vessel_category: string | null;
   readonly created_at: string;
   readonly updated_at: string;
 };
@@ -43,6 +46,9 @@ export type VesselInsert = {
   readonly mmsi?: string | null;
   readonly ship_id?: string | null;
   readonly gross_tonnage?: number | null;
+  readonly flag?: string | null;
+  readonly vessel_type?: string | null;
+  readonly vessel_category?: string | null;
 };
 
 /** One row of the `voyages` table. */
@@ -1133,7 +1139,107 @@ export type EnvironmentalZoneInsert = {
   readonly is_active?: boolean;
 };
 
-// ── 1l. PORT CALL ROW TYPES (1:1 with migration 0009) ──────────────────────
+// ── 1l. REGULATORY FOUNDATION ROW TYPES (1:1 with migration 0019) ───────────
+
+/** One row of the `regulatory_rules` table. */
+export type RegulatoryRuleRow = {
+  readonly id: string;
+  readonly regulation: string;
+  readonly rule_key: string;
+  readonly version: number;
+  readonly effective_from: string;
+  readonly effective_until: string | null;
+  readonly is_active: boolean;
+  readonly parameters: Record<string, unknown>;
+  readonly rule_text: string | null;
+  readonly source_reference: string | null;
+  readonly created_at: string;
+  readonly updated_at: string;
+};
+
+/** Payload for inserting a regulatory rule. id/created_at/updated_at are server-defaulted. */
+export type RegulatoryRuleInsert = {
+  readonly regulation: string;
+  readonly rule_key: string;
+  readonly version?: number;
+  readonly effective_from: string;
+  readonly effective_until?: string | null;
+  readonly is_active?: boolean;
+  readonly parameters?: Record<string, unknown>;
+  readonly rule_text?: string | null;
+  readonly source_reference?: string | null;
+};
+
+/** One row of the `regulation_applicability` table. */
+export type RegulationApplicabilityRow = {
+  readonly id: string;
+  readonly vessel_id: string;
+  readonly regulation: string;
+  readonly reporting_year: number;
+  readonly applicability: string;
+  readonly is_decision_final: boolean;
+  readonly rule_version: number;
+  readonly rule_effective_from: string;
+  readonly rule_effective_until: string | null;
+  readonly basis: Record<string, unknown>;
+  readonly notes: string | null;
+  readonly decided_at: string;
+  readonly created_at: string;
+  readonly updated_at: string;
+};
+
+/** Payload for inserting/upserting a regulation applicability determination. */
+export type RegulationApplicabilityInsert = {
+  readonly vessel_id: string;
+  readonly regulation: string;
+  readonly reporting_year: number;
+  readonly applicability: string;
+  readonly is_decision_final?: boolean;
+  readonly rule_version: number;
+  readonly rule_effective_from: string;
+  readonly rule_effective_until?: string | null;
+  readonly basis?: Record<string, unknown>;
+  readonly notes?: string | null;
+};
+
+/** One row of the `voyage_consumption` table. */
+export type VoyageConsumptionRow = {
+  readonly id: string;
+  readonly vessel_id: string;
+  readonly voyage_id: string | null;
+  readonly reporting_year: number;
+  readonly fuel_type: string;
+  readonly quantity_mt: number;
+  readonly method: string;
+  readonly confidence: string;
+  readonly status: string;
+  readonly source_type: string;
+  readonly source_record_ids: unknown[];
+  readonly attribution_method: string;
+  readonly traceability: Record<string, unknown>;
+  readonly notes: string | null;
+  readonly created_at: string;
+  readonly updated_at: string;
+};
+
+/** Payload for inserting/upserting a voyage consumption record. */
+export type VoyageConsumptionInsert = {
+  readonly vessel_id: string;
+  readonly voyage_id?: string | null;
+  readonly reporting_year: number;
+  readonly fuel_type: string;
+  readonly quantity_mt: number;
+  readonly method: string;
+  readonly confidence: string;
+  readonly status: string;
+  readonly source_type: string;
+  readonly source_record_ids?: unknown[];
+  readonly attribution_method: string;
+  readonly traceability?: Record<string, unknown>;
+  readonly notes?: string | null;
+};
+
+// ── 1m. PORT CALL ROW TYPES (1:1 with migration 0009) ──────────────────────
 
 export type PortCallRow = {
   readonly id: string;
@@ -1279,6 +1385,38 @@ export type ReviewAuditLogInsert = {
   readonly new_value?: unknown | null;
   readonly reviewer: string;
   readonly notes?: string | null;
+};
+
+// ── 1q. ORG-WIDE IMMUTABLE AUDIT LOG ROW TYPES (1:1 with migration 0018) ────
+
+/** One row of the `audit_log` table (DB-level append-only). */
+export type AuditLogRow = {
+  readonly id: string;
+  readonly organization_id: string;
+  readonly actor_id: string | null;
+  readonly actor_email: string | null;
+  readonly action: string;
+  readonly entity_type: string;
+  readonly entity_id: string | null;
+  readonly before_data: Record<string, unknown>;
+  readonly after_data: Record<string, unknown>;
+  readonly source: string;
+  readonly correlation_id: string | null;
+  readonly recorded_at: string;
+};
+
+/** Payload for inserting an audit_log entry. id/recorded_at are server-defaulted. */
+export type AuditLogInsert = {
+  readonly organization_id: string;
+  readonly actor_id?: string | null;
+  readonly actor_email?: string | null;
+  readonly action: string;
+  readonly entity_type: string;
+  readonly entity_id?: string | null;
+  readonly before_data?: Record<string, unknown>;
+  readonly after_data?: Record<string, unknown>;
+  readonly source?: string;
+  readonly correlation_id?: string | null;
 };
 
 // ── 1r. SOX ECA COMPLIANCE ROW TYPES (1:1 with migration 0013) ──────────────
@@ -1965,6 +2103,12 @@ export type Database = {
         Update: Partial<ReviewAuditLogInsert>;
         Relationships: Relationships;
       };
+      audit_log: {
+        Row: AuditLogRow;
+        Insert: AuditLogInsert;
+        Update: Partial<AuditLogInsert>;
+        Relationships: Relationships;
+      };
       fuel_types: {
         Row: FuelTypeRow;
         Insert: FuelTypeInsert;
@@ -2005,6 +2149,24 @@ export type Database = {
         Row: EnvironmentalZoneRow;
         Insert: EnvironmentalZoneInsert;
         Update: Partial<EnvironmentalZoneInsert>;
+        Relationships: Relationships;
+      };
+      regulatory_rules: {
+        Row: RegulatoryRuleRow;
+        Insert: RegulatoryRuleInsert;
+        Update: Partial<RegulatoryRuleInsert>;
+        Relationships: Relationships;
+      };
+      regulation_applicability: {
+        Row: RegulationApplicabilityRow;
+        Insert: RegulationApplicabilityInsert;
+        Update: Partial<RegulationApplicabilityInsert>;
+        Relationships: Relationships;
+      };
+      voyage_consumption: {
+        Row: VoyageConsumptionRow;
+        Insert: VoyageConsumptionInsert;
+        Update: Partial<VoyageConsumptionInsert>;
         Relationships: Relationships;
       };
       port_calls: {

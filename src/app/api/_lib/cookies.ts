@@ -23,10 +23,15 @@ export function readCookie(header: string | null, name: string): string | null {
   return null;
 }
 
-export function sessionCookieValue(token: string): string {
-  return `${AUTH_COOKIE_NAME}=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${12 * 60 * 60}`;
+/**
+ * Build the session cookie value.
+ * `secure` must be true in production (HTTPS) so the HttpOnly session cookie is
+ * never sent over an insecure connection.
+ */
+export function sessionCookieValue(token: string, secure = false): string {
+  return `${AUTH_COOKIE_NAME}=${encodeURIComponent(token)}; Path=/; HttpOnly; ${secure ? "Secure; " : ""}SameSite=Lax; Max-Age=${12 * 60 * 60}`;
 }
 
-export function clearSessionCookieValue(): string {
-  return `${AUTH_COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`;
+export function clearSessionCookieValue(secure = false): string {
+  return `${AUTH_COOKIE_NAME}=; Path=/; HttpOnly; ${secure ? "Secure; " : ""}SameSite=Lax; Max-Age=0`;
 }

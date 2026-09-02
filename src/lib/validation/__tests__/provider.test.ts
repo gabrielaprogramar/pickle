@@ -91,4 +91,25 @@ describe("ValidationProvider — createValidationProvider", () => {
   });
 });
 
+describe("ValidationProvider — real validator seam", () => {
+  it("returns the real rules-based validator when VALIDATION_USE_MOCK=false", async () => {
+    const prev = process.env.VALIDATION_USE_MOCK;
+    process.env.VALIDATION_USE_MOCK = "false";
+    _resetValidationProviderForTest();
+    try {
+      const provider = createValidationProvider();
+      const report = await provider.validate(SAMPLE_INPUT);
+      // The real validator runs the full rule set (43 passed) and flags issues;
+      // the mock fixture returns 23 passed at score 100. Discriminate on that.
+      expect(report.passedCount).toBe(43);
+      if (report.score === 100) {
+        throw new Error("Expected the real rules-based report, not the mock fixture score");
+      }
+    } finally {
+      process.env.VALIDATION_USE_MOCK = prev;
+      _resetValidationProviderForTest();
+    }
+  });
+});
+
 run();

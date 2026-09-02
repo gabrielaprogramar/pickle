@@ -18,6 +18,9 @@ export async function POST(
     await deps.service.logout(token);
   }
   const res = apiSuccess({ loggedOut: true });
-  res.headers.set("Set-Cookie", clearSessionCookieValue());
+  res.headers.set(
+    "Set-Cookie",
+    clearSessionCookieValue(process.env.NODE_ENV === "production"),
+  );
   return res;
 }

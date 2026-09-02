@@ -1,0 +1,2074 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="EU ETS, FuelEU Maritime, EU MRV and Mediterranean SOx ECA compliance intelligence for Mediterranean yacht and small fleet operators. Versioned, auditable emissions calculations.">
+<title>Poseidon Ledger — Maritime ESG Compliance Intelligence</title>
+<link rel="icon" type="image/png" href="logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:       #060F1E;
+  --navy-mid:   #0B1E38;
+  --navy-light: #112B4F;
+  --navy-card:  #0D1F38;
+  --teal:       #00B89F;
+  --teal-dim:   #007A6A;
+  --teal-glow:  rgba(0,184,159,0.12);
+  --gold:       #C9A84C;
+  --gold-dim:   rgba(201,168,76,0.15);
+  --white:      #F4F2EC;
+  --white-dim:  rgba(244,242,236,0.55);
+  --white-faint:rgba(244,242,236,0.08);
+  --red-alert:  #D94F4F;
+  --red-dim:    rgba(217,79,79,0.12);
+  --mono:       'DM Mono', monospace;
+  --serif:      'Cormorant Garamond', Georgia, serif;
+  --sans:       'DM Sans', system-ui, sans-serif;
+  --border:     rgba(244,242,236,0.10);
+  --border-teal:rgba(0,184,159,0.25);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--navy);
+  color: var(--white);
+  font-family: var(--sans);
+  font-weight: 300;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* ── GRID OVERLAY ───────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(0,184,159,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,184,159,0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── NAV ────────────────────────────────────────── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0;
+  z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 48px;
+  height: 72px;
+  background: rgba(6,15,30,0.88);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+}
+
+.nav-logo {
+  display: flex; align-items: center; gap: 12px;
+}
+.nav-logo-mark {
+  width: 32px; height: 32px;
+  border: 1.5px solid var(--teal);
+  display: grid; place-items: center;
+  font-family: var(--mono); font-size: 11px; color: var(--teal);
+  letter-spacing: 0.05em;
+}
+.nav-logo-text {
+  font-family: var(--serif); font-weight: 600;
+  font-size: 17px; letter-spacing: 0.08em;
+  color: var(--white);
+}
+.nav-logo-sub {
+  font-family: var(--mono); font-size: 9px;
+  color: var(--white-dim); letter-spacing: 0.12em;
+  text-transform: uppercase;
+  display: block; margin-top: -2px;
+}
+
+.nav-links {
+  display: flex; gap: 36px; list-style: none;
+}
+.nav-links a {
+  font-family: var(--mono); font-size: 11px;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--white-dim); text-decoration: none;
+  transition: color 0.2s;
+}
+.nav-links a:hover { color: var(--teal); }
+
+.nav-cta {
+  background: transparent;
+  border: 1px solid var(--teal);
+  color: var(--teal);
+  font-family: var(--mono); font-size: 10px;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 10px 20px; cursor: pointer;
+  transition: all 0.2s;
+}
+.nav-cta:hover { background: var(--teal); color: var(--navy); }
+
+/* ── HERO ───────────────────────────────────────── */
+.hero {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  grid-template-rows: 1fr;
+  align-items: center;
+  gap: 48px;
+  padding: 100px 48px 72px;
+  position: relative; overflow: hidden;
+}
+
+.hero-bg {
+  position: absolute; inset: 0; z-index: 0;
+  background:
+    radial-gradient(ellipse 70% 50% at 80% 30%, rgba(0,60,100,0.4) 0%, transparent 65%),
+    radial-gradient(ellipse 40% 60% at 10% 80%, rgba(0,184,159,0.06) 0%, transparent 60%),
+    linear-gradient(170deg, var(--navy) 0%, var(--navy-mid) 50%, #020810 100%);
+}
+
+/* Animated chart lines in background */
+.hero-chart {
+  position: absolute; right: 0; top: 50%; transform: translateY(-50%);
+  width: 50%; height: 70%; z-index: 1; opacity: 0.12;
+  pointer-events: none;
+}
+.hero-chart svg { width: 100%; height: 100%; }
+
+.hero-alert {
+  position: relative; z-index: 2;
+  display: inline-flex; align-items: center; gap: 10px;
+  border: 1px solid var(--red-alert);
+  background: var(--red-dim);
+  padding: 8px 16px;
+  margin-bottom: 36px;
+  width: fit-content;
+  animation: pulse-border 2.5s ease-in-out infinite;
+}
+@keyframes pulse-border {
+  0%, 100% { border-color: var(--red-alert); box-shadow: 0 0 0 0 rgba(217,79,79,0); }
+  50% { border-color: #ff7070; box-shadow: 0 0 12px 2px rgba(217,79,79,0.2); }
+}
+.hero-alert-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--red-alert);
+  animation: blink 1.4s ease-in-out infinite;
+}
+@keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.2; } }
+.hero-alert-text {
+  font-family: var(--mono); font-size: 10px;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--red-alert);
+}
+
+.hero-kicker {
+  font-family: var(--mono); font-size: 11px;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--teal); margin-bottom: 20px;
+  position: relative; z-index: 2;
+}
+
+.hero-headline {
+  font-family: var(--serif); font-weight: 300;
+  font-size: clamp(42px, 6vw, 86px);
+  line-height: 1.05; letter-spacing: -0.01em;
+  color: var(--white);
+  max-width: 780px;
+  position: relative; z-index: 2;
+  margin-bottom: 28px;
+}
+.hero-headline em {
+  font-style: italic; color: var(--teal);
+  font-weight: 300;
+}
+
+.hero-body {
+  font-size: 15px; color: var(--white-dim);
+  max-width: 540px; line-height: 1.75;
+  position: relative; z-index: 2;
+  margin-bottom: 48px;
+}
+
+.hero-actions {
+  display: flex; align-items: center; gap: 20px;
+  position: relative; z-index: 2;
+  flex-wrap: wrap;
+}
+
+.btn-primary {
+  background: var(--teal);
+  color: var(--navy);
+  font-family: var(--mono); font-size: 11px;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 16px 32px; border: none; cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+  display: inline-flex; align-items: center; gap: 10px;
+}
+.btn-primary:hover { background: #00d4b8; transform: translateY(-1px); }
+.btn-primary-arrow { font-size: 14px; transition: transform 0.2s; }
+.btn-primary:hover .btn-primary-arrow { transform: translateX(3px); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--white-dim);
+  font-family: var(--mono); font-size: 11px;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 16px 32px; border: 1px solid var(--border);
+  cursor: pointer; transition: all 0.2s;
+}
+.btn-ghost:hover { border-color: var(--white-dim); color: var(--white); }
+
+.hero-left {
+  grid-column: 1;
+  grid-row: 1;
+  display: flex; flex-direction: column; justify-content: center;
+  position: relative; z-index: 2;
+  max-width: 640px;
+}
+
+.hero-metrics {
+  position: relative; z-index: 2;
+  display: flex; flex-direction: column; gap: 2px;
+  grid-column: 2;
+  grid-row: 1;
+  align-self: center;
+}
+.hero-metric {
+  display: flex; flex-direction: column; gap: 6px;
+  padding: 20px 24px;
+  border: 1px solid var(--border);
+  background: rgba(11,30,56,0.75);
+  backdrop-filter: blur(12px);
+  width: 100%;
+}
+.hero-metric-val {
+  font-family: var(--serif); font-size: 28px; font-weight: 300;
+  color: var(--white);
+}
+.hero-metric-val.red { color: var(--red-alert); }
+.hero-metric-val.teal { color: var(--teal); }
+.hero-metric-label {
+  font-family: var(--mono); font-size: 9px;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--white-dim);
+}
+
+/* ── SECTION COMMON ─────────────────────────────── */
+section { position: relative; z-index: 1; }
+
+.section-inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 48px;
+}
+
+.section-label {
+  font-family: var(--mono); font-size: 10px;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--teal); margin-bottom: 16px;
+  display: flex; align-items: center; gap: 12px;
+}
+.section-label::before {
+  content: '';
+  display: block; width: 30px; height: 1px;
+  background: var(--teal);
+}
+
+.section-title {
+  font-family: var(--serif); font-weight: 300;
+  font-size: clamp(28px, 4vw, 52px);
+  line-height: 1.1; letter-spacing: -0.01em;
+  margin-bottom: 16px;
+}
+
+.section-body {
+  font-size: 15px; color: var(--white-dim);
+  max-width: 640px; line-height: 1.75;
+}
+
+/* ── URGENCY BAND ───────────────────────────────── */
+.urgency-band {
+  background: var(--red-alert);
+  padding: 0;
+  overflow: hidden;
+}
+.urgency-ticker {
+  display: flex; align-items: center;
+  height: 48px;
+  white-space: nowrap;
+  animation: ticker 30s linear infinite;
+}
+@keyframes ticker {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.urgency-item {
+  display: inline-flex; align-items: center; gap: 16px;
+  padding: 0 32px;
+  font-family: var(--mono); font-size: 11px;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--navy);
+  flex-shrink: 0;
+}
+.urgency-sep {
+  width: 4px; height: 4px; border-radius: 50%;
+  background: var(--navy);
+  opacity: 0.4;
+}
+
+/* ── COUNTDOWN ──────────────────────────────────── */
+.countdown-section {
+  padding: 100px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.countdown-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 80px; align-items: center;
+}
+
+.countdown-left {}
+
+.countdown-clock {
+  display: flex; gap: 0; margin-top: 40px;
+}
+.clock-unit {
+  flex: 1;
+  padding: 28px 20px;
+  border: 1px solid var(--border);
+  text-align: center;
+  position: relative;
+}
+.clock-unit + .clock-unit { border-left: none; }
+.clock-unit:first-child { border-color: var(--red-alert); }
+.clock-value {
+  font-family: var(--serif); font-weight: 300;
+  font-size: 52px; line-height: 1;
+  color: var(--white);
+  display: block;
+}
+.clock-unit:first-child .clock-value { color: var(--red-alert); }
+.clock-label {
+  font-family: var(--mono); font-size: 9px;
+  letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--white-dim); margin-top: 8px;
+  display: block;
+}
+
+.countdown-right {
+  display: flex; flex-direction: column; gap: 2px;
+}
+.enforcement-item {
+  display: grid; grid-template-columns: 90px 1fr;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.enforcement-item:hover { border-color: var(--border-teal); }
+.enforcement-item.critical { border-color: rgba(217,79,79,0.4); }
+.enforcement-item.critical:hover { border-color: var(--red-alert); }
+.enforcement-date {
+  padding: 16px; border-right: 1px solid var(--border);
+  background: var(--white-faint);
+  display: flex; flex-direction: column; justify-content: center;
+  align-items: center; text-align: center;
+}
+.enforcement-month {
+  font-family: var(--mono); font-size: 9px;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--white-dim);
+}
+.enforcement-year {
+  font-family: var(--serif); font-size: 22px; font-weight: 300;
+  color: var(--white);
+}
+.enforcement-item.critical .enforcement-year { color: var(--red-alert); }
+.enforcement-content {
+  padding: 16px 20px;
+}
+.enforcement-title {
+  font-size: 13px; font-weight: 500; color: var(--white);
+  margin-bottom: 4px;
+}
+.enforcement-desc {
+  font-family: var(--mono); font-size: 10px;
+  color: var(--white-dim); letter-spacing: 0.04em;
+  line-height: 1.5;
+}
+.enforcement-badge {
+  display: inline-block; margin-top: 6px;
+  font-family: var(--mono); font-size: 8px;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  padding: 2px 8px;
+}
+.badge-critical { background: var(--red-dim); color: var(--red-alert); }
+.badge-high { background: rgba(201,168,76,0.12); color: var(--gold); }
+.badge-horizon { background: var(--teal-glow); color: var(--teal); }
+
+/* ── RISK SIMULATOR ─────────────────────────────── */
+.simulator-section {
+  padding: 100px 0;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, transparent 0%, rgba(0,184,159,0.03) 50%, transparent 100%);
+}
+
+.simulator-wrap {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 2px; margin-top: 60px;
+}
+
+.sim-controls {
+  background: var(--navy-card);
+  border: 1px solid var(--border);
+  padding: 40px;
+}
+
+.sim-title {
+  font-family: var(--mono); font-size: 10px;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--teal); margin-bottom: 32px;
+}
+
+.sim-presets { margin-bottom: 28px; }
+.sim-presets-label {
+  font-family: var(--mono); font-size: 9px;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--white-faint); display: block; margin-bottom: 10px;
+}
+.sim-preset-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.sim-preset {
+  background: var(--white-faint);
+  border: 1px solid var(--border);
+  color: var(--white-dim);
+  font-family: var(--mono); font-size: 9px;
+  letter-spacing: 0.08em; line-height: 1.4;
+  padding: 8px 12px; cursor: pointer;
+  transition: all 0.2s;
+}
+.sim-preset:hover { border-color: var(--teal); color: var(--teal); }
+.sim-preset.active {
+  border-color: var(--teal);
+  color: var(--teal);
+  background: var(--teal-glow);
+}
+
+.sim-field {
+  margin-bottom: 28px;
+}
+.sim-label {
+  font-family: var(--mono); font-size: 10px;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--white-dim); margin-bottom: 10px;
+  display: block;
+}
+.sim-select, .sim-input {
+  width: 100%;
+  background: var(--white-faint);
+  border: 1px solid var(--border);
+  color: var(--white);
+  font-family: var(--mono); font-size: 13px;
+  padding: 12px 16px;
+  appearance: none;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.sim-select:focus, .sim-input:focus {
+  border-color: var(--teal);
+}
+.sim-select option { background: var(--navy-mid); }
+
+.sim-slider-wrap { position: relative; }
+.sim-slider {
+  width: 100%; height: 4px;
+  appearance: none;
+  background: var(--border);
+  outline: none; cursor: pointer;
+  border-radius: 2px;
+}
+.sim-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--teal);
+  cursor: pointer;
+  border: 2px solid var(--navy);
+  box-shadow: 0 0 8px rgba(0,184,159,0.4);
+}
+.sim-slider-val {
+  font-family: var(--serif); font-size: 28px; font-weight: 300;
+  color: var(--white); margin-bottom: 8px;
+  display: block;
+}
+.sim-hint {
+  font-family: var(--mono); font-size: 9px;
+  letter-spacing: 0.08em;
+  color: var(--white-dim); line-height: 1.6;
+  margin-top: 8px;
+  display: block;
+}
+
+.sim-results {
+  background: var(--navy-card);
+  border: 1px solid var(--border);
+  border-left: none;
+  padding: 40px;
+  display: flex; flex-direction: column;
+}
+
+.sim-results-title {
+  font-family: var(--mono); font-size: 10px;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--white-dim); margin-bottom: 24px;
+}
+
+.scope-notice {
+  display: none;
+  border: 1px solid rgba(201,168,76,0.4);
+  background: rgba(201,168,76,0.08);
+  padding: 16px 18px;
+  margin-bottom: 24px;
+  font-family: var(--mono); font-size: 10px;
+  letter-spacing: 0.04em; color: var(--white-dim);
+  line-height: 1.7;
+}
+.scope-notice strong { color: var(--gold); letter-spacing: 0.1em; }
+.scope-notice.show { display: block; }
+
+.sim-result-item {
+  padding: 20px 0;
+  border-bottom: 1px solid var(--border);
+}
+.sim-result-item:last-of-type { border-bottom: none; }
+.sim-result-label {
+  font-family: var(--mono); font-size: 9px;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--white-dim); margin-bottom: 6px;
+}
+.sim-result-val {
+  font-family: var(--serif); font-size: 38px; font-weight: 300;
+  line-height: 1;
+}
+.sim-result-val.danger { color: var(--red-alert); }
+.sim-result-val.saving { color: var(--teal); }
+.sim-result-val.gold { color: var(--gold); }
+.sim-result-sub {
+  font-family: var(--mono); font-size: 10px;
+  color: var(--white-dim); margin-top: 4px;
+  line-height: 1.6;
+}
+
+.sim-cta {
+  margin-top: auto; padding-top: 28px;
+}
+.sim-cta-note {
+  font-family: var(--mono); font-size: 10px;
+  color: var(--white-dim); letter-spacing: 0.06em;
+  margin-bottom: 12px;
+  line-height: 1.7;
+}
+
+/* ── HOW IT WORKS ───────────────────────────────── */
+.how-section {
+  padding: 100px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.how-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px; margin-top: 60px;
+}
+
+.how-card {
+  padding: 36px 32px;
+  border: 1px solid var(--border);
+  position: relative;
+  transition: border-color 0.3s, background 0.3s;
+}
+.how-card:hover {
+  border-color: var(--border-teal);
+  background: var(--teal-glow);
+}
+.how-num {
+  font-family: var(--serif); font-size: 72px; font-weight: 300;
+  color: var(--white-faint);
+  line-height: 1;
+  position: absolute; top: 20px; right: 24px;
+  letter-spacing: -0.02em;
+}
+.how-icon {
+  width: 44px; height: 44px;
+  border: 1px solid var(--border-teal);
+  display: grid; place-items: center;
+  margin-bottom: 20px;
+  color: var(--teal); font-size: 18px;
+}
+.how-title {
+  font-family: var(--serif); font-size: 22px; font-weight: 400;
+  margin-bottom: 12px; line-height: 1.2;
+}
+.how-body {
+  font-size: 13px; color: var(--white-dim);
+  line-height: 1.7;
+}
+.how-detail {
+  margin-top: 16px;
+  font-family: var(--mono); font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--teal); opacity: 0.7;
+}
+.how-detail.roadmap { color: var(--gold); opacity: 0.85; }
+
+/* ── PRICING ────────────────────────────────────── */
+.pricing-section {
+  padding: 100px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2px; margin-top: 60px;
+}
+
+.price-card {
+  border: 1px solid var(--border);
+  padding: 40px 28px;
+  display: flex; flex-direction: column;
+  position: relative; transition: border-color 0.3s;
+}
+.price-card:hover { border-color: var(--border-teal); }
+.price-card.featured {
+  border-color: var(--teal);
+  background: linear-gradient(160deg, rgba(0,184,159,0.06) 0%, transparent 60%);
+}
+.price-badge {
+  position: absolute; top: -1px; left: 50%; transform: translateX(-50%);
+  background: var(--teal); color: var(--navy);
+  font-family: var(--mono); font-size: 9px;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  padding: 4px 14px;
+}
+.price-tier {
+  font-family: var(--mono); font-size: 10px;
+  letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--white-dim); margin-bottom: 8px;
+}
+.price-name {
+  font-family: var(--serif); font-size: 30px; font-weight: 300;
+  margin-bottom: 4px;
+}
+.price-target {
+  font-family: var(--mono); font-size: 10px;
+  color: var(--white-dim); margin-bottom: 28px;
+}
+.price-amount {
+  font-family: var(--serif); font-size: 44px; font-weight: 300;
+  color: var(--white); line-height: 1;
+}
+.price-amount sup {
+  font-size: 20px; vertical-align: super; margin-right: 2px;
+}
+.price-amount.custom { font-size: 34px; }
+.price-period {
+  font-family: var(--mono); font-size: 10px;
+  color: var(--white-dim); margin-top: 4px;
+  margin-bottom: 28px;
+}
+.price-divider {
+  height: 1px; background: var(--border);
+  margin-bottom: 24px;
+}
+.price-feature {
+  display: flex; align-items: flex-start; gap: 10px;
+  margin-bottom: 12px;
+  font-size: 12px; color: var(--white-dim); line-height: 1.4;
+}
+.price-check {
+  color: var(--teal); font-size: 14px;
+  flex-shrink: 0; margin-top: 1px;
+}
+.price-cta {
+  margin-top: auto; padding-top: 28px;
+}
+.price-roadmap {
+  margin-top: 40px;
+  border: 1px dashed rgba(201,168,76,0.35);
+  padding: 18px 24px;
+  font-family: var(--mono); font-size: 10px;
+  letter-spacing: 0.06em; line-height: 1.7;
+  color: var(--white-dim);
+}
+.price-roadmap strong { color: var(--gold); display: block; margin-bottom: 8px; }
+.price-roadmap-list {
+  list-style: none; margin: 0 0 8px; padding: 0;
+  display: flex; gap: 8px 24px; flex-wrap: wrap;
+  color: var(--white);
+}
+.price-roadmap-list li::before { content: '→ '; color: var(--teal); }
+
+/* ── LIVE DEMO ───────────────────────────────────── */
+.demo-section {
+  padding: 100px 0;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, transparent 0%, rgba(0,184,159,0.03) 50%, transparent 100%);
+}
+
+.demo-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 80px; align-items: center;
+}
+
+.demo-list {
+  margin-top: 32px;
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 12px 24px; list-style: none;
+}
+.demo-list-item {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 13px; color: var(--white-dim);
+  line-height: 1.4;
+}
+
+.demo-actions {
+  margin-top: 40px;
+  display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+}
+
+.demo-visual { position: relative; }
+.demo-panel {
+  border: 1px solid var(--border);
+  background: var(--navy-card);
+  overflow: hidden;
+  box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+}
+.demo-panel-header {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px;
+}
+.demo-panel-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--white-faint);
+}
+.demo-panel-dot.on { background: var(--teal); animation: blink 2s ease-in-out infinite; }
+.demo-panel-title {
+  font-family: var(--mono); font-size: 10px;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--teal); margin-left: 8px;
+}
+.demo-panel-caption {
+  font-family: var(--mono); font-size: 9px;
+  color: var(--white-dim); margin-left: auto;
+  letter-spacing: 0.1em;
+}
+.demo-panel-body {
+  padding: 24px;
+  display: flex; flex-direction: column;
+}
+.demo-panel-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+.demo-panel-row:first-of-type { padding-top: 0; }
+.demo-panel-row:last-of-type { border-bottom: none; padding-bottom: 0; }
+.demo-panel-k {
+  font-family: var(--mono); font-size: 9px;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--white-dim);
+}
+.demo-panel-v {
+  font-family: var(--serif); font-size: 22px; font-weight: 300;
+  color: var(--white);
+}
+.demo-panel-v.teal { color: var(--teal); }
+  .demo-panel-v.gold { color: var(--gold); }
+  .demo-panel-v.danger { color: var(--red-alert); }
+
+/* ── CONTACT / AUDIT FORM ───────────────────────── */
+.audit-section {
+  padding: 100px 0;
+  background: linear-gradient(180deg, transparent 0%, rgba(0,184,159,0.04) 30%, transparent 100%);
+}
+
+.audit-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 80px; align-items: start;
+}
+
+.audit-left {}
+.audit-list {
+  margin-top: 32px;
+  display: flex; flex-direction: column; gap: 2px;
+}
+.audit-step {
+  display: grid; grid-template-columns: 60px 1fr;
+  border: 1px solid var(--border);
+}
+.audit-step-num {
+  padding: 20px;
+  display: flex; align-items: center; justify-content: center;
+  border-right: 1px solid var(--border);
+  background: var(--white-faint);
+  font-family: var(--serif); font-size: 24px; font-weight: 300;
+  color: var(--teal);
+}
+.audit-step-content { padding: 20px 24px; }
+.audit-step-title {
+  font-size: 14px; font-weight: 500; color: var(--white);
+  margin-bottom: 4px;
+}
+.audit-step-body {
+  font-family: var(--mono); font-size: 10px;
+  color: var(--white-dim); line-height: 1.6;
+}
+
+.audit-form-wrap {
+  border: 1px solid var(--border);
+  background: var(--navy-card);
+}
+.audit-form-header {
+  padding: 28px 36px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 12px;
+}
+.audit-form-header-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--teal);
+  animation: blink 2s ease-in-out infinite;
+}
+.audit-form-header-text {
+  font-family: var(--mono); font-size: 11px;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--teal);
+}
+.audit-form-header-sub {
+  font-family: var(--mono); font-size: 9px;
+  color: var(--white-dim); margin-left: auto;
+  letter-spacing: 0.1em;
+}
+
+.audit-form { padding: 36px; }
+
+.form-row {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 14px; margin-bottom: 14px;
+}
+.form-row.full { grid-template-columns: 1fr; }
+
+.form-group { display: flex; flex-direction: column; gap: 8px; }
+.form-label {
+  font-family: var(--mono); font-size: 9px;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--white-dim);
+}
+.form-input, .form-select {
+  background: var(--white-faint);
+  border: 1px solid var(--border);
+  color: var(--white);
+  font-family: var(--sans); font-size: 13px;
+  padding: 12px 14px;
+  outline: none;
+  transition: border-color 0.2s;
+  appearance: none;
+  width: 100%;
+}
+.form-input::placeholder { color: rgba(244,242,236,0.25); }
+.form-input:focus, .form-select:focus { border-color: var(--teal); }
+.form-select option { background: var(--navy-mid); }
+
+.form-consent {
+  display: flex; align-items: flex-start; gap: 10px;
+  margin-top: 4px; margin-bottom: 20px;
+}
+.form-consent input[type="checkbox"] {
+  appearance: none;
+  width: 16px; height: 16px; flex-shrink: 0;
+  border: 1px solid var(--border);
+  background: var(--white-faint);
+  cursor: pointer; position: relative; margin-top: 1px;
+}
+.form-consent input[type="checkbox"]:checked {
+  background: var(--teal); border-color: var(--teal);
+}
+.form-consent input[type="checkbox"]:checked::after {
+  content: '✓'; position: absolute;
+  inset: 0; display: grid; place-items: center;
+  color: var(--navy); font-size: 10px;
+}
+.form-consent-text {
+  font-family: var(--mono); font-size: 10px;
+  color: var(--white-dim); line-height: 1.6;
+}
+
+.form-submit {
+  width: 100%;
+  background: var(--teal); color: var(--navy);
+  border: none; cursor: pointer;
+  font-family: var(--mono); font-size: 11px;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  padding: 18px; font-weight: 500;
+  transition: all 0.2s;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+}
+.form-submit:hover { background: #00d4b8; transform: translateY(-1px); }
+
+.form-guarantee {
+  margin-top: 14px; text-align: center;
+  font-family: var(--mono); font-size: 9px;
+  letter-spacing: 0.1em; color: var(--white-dim);
+}
+
+/* ── FOOTER ─────────────────────────────────────── */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 48px;
+}
+.footer-inner {
+  max-width: 1180px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 24px;
+}
+.footer-left {
+  display: flex; align-items: center; gap: 12px;
+}
+.footer-right {
+  font-family: var(--mono); font-size: 9px;
+  letter-spacing: 0.12em; color: var(--white-dim);
+  text-align: right; line-height: 1.8;
+}
+.footer-links {
+  display: flex; gap: 24px; list-style: none;
+}
+.footer-links a {
+  font-family: var(--mono); font-size: 9px;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--white-dim); text-decoration: none;
+  transition: color 0.2s;
+}
+.footer-links a:hover { color: var(--teal); }
+
+/* ── SCROLL ANIMATIONS ──────────────────────────── */
+.reveal {
+  opacity: 0; transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.reveal.visible {
+  opacity: 1; transform: translateY(0);
+}
+
+/* ── SUCCESS STATE ──────────────────────────────── */
+.form-success {
+  display: none;
+  padding: 40px;
+  text-align: center;
+}
+.form-success.show { display: block; }
+.form-success-icon {
+  font-size: 36px; color: var(--teal); margin-bottom: 16px;
+}
+.form-success-title {
+  font-family: var(--serif); font-size: 28px; font-weight: 300;
+  margin-bottom: 8px;
+}
+.form-success-body {
+  font-family: var(--mono); font-size: 11px;
+  color: var(--white-dim); letter-spacing: 0.08em;
+  line-height: 1.7;
+}
+</style>
+</head>
+<body>
+
+<!-- ── NAV ─────────────────────────────────────── -->
+
+<nav>
+  <div class="nav-logo">
+    <img src="logofinal.png" alt="Poseidon Ledger" style="height: 38px; width: auto;">
+  </div>
+  <ul class="nav-links">
+    <li><a href="#compliance">Deadlines</a></li>
+    <li><a href="#simulator">Risk Simulator</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="#audit">Request Audit</a></li>
+  </ul>
+  <button class="nav-cta" onclick="document.getElementById('audit').scrollIntoView({behavior:'smooth'})">
+    Free Risk Audit
+  </button>
+</nav>
+
+<!-- ── URGENCY BAND ─────────────────────────────── -->
+<div class="urgency-band" style="margin-top:72px;">
+  <div class="urgency-ticker">
+    <!-- duplicated for seamless loop -->
+    <span class="urgency-item"><span class="urgency-sep"></span> EUA SURRENDER — 30 SEPTEMBER 2026 <span class="urgency-sep"></span></span>
+    <span class="urgency-item"><span class="urgency-sep"></span> FUELEU MARITIME — FIRST PENALTY CYCLE ACTIVE SINCE JUNE 2026 · €2,400/t VLSFOe <span class="urgency-sep"></span></span>
+    <span class="urgency-item"><span class="urgency-sep"></span> MED SOX ECA — 0.10% SULPHUR LIMIT IN FORCE SINCE 1 MAY 2025 <span class="urgency-sep"></span></span>
+    <span class="urgency-item"><span class="urgency-sep"></span> EU ETS — 2026 IS THE FIRST YEAR OF 100% PHASE-IN COVERAGE <span class="urgency-sep"></span></span>
+    <span class="urgency-item"><span class="urgency-sep"></span> EUA SURRENDER — 30 SEPTEMBER 2026 <span class="urgency-sep"></span></span>
+    <span class="urgency-item"><span class="urgency-sep"></span> FUELEU MARITIME — FIRST PENALTY CYCLE ACTIVE SINCE JUNE 2026 · €2,400/t VLSFOe <span class="urgency-sep"></span></span>
+    <span class="urgency-item"><span class="urgency-sep"></span> MED SOX ECA — 0.10% SULPHUR LIMIT IN FORCE SINCE 1 MAY 2025 <span class="urgency-sep"></span></span>
+    <span class="urgency-item"><span class="urgency-sep"></span> EU ETS — 2026 IS THE FIRST YEAR OF 100% PHASE-IN COVERAGE <span class="urgency-sep"></span></span>
+  </div>
+</div>
+
+<!-- ── HERO ─────────────────────────────────────── -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-chart">
+    <svg viewBox="0 0 600 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <polyline points="0,380 80,340 160,320 200,280 240,300 280,240 320,200 360,180 400,120 440,90 480,60 560,20" stroke="rgba(0,184,159,0.6)" stroke-width="1.5" fill="none"/>
+      <polyline points="0,380 80,360 160,350 200,330 240,340 280,310 320,300 360,280 400,260 440,240 480,220 560,200" stroke="rgba(217,79,79,0.4)" stroke-width="1" fill="none" stroke-dasharray="4,3"/>
+      <line x1="320" y1="0" x2="320" y2="400" stroke="rgba(217,79,79,0.2)" stroke-width="0.5" stroke-dasharray="3,3"/>
+      <text x="305" y="20" font-family="monospace" font-size="10" fill="rgba(217,79,79,0.6)">30 SEP 2026</text>
+      <circle cx="320" cy="200" r="4" fill="rgba(217,79,79,0.8)"/>
+    </svg>
+  </div>
+  <div class="hero-left">
+  <div class="hero-alert">
+    <span class="hero-alert-dot"></span>
+    <span class="hero-alert-text">EUA surrender deadline — 30 September 2026</span>
+  </div>
+  <p class="hero-kicker">Maritime ESG Compliance Intelligence</p>
+  <h1 class="hero-headline">
+    Your fleet's carbon liability is<br>
+    <em>real money</em> — know it before 30 September.
+  </h1>
+  <p class="hero-body">
+    Poseidon Ledger helps Mediterranean yacht and small fleet operators prepare for EU ETS and FuelEU Maritime compliance through voyage verification, emissions reporting workflows, audit trails and regulatory intelligence — plus a live watch on the Mediterranean SOx ECA sulphur limit.
+  </p>
+  <div class="hero-actions">
+    <button class="btn-primary" onclick="document.getElementById('audit').scrollIntoView({behavior:'smooth'})">
+      Request Free 48h Risk Audit
+      <span class="btn-primary-arrow">→</span>
+    </button>
+    <button class="btn-ghost" onclick="document.getElementById('simulator').scrollIntoView({behavior:'smooth'})">
+      Calculate Your Exposure
+    </button>
+  </div>
+  </div><!-- /.hero-left -->
+  <div class="hero-metrics">
+    <div class="hero-metric">
+      <span class="hero-metric-val red">30 Sep 2026</span>
+      <span class="hero-metric-label">EUA surrender deadline</span>
+    </div>
+    <div class="hero-metric">
+      <span class="hero-metric-val teal">0.10%</span>
+      <span class="hero-metric-label">Med SOx ECA sulphur limit — in force since 1 May 2025</span>
+    </div>
+    <div class="hero-metric">
+      <span class="hero-metric-val">€2,400 / t</span>
+      <span class="hero-metric-label">FuelEU Maritime penalty · per tonne VLSFOe</span>
+    </div>
+  </div>
+</section>
+
+<!-- ── COUNTDOWN ─────────────────────────────────── -->
+<section id="compliance" class="countdown-section">
+  <div class="section-inner">
+    <div class="countdown-grid">
+      <div class="countdown-left reveal">
+        <p class="section-label">Regulatory Clock</p>
+        <h2 class="section-title">
+          Time remaining until EUA surrender
+        </h2>
+        <p class="section-body">
+          The EU ETS EUA surrender deadline is <strong>30 September 2026</strong>, covering the 2025 reporting year at its 70% phase-in rate. 2026 is the first year of full (100%) coverage. Operators must surrender EUAs equal to their verified emissions — non-surrender triggers an excess-emissions penalty (€100 per tonne, index-adjusted) plus the outstanding obligation. Separately, FuelEU Maritime's first penalty cycle is already active since June 2026 (~€2,400 per tonne VLSFO-equivalent) for GHG-intensity shortfalls.
+        </p>
+        <div class="countdown-clock" id="countdown">
+          <div class="clock-unit">
+            <span class="clock-value" id="cd-days">--</span>
+            <span class="clock-label">Days</span>
+          </div>
+          <div class="clock-unit">
+            <span class="clock-value" id="cd-hours">--</span>
+            <span class="clock-label">Hours</span>
+          </div>
+          <div class="clock-unit">
+            <span class="clock-value" id="cd-mins">--</span>
+            <span class="clock-label">Minutes</span>
+          </div>
+          <div class="clock-unit">
+            <span class="clock-value" id="cd-secs">--</span>
+            <span class="clock-label">Seconds</span>
+          </div>
+        </div>
+      </div>
+      <div class="countdown-right reveal" style="transition-delay:0.2s">
+        <div class="enforcement-item">
+          <div class="enforcement-date">
+            <span class="enforcement-month">Jan</span>
+            <span class="enforcement-year">2025</span>
+          </div>
+          <div class="enforcement-content">
+            <div class="enforcement-title">EU MRV Scope Extension</div>
+            <div class="enforcement-desc">Reporting extended to general cargo and offshore ships of 400–5,000 GT. Applies to those vessel categories specifically — not passenger/yacht vessels.</div>
+            <span class="enforcement-badge badge-horizon">In force</span>
+          </div>
+        </div>
+        <div class="enforcement-item">
+          <div class="enforcement-date">
+            <span class="enforcement-month">May</span>
+            <span class="enforcement-year">2025</span>
+          </div>
+          <div class="enforcement-content">
+            <div class="enforcement-title">Mediterranean SOx ECA in force</div>
+            <div class="enforcement-desc">0.10% sulphur cap applies inside the Med ECA (MARPOL Annex VI Reg. 14, IMO MEPC.361(79)); global cap remains 0.50%.</div>
+            <span class="enforcement-badge badge-horizon">In force</span>
+          </div>
+        </div>
+        <div class="enforcement-item">
+          <div class="enforcement-date">
+            <span class="enforcement-month">Jun</span>
+            <span class="enforcement-year">2026</span>
+          </div>
+          <div class="enforcement-content">
+            <div class="enforcement-title">FuelEU Maritime — First Penalty Cycle</div>
+            <div class="enforcement-desc">GHG-intensity shortfalls for the 2025 reporting period are now penalised (~€2,400 / tonne VLSFO-equivalent). The 2025–29 target is a 2% cut on the 91.16 gCO₂e/MJ baseline.</div>
+            <span class="enforcement-badge badge-high">Active</span>
+          </div>
+        </div>
+        <div class="enforcement-item critical">
+          <div class="enforcement-date">
+            <span class="enforcement-month">Sep</span>
+            <span class="enforcement-year">2026</span>
+          </div>
+          <div class="enforcement-content">
+            <div class="enforcement-title">EUA Surrender Deadline — 30 September</div>
+            <div class="enforcement-desc">Ships ≥5,000 GT must surrender EUAs covering verified 2025 emissions (70% phase-in). Non-surrender: €100/tonne excess penalty plus the outstanding obligation.</div>
+            <span class="enforcement-badge badge-critical">Critical — Deadline</span>
+          </div>
+        </div>
+        <div class="enforcement-item">
+          <div class="enforcement-date">
+            <span class="enforcement-month">Jan</span>
+            <span class="enforcement-year">2027</span>
+          </div>
+          <div class="enforcement-content">
+            <div class="enforcement-title">EU ETS extends to offshore ships ≥5,000 GT</div>
+            <div class="enforcement-desc">Offshore vessels at or above 5,000 GT enter EU ETS scope. Commission proposal (17 Jul 2026, under negotiation) to lower the ETS threshold toward 400 GT would be a larger future change — timeline and vessel categories not yet finalised.</div>
+            <span class="enforcement-badge badge-horizon">Horizon</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── RISK SIMULATOR ───────────────────────────── -->
+<section id="simulator" class="simulator-section">
+  <div class="section-inner">
+    <div class="reveal">
+      <p class="section-label">ETS Risk Simulator</p>
+      <h2 class="section-title">Calculate your fleet's exposure</h2>
+      <p class="section-body">
+        Enter your fleet profile below. The estimate applies the platform's versioned factors and the EU ETS / FuelEU scope rules (ETS &amp; FuelEU apply from 5,000 GT). Below that threshold it returns the true scope verdict — not a fabricated liability.
+      </p>
+    </div>
+    <div class="simulator-wrap reveal" style="transition-delay:0.15s">
+      <div class="sim-controls">
+        <div class="sim-title">// Fleet Parameters</div>
+
+        <div class="sim-presets">
+          <span class="sim-presets-label">Sample fleet profiles</span>
+          <div class="sim-preset-row">
+            <button class="sim-preset active" data-scenario="in">≥5,000 GT · EU ETS scope</button>
+            <button class="sim-preset" data-scenario="mrv">400–5,000 GT · MRV only</button>
+            <button class="sim-preset" data-scenario="out">&lt;400 GT · exempt</button>
+          </div>
+        </div>
+
+        <div class="sim-field">
+          <label class="sim-label">Number of vessels in fleet</label>
+          <span class="sim-slider-val" id="vessel-display">8 vessels</span>
+          <div class="sim-slider-wrap">
+            <input type="range" class="sim-slider" id="vessel-count" min="1" max="50" value="8">
+          </div>
+        </div>
+
+        <div class="sim-field">
+          <label class="sim-label">Primary vessel gross tonnage (GT)</label>
+          <span class="sim-slider-val" id="gt-display">9,000 GT</span>
+          <div class="sim-slider-wrap">
+            <input type="range" class="sim-slider" id="gt-input" min="100" max="20000" step="100" value="9000">
+          </div>
+          <span class="sim-hint">EU ETS &amp; FuelEU scope threshold: 5,000 GT. EU MRV: 400 GT (category-dependent).</span>
+        </div>
+
+        <div class="sim-field">
+          <label class="sim-label">Annual fuel consumed per vessel (tonnes)</label>
+          <span class="sim-slider-val" id="fuel-display">400 t / vessel / yr</span>
+          <div class="sim-slider-wrap">
+            <input type="range" class="sim-slider" id="fuel-input" min="50" max="2000" step="10" value="400">
+          </div>
+          <span class="sim-hint">TtW CO₂ = quantity (t) × the fuel's CO₂ factor (IMO GHG Study / IPCC).</span>
+        </div>
+
+        <div class="sim-field">
+          <label class="sim-label">Predominant fuel type</label>
+          <select class="sim-select" id="fuel-type">
+            <option value="mgo" selected>MGO — 3.206 t CO₂ / t</option>
+            <option value="hfo">HFO — 3.114 t CO₂ / t</option>
+            <option value="vlsfo">VLSFO — 3.151 t CO₂ / t</option>
+            <option value="lsmgo">LSMGO — 3.206 t CO₂ / t</option>
+          </select>
+        </div>
+
+        <div class="sim-field">
+          <label class="sim-label">Share of fuel burned on EU-covered voyages</label>
+          <span class="sim-slider-val" id="coverage-display">50%</span>
+          <div class="sim-slider-wrap">
+            <input type="range" class="sim-slider" id="coverage-input" min="0" max="100" step="5" value="50">
+          </div>
+          <span class="sim-hint">Each voyage is classified: intra-EU 100% covered, EU ↔ third country 50%, non-EU 0%. This input is the fleet's weighted average.</span>
+        </div>
+      </div>
+
+      <div class="sim-results">
+        <div class="sim-results-title">// Risk Assessment Output</div>
+
+        <div class="scope-notice" id="scope-notice"></div>
+
+        <div class="sim-result-item">
+          <div class="sim-result-label">EU ETS scope</div>
+          <div class="sim-result-val danger" id="ets-scope">IN SCOPE</div>
+          <div class="sim-result-sub" id="ets-scope-sub">EU ETS applies ≥5,000 GT — 2026 = 100% phase-in</div>
+        </div>
+
+        <div class="sim-result-item">
+          <div class="sim-result-label">EU MRV status</div>
+          <div class="sim-result-val gold" id="mrv-status">REPORTING</div>
+          <div class="sim-result-sub" id="mrv-sub">EU MRV applies to ships ≥5,000 GT (all types); 400–5,000 GT for general cargo &amp; offshore (from 2025)</div>
+        </div>
+
+        <div class="sim-result-item">
+          <div class="sim-result-label">Total fleet TtW CO₂ (per year)</div>
+          <div class="sim-result-val" id="co2-total">10,259 t</div>
+          <div class="sim-result-sub">quantity × CO₂ factor, summed across the fleet</div>
+        </div>
+
+        <div class="sim-result-item">
+          <div class="sim-result-label">EUA obligation · 2026 (100% phase-in)</div>
+          <div class="sim-result-val danger" id="eua-obligation">5,130 EUA</div>
+          <div class="sim-result-sub" id="eua-obligation-sub">Covered CO₂ × coverage (50%) × 100% phase-in (2026)</div>
+        </div>
+
+        <div class="sim-result-item">
+          <div class="sim-result-label">Estimated allowance cost (2026)</div>
+          <div class="sim-result-val danger" id="eua-cost">€402,674</div>
+          <div class="sim-result-sub" id="eua-cost-sub">EUA price assumption: €78.50 · 2026 phase-in 100%</div>
+        </div>
+
+        <div class="sim-result-item">
+          <div class="sim-result-label">FuelEU — well-to-wake intensity vs 2025–29 target</div>
+          <div class="sim-result-val saving" id="fueleu-status">COMPLIANT</div>
+          <div class="sim-result-sub" id="fueleu-sub">85.7 gCO₂e/MJ vs 89.34 target (2025–29, −2%) → no penalty exposure today; target tightens to −6% from 2030</div>
+        </div>
+
+        <div class="sim-result-item">
+          <div class="sim-result-label">Med SOx ECA watch</div>
+          <div class="sim-result-val saving" id="sox-status">ACTIVE</div>
+          <div class="sim-result-sub">0.10% sulphur limit inside the Med ECA since 1 May 2025 (global 0.50%) — zone alerts + BDN evidence watch</div>
+        </div>
+
+        <div class="sim-result-item">
+          <div class="sim-result-label">Poseidon Ledger annual cost</div>
+          <div class="sim-result-val gold" id="pl-cost">€18,240 / yr</div>
+          <div class="sim-result-sub" id="pl-cost-sub">per-vessel subscription, fleet tier</div>
+        </div>
+
+        <div class="sim-cta">
+          <p class="sim-cta-note">This is an illustrative marketing estimate using the platform's versioned factors (sources: IMO GHG Study / IPCC; FuelEU MRV 2023) and current scope rules. The platform computes these figures per voyage from verified deliveries. A personalised 48-hour audit produces your exact position with a full evidence path.</p>
+          <button class="btn-primary" style="width:100%;justify-content:center" onclick="document.getElementById('audit').scrollIntoView({behavior:'smooth'})">
+            Get My Exact Risk Figure — Free
+            <span class="btn-primary-arrow">→</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── HOW IT WORKS ──────────────────────────────── -->
+<section class="how-section">
+  <div class="section-inner">
+    <div class="reveal">
+      <p class="section-label">How It Works</p>
+      <h2 class="section-title">Compliance infrastructure, not a dashboard</h2>
+      <p class="section-body">
+        Poseidon Ledger ingests the operational documents you already produce — bunker delivery notes, noon reports and charter parties — and turns them into a regulator-ready compliance record with calculations you can reproduce and defend.
+      </p>
+    </div>
+    <div class="how-grid">
+      <div class="how-card reveal" style="transition-delay:0.1s">
+        <span class="how-num">01</span>
+        <div class="how-icon">◈</div>
+        <h3 class="how-title">Document Ingestion &amp; OCR</h3>
+        <p class="how-body">BDNs, noon reports and charter parties become structured, queryable records via OCR with quality scoring and a human review queue. Fuel type, quantity, sulphur content and ports are extracted — not re-typed into a spreadsheet.</p>
+        <p class="how-detail">BDN · noon · charter party · quality review workflow</p>
+      </div>
+      <div class="how-card reveal" style="transition-delay:0.2s">
+        <span class="how-num">02</span>
+        <div class="how-icon">⬡</div>
+        <h3 class="how-title">Med SOx ECA Watch</h3>
+        <p class="how-body">MARPOL Annex VI Reg. 14: the 0.10% sulphur limit applies inside the Mediterranean SOx ECA (effective 1 May 2025). Designated rules — SOX-ECA-01..06 — evaluate zone entry/exit events and BDN sulphur evidence against the applicable limit, with alerts. Deterministic, not AI-guessed.</p>
+        <p class="how-detail">Active since 1 May 2025 · zone events · BDN sulphur evidence</p>
+      </div>
+      <div class="how-card reveal" style="transition-delay:0.3s">
+        <span class="how-num">03</span>
+        <div class="how-icon">◎</div>
+        <h3 class="how-title">EU ETS Engine</h3>
+        <p class="how-body">Each voyage is classified for coverage (intra-EU 100%, EU ↔ third country 50%, non-EU 0%). The engine applies the phase-in schedule (40% → 70% → 100%) to compute the EUA obligation and estimated cost against the 30 September surrender deadline.</p>
+        <p class="how-detail">Versioned parameters · 2026 = 100% phase-in · surrender clock</p>
+      </div>
+      <div class="how-card reveal" style="transition-delay:0.1s">
+        <span class="how-num">04</span>
+        <div class="how-icon">⊞</div>
+        <h3 class="how-title">FuelEU Maritime</h3>
+        <p class="how-body">Well-to-wake GHG intensity (gCO₂e/MJ) is computed from fuel energy inputs and compared against the 2025–29 target (91.16 baseline, 2% reduction). Compliance balance, banking and pooling, ISCC biofuel flags and a penalty exposure estimate (€2,400 / tonne VLSFOe).</p>
+        <p class="how-detail">Baseline 91.16 gCO₂e/MJ · balance &amp; pooling · penalty estimate</p>
+      </div>
+      <div class="how-card reveal" style="transition-delay:0.2s">
+        <span class="how-num">05</span>
+        <div class="how-icon">◇</div>
+        <h3 class="how-title">EU MRV &amp; Verifier Package</h3>
+        <p class="how-body">Completeness checks and a pre-submission checklist, a THETIS-MRV XML export matching the EMSA upload schema (manual web-portal upload), and a verifier package builder + validator with a content hash so a report can't be altered silently.</p>
+        <p class="how-detail">THETIS-MRV XML · verifier package · content hash</p>
+      </div>
+      <div class="how-card reveal" style="transition-delay:0.3s">
+        <span class="how-num">06</span>
+        <div class="how-icon">⊕</div>
+        <h3 class="how-title">Audit Trail &amp; Review</h3>
+        <p class="how-body">Every number traces back to its inputs and method. If there's a gap or a quality question, it goes to a review queue rather than being silently estimated — the difference between a number and a defensible number.</p>
+        <p class="how-detail roadmap">Roadmap: charterer-facing ESG credentials · insurance-broker evidence packs</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── PRICING ───────────────────────────────────── -->
+<section id="pricing" class="pricing-section">
+  <div class="section-inner">
+    <div class="reveal">
+      <p class="section-label">Pricing</p>
+      <h2 class="section-title">Structured for fleet scale</h2>
+      <p class="section-body">
+        All tiers include the compliance engines above, the audit trail and a live self-contained demo. Prices are per vessel per month, billed annually, and read from a single source so pricing can never drift.
+      </p>
+    </div>
+    <div class="pricing-grid">
+      <div class="price-card reveal" style="transition-delay:0.1s">
+        <div class="price-tier">Tier I</div>
+        <div class="price-name">Navigator</div>
+        <div class="price-target">Up to 5 vessels</div>
+        <div class="price-amount" data-price-tier="0"><sup>€</sup>240</div>
+        <div class="price-period">per vessel / month · billed annually</div>
+        <div class="price-divider"></div>
+        <div class="price-feature"><span class="price-check">✓</span> EU ETS per-voyage coverage &amp; EUA obligation (≥5,000 GT)</div>
+        <div class="price-feature"><span class="price-check">✓</span> FuelEU intensity, balance &amp; penalty estimate</div>
+        <div class="price-feature"><span class="price-check">✓</span> Med SOx ECA watch &amp; alerts</div>
+        <div class="price-feature"><span class="price-check">✓</span> Document OCR (BDN / noon / charter) with review queue</div>
+        <div class="price-feature"><span class="price-check">✓</span> Certificate registry &amp; expiry notifications</div>
+        <div class="price-feature"><span class="price-check">✓</span> Emissions dashboard &amp; audit trail</div>
+        <div class="price-feature"><span class="price-check">✓</span> Live demo — zero setup required</div>
+        <div class="price-cta">
+          <button class="btn-primary" style="width:100%;justify-content:center" onclick="document.getElementById('audit').scrollIntoView({behavior:'smooth'})">
+            Start with Free Audit →
+          </button>
+        </div>
+      </div>
+      <div class="price-card featured reveal" style="transition-delay:0.2s">
+        <div class="price-badge">Most Selected</div>
+        <div class="price-tier">Tier II</div>
+        <div class="price-name">Fleet</div>
+        <div class="price-target">6–15 vessels</div>
+        <div class="price-amount" data-price-tier="1"><sup>€</sup>190</div>
+        <div class="price-period">per vessel / month · billed annually</div>
+        <div class="price-divider"></div>
+        <div class="price-feature"><span class="price-check">✓</span> Everything in Navigator</div>
+        <div class="price-feature"><span class="price-check">✓</span> EUA price &amp; forward cost projection</div>
+        <div class="price-feature"><span class="price-check">✓</span> MRV completeness &amp; THETIS-MRV XML export</div>
+        <div class="price-feature"><span class="price-check">✓</span> Verifier package builder + validator</div>
+        <div class="price-feature"><span class="price-check">✓</span> FuelEU pooling / banking visibility</div>
+        <div class="price-feature"><span class="price-check">✓</span> Fleet-level compliance summary</div>
+        <div class="price-feature"><span class="price-check">✓</span> API access for partner data ingestion</div>
+        <div class="price-cta">
+          <button class="btn-primary" style="width:100%;justify-content:center" onclick="document.getElementById('audit').scrollIntoView({behavior:'smooth'})">
+            Start with Free Audit →
+          </button>
+        </div>
+      </div>
+      <div class="price-card reveal" style="transition-delay:0.3s">
+        <div class="price-tier">Tier III</div>
+        <div class="price-name">Scale</div>
+        <div class="price-target">16–30 vessels</div>
+        <div class="price-amount" data-price-tier="2"><sup>€</sup>150</div>
+        <div class="price-period">per vessel / month · billed annually</div>
+        <div class="price-divider"></div>
+        <div class="price-feature"><span class="price-check">✓</span> Everything in Fleet</div>
+        <div class="price-feature"><span class="price-check">✓</span> Dedicated onboarding &amp; compliance review support</div>
+        <div class="price-feature"><span class="price-check">✓</span> Regulatory change monitoring (versioned parameters)</div>
+        <div class="price-feature"><span class="price-check">✓</span> Custom ports &amp; voyage-coverage settings</div>
+        <div class="price-feature"><span class="price-check">✓</span> Multi-year FuelEU balance projections</div>
+        <div class="price-cta">
+          <button class="btn-primary" style="width:100%;justify-content:center" onclick="document.getElementById('audit').scrollIntoView({behavior:'smooth'})">
+            Start with Free Audit →
+          </button>
+        </div>
+      </div>
+      <div class="price-card reveal" style="transition-delay:0.4s">
+        <div class="price-tier">Tier IV</div>
+        <div class="price-name">Sovereign</div>
+        <div class="price-target">31+ vessels</div>
+        <div class="price-amount custom" data-price-tier="3"><span></span>Custom</div>
+        <div class="price-period">annual contract · tailored to fleet</div>
+        <div class="price-divider"></div>
+        <div class="price-feature"><span class="price-check">✓</span> Everything in Scale</div>
+        <div class="price-feature"><span class="price-check">✓</span> Custom API &amp; partner ingestion pipeline</div>
+        <div class="price-feature"><span class="price-check">✓</span> White-label reporting</div>
+        <div class="price-feature"><span class="price-check">✓</span> Priority support &amp; SLA</div>
+        <div class="price-cta">
+          <button class="btn-primary" style="width:100%;justify-content:center" onclick="document.getElementById('audit').scrollIntoView({behavior:'smooth'})">
+            Contact for Enterprise →
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="price-roadmap reveal">
+      <strong>Roadmap — planned, not sold until they ship:</strong>
+      <ul class="price-roadmap-list">
+        <li>Charterer-facing ESG credential packs</li>
+        <li>Carbon offset / credit programmes</li>
+        <li>Insurance-broker evidence packages</li>
+      </ul>
+      <span>None of these are live today, so they are not priced or advertised as features. When they do ship, they will appear in the pricing table above.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ── LIVE DEMO ─────────────────────────────────── -->
+<section id="demo" class="demo-section">
+  <div class="section-inner">
+    <div class="demo-grid">
+      <div class="demo-left reveal">
+        <p class="section-label">Interactive Demo</p>
+        <h2 class="section-title">Experience Poseidon Ledger</h2>
+        <p class="section-body">
+          Explore a fully interactive demonstration of the Poseidon Ledger platform. No installation required.
+        </p>
+        <ul class="demo-list">
+          <li class="demo-list-item"><span class="price-check">✓</span> Fleet Operations</li>
+          <li class="demo-list-item"><span class="price-check">✓</span> AIS Intelligence</li>
+          <li class="demo-list-item"><span class="price-check">✓</span> OCR Document Processing</li>
+          <li class="demo-list-item"><span class="price-check">✓</span> FuelEU &amp; EU ETS Compliance</li>
+          <li class="demo-list-item"><span class="price-check">✓</span> AI Maritime Assistants</li>
+          <li class="demo-list-item"><span class="price-check">✓</span> Certificates</li>
+          <li class="demo-list-item"><span class="price-check">✓</span> Noon Reports</li>
+          <li class="demo-list-item"><span class="price-check">✓</span> Operational Dashboards</li>
+        </ul>
+        <div class="demo-actions">
+          <a class="btn-primary" href="https://demo.poseidonledger.com" target="_blank" rel="noopener">
+            Launch Live Demo
+            <span class="btn-primary-arrow">→</span>
+          </a>
+          <button class="btn-ghost" onclick="document.getElementById('audit').scrollIntoView({behavior:'smooth'})">
+            Book a Walkthrough
+          </button>
+        </div>
+      </div>
+      <div class="demo-visual reveal" style="transition-delay:0.2s">
+        <div class="demo-panel">
+          <div class="demo-panel-header">
+            <span class="demo-panel-dot on"></span>
+            <span class="demo-panel-dot"></span>
+            <span class="demo-panel-dot"></span>
+            <span class="demo-panel-title">Operational Dashboard</span>
+            <span class="demo-panel-caption">Live preview · follows the simulator below</span>
+          </div>
+          <div class="demo-panel-body">
+            <div class="demo-panel-row">
+              <span class="demo-panel-k">Fleet compliance status</span>
+              <span class="demo-panel-v teal">Compliant</span>
+            </div>
+            <div class="demo-panel-row">
+              <span class="demo-panel-k">ETS liability forecast</span>
+              <span class="demo-panel-v danger" id="demo-ets-val">€402,674</span>
+            </div>
+            <div class="demo-panel-row">
+              <span class="demo-panel-k">FuelEU intensity vs baseline</span>
+              <span class="demo-panel-v teal" id="demo-fueleu-val">-6.0%</span>
+            </div>
+            <div class="demo-panel-row">
+              <span class="demo-panel-k">Certificates issued</span>
+              <span class="demo-panel-v gold">12</span>
+            </div>
+            <div class="demo-panel-row">
+              <span class="demo-panel-k">Noon reports processed</span>
+              <span class="demo-panel-v">148</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── AUDIT FORM ─────────────────────────────────── -->
+<section id="audit" class="audit-section">
+  <div class="section-inner">
+    <div class="audit-grid">
+      <div class="audit-left reveal">
+        <p class="section-label">48-Hour Risk Audit</p>
+        <h2 class="section-title">Know your exact liability. In 48 hours.</h2>
+        <p class="section-body">
+          Our compliance team produces a personalised Risk Audit for your fleet —
+          mapping your vessel roster against the 30 September 2026 EUA surrender
+          deadline and the FuelEU penalty cycle, and calculating your precise EU ETS,
+          MRV and SOx exposure. No commitment required.
+        </p>
+        <div class="audit-list">
+          <div class="audit-step">
+            <div class="audit-step-num">1</div>
+            <div class="audit-step-content">
+              <div class="audit-step-title">Submit your fleet profile</div>
+              <div class="audit-step-body">Vessel count, types, primary operating corridors, and current documentation status.</div>
+            </div>
+          </div>
+          <div class="audit-step">
+            <div class="audit-step-num">2</div>
+            <div class="audit-step-content">
+              <div class="audit-step-title">Compliance analysis — 48 hours</div>
+              <div class="audit-step-body">We map each vessel against EU ETS / MRV scope and voyage-coverage rules, the Med SOx ECA corridor, and FuelEU intensity targets.</div>
+            </div>
+          </div>
+          <div class="audit-step">
+            <div class="audit-step-num">3</div>
+            <div class="audit-step-content">
+              <div class="audit-step-title">Receive your Risk Report</div>
+              <div class="audit-step-body">A detailed liability exposure document in euros — per vessel, per regulation, with a recommended compliance pathway.</div>
+            </div>
+          </div>
+          <div class="audit-step">
+            <div class="audit-step-num">4</div>
+            <div class="audit-step-content">
+              <div class="audit-step-title">Optional: briefing call</div>
+              <div class="audit-step-body">30-minute review with a Poseidon compliance specialist. No sales pressure. No obligation.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="audit-form-wrap reveal" style="transition-delay:0.2s">
+        <div class="audit-form-header">
+          <span class="audit-form-header-dot"></span>
+          <span class="audit-form-header-text">Free Compliance Risk Audit</span>
+          <span class="audit-form-header-sub">No commitment · 48h delivery</span>
+        </div>
+
+        <div class="audit-form" id="audit-form-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">First name</label>
+              <input type="text" class="form-input" placeholder="James" id="f-fname">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Last name</label>
+              <input type="text" class="form-input" placeholder="Whitmore" id="f-lname">
+            </div>
+          </div>
+          <div class="form-row full">
+            <div class="form-group">
+              <label class="form-label">Email address</label>
+              <input type="email" class="form-input" placeholder="j.whitmore@cmb-monaco.com" id="f-email">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Company / fleet name</label>
+              <input type="text" class="form-input" placeholder="CMB Fleet Services" id="f-company">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Fleet size (vessels)</label>
+              <select class="form-select" id="f-fleet">
+                <option value="">Select range</option>
+                <option>1–5 vessels</option>
+                <option>6–15 vessels</option>
+                <option>16–30 vessels</option>
+                <option>30+ vessels</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Primary operating region</label>
+              <select class="form-select" id="f-region">
+                <option value="">Select region</option>
+                <option>Western Mediterranean</option>
+                <option>Eastern Mediterranean</option>
+                <option>Adriatic</option>
+                <option>Multi-region</option>
+                <option>Caribbean</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Current compliance status</label>
+              <select class="form-select" id="f-compliance">
+                <option value="">Select status</option>
+                <option>No documentation</option>
+                <option>Manual logs only</option>
+                <option>Partial MRV reporting</option>
+                <option>Full digital compliance</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row full">
+            <div class="form-group">
+              <label class="form-label">Primary concern (optional)</label>
+              <input type="text" class="form-input" placeholder="e.g. EUA surrender, FuelEU penalties, SOx ECA, insurance renewal…" id="f-concern">
+            </div>
+          </div>
+          <div class="form-consent">
+            <input type="checkbox" id="f-consent">
+            <label class="form-consent-text" for="f-consent">
+              I agree to receive the Risk Audit report and occasional compliance intelligence from Poseidon Ledger.
+              No marketing. No spam. Unsubscribe anytime.
+            </label>
+          </div>
+          <button class="form-submit" onclick="submitForm()">
+            <span>Request My Free 48-Hour Risk Audit</span>
+            <span>→</span>
+          </button>
+          <p class="form-guarantee">
+            ◈ &nbsp; Confidential · No commitment · Report delivered within 48 hours
+          </p>
+        </div>
+
+        <div class="form-success" id="form-success">
+          <div class="form-success-icon">◈</div>
+          <h3 class="form-success-title">Audit request received.</h3>
+          <p class="form-success-body">
+            Your Compliance Risk Audit is now in progress.<br><br>
+            You will receive a personalised liability exposure report<br>
+            within 48 hours at the email address provided.<br><br>
+            Reference: PL-<span id="audit-ref"></span>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ────────────────────────────────────── -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-left">
+      <div class="nav-logo-mark">PL</div>
+      <div>
+        <span class="nav-logo-text" style="font-size:15px">POSEIDON LEDGER</span>
+        <span class="nav-logo-sub">Maritime ESG Compliance Intelligence</span>
+      </div>
+    </div>
+    <ul class="footer-links">
+      <li><a href="#compliance">Deadlines</a></li>
+      <li><a href="#simulator">Risk Simulator</a></li>
+      <li><a href="#pricing">Pricing</a></li>
+      <li><a href="#audit">Free Audit</a></li>
+    </ul>
+    <div class="footer-right">
+      © 2026 Poseidon Ledger Ltd. · Monaco<br>
+      Maritime ESG Compliance Intelligence<br>
+      <span style="color:var(--teal)">gabriel@poseidonledger.com</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// CANONICAL PRICING — single source of truth.
+// The pricing cards AND the risk simulator read from this only.
+// ══════════════════════════════════════════════════════════════
+// NOTE: tier values below are a business decision — they were set
+// to be internally consistent (per-vessel monthly, annual billing)
+// and must be confirmed with the founder before launch.
+const PRICING = [
+  { tier: "Navigator",  target: "Up to 5 vessels",      perVessel: 240, maxVessels: 5  },
+  { tier: "Fleet",      target: "6–15 vessels",         perVessel: 190, maxVessels: 15 },
+  { tier: "Scale",      target: "16–30 vessels",        perVessel: 150, maxVessels: 30 },
+  { tier: "Sovereign",  target: "31+ vessels",          perVessel: null, maxVessels: Infinity },
+];
+
+function priceBracketFor(n) {
+  return PRICING.find((b) => n <= b.maxVessels) ?? PRICING[PRICING.length - 1];
+}
+
+function formatEur(n) {
+  return '€' + Math.round(n).toLocaleString('en-GB');
+}
+
+function fleetAnnualCostLabel(n) {
+  const b = priceBracketFor(n);
+  if (b.perVessel === null) return 'Custom';
+  return formatEur(n * b.perVessel * 12) + ' / yr';
+}
+
+function renderPricingFromSource() {
+  document.querySelectorAll('[data-price-tier]').forEach((el) => {
+    const idx = parseInt(el.getAttribute('data-price-tier'), 10);
+    const b = PRICING[idx];
+    if (!b) return;
+    const sup = el.querySelector('sup');
+    if (b.perVessel === null) {
+      if (sup) sup.remove();
+      el.classList.add('custom');
+      el.textContent = 'Custom';
+    } else {
+      el.textContent = '';
+      if (sup) {
+        sup.textContent = '€';
+        el.appendChild(sup);
+      }
+      el.appendChild(document.createTextNode(String(b.perVessel)));
+      el.classList.remove('custom');
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════════════════
+// COUNTDOWN TIMER — EUA surrender 30 September 2026
+// (matches eu-ets/parameters.ts: surrender deadline 30 Sep)
+// ══════════════════════════════════════════════════════════════
+function updateCountdown() {
+  const target = new Date('2026-09-30T23:59:59Z');
+  const now = new Date();
+  const diff = target - now;
+  if (diff <= 0) {
+    document.getElementById('cd-days').textContent = '00';
+    document.getElementById('cd-hours').textContent = '00';
+    document.getElementById('cd-mins').textContent = '00';
+    document.getElementById('cd-secs').textContent = '00';
+    return;
+  }
+  const d = Math.floor(diff / 86400000);
+  const h = Math.floor((diff % 86400000) / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  const s = Math.floor((diff % 60000) / 1000);
+  document.getElementById('cd-days').textContent  = String(d).padStart(2,'0');
+  document.getElementById('cd-hours').textContent = String(h).padStart(2,'0');
+  document.getElementById('cd-mins').textContent  = String(m).padStart(2,'0');
+  document.getElementById('cd-secs').textContent  = String(s).padStart(2,'0');
+}
+setInterval(updateCountdown, 1000);
+updateCountdown();
+
+// ══════════════════════════════════════════════════════════════
+// RISK SIMULATOR
+// Uses the same versioned parameters the platform engine uses:
+//   - CO₂ factors: src/lib/fuel-delivery/emission-factors.ts
+//     (MGO 3.206, HFO 3.114, VLSFO 3.151, LSMGO 3.206 t CO₂/t)
+//   - ETS scope: ≥5,000 GT (eu-ets/types.ts etsScopeForGt)
+//   - MRV scope: ≥400 GT (eu-ets/types.ts mrvScopeForGt)
+//   - Phase-in: 2024=40%, 2025=70%, 2026+=100% (eu-ets/parameters.ts)
+//   - Voyage coverage: intra-EU 1.0 / EU↔third 0.5 / non-EU 0.0
+//   - EUA price assumption: €78.50 (demo-seed; live price via provider)
+//   - FuelEU: baseline 91.16, 2025–29 reduction 2% → target 89.34
+//     gCO₂e/MJ (fueleu/parameters.ts); penalty €2,400/t VLSFOe,
+//     applied only on a deficit (fueleu/penalty.ts, estimate)
+// ══════════════════════════════════════════════════════════════
+const EUA_PRICE_EUR = 78.5;
+const PHASE_IN_2026 = 1.00;
+const FUELEU_BASELINE = 91.16;
+const FUELEU_REDUCTION_2025 = 0.02;
+const FUELEU_TARGET_2025 = FUELEU_BASELINE * (1 - FUELEU_REDUCTION_2025); // 89.34
+const PENALTY_EUR_PER_TONNE_VLSFOE = 2400;
+const VLSFO_FACTOR_GCO2E_PER_MJ = 87.5;
+const VLSFO_ENERGY_MJ_PER_TONNE = 40500;
+
+// Fuel → [t CO₂ per t fuel (TtW), gCO₂e/MJ (WtW), LHV MJ/kg]
+const FUEL = {
+  mgo:   { co2: 3.206, wtw: 85.7, lhv: 42.7, name: 'MGO' },
+  hfo:   { co2: 3.114, wtw: 87.5, lhv: 40.5, name: 'HFO' },
+  vlsfo: { co2: 3.151, wtw: 87.5, lhv: 40.5, name: 'VLSFO' },
+  lsmgo: { co2: 3.206, wtw: 85.7, lhv: 42.7, name: 'LSMGO' },
+};
+
+const ETS_THRESHOLD_GT = 5000;
+const MRV_THRESHOLD_GT = 400;
+
+function setScopeNotice(gt) {
+  const el = document.getElementById('scope-notice');
+  let html = '';
+  if (gt >= ETS_THRESHOLD_GT) {
+    el.classList.remove('show');
+    return;
+  }
+  el.classList.add('show');
+  if (gt >= MRV_THRESHOLD_GT) {
+    html = '<strong>Below the 5,000 GT EU ETS / FuelEU threshold.</strong> ' +
+           'This fleet is not currently in EU ETS or FuelEU scope, so no allowance or intensity liability is shown. ' +
+           'EU MRV reporting applies in this band for specific categories (general cargo &amp; offshore from 400 GT since 2025). ' +
+           'Poseidon covers MRV completeness, THETIS export, the Med SOx ECA watch (0.10% in force since May 2025), document OCR and certificate records here.';
+  } else {
+    html = '<strong>Below the MRV threshold.</strong> ' +
+           'This fleet is not currently in EU ETS, FuelEU or EU MRV scope as it stands today. ' +
+           'What still applies: MARPOL sulphur rules — 0.10% inside the Med SOx ECA since 1 May 2025 — and your evidence/record obligations. ' +
+           'The European Commission\u2019s 17 July 2026 proposal to extend EU ETS below 5,000 GT is under negotiation; the timeline and vessel categories (including passenger/charter vessels) are not yet finalised. Poseidon can map your position the day scope changes.';
+  }
+  el.innerHTML = html;
+}
+
+function calcRisk() {
+  const vessels  = parseInt(document.getElementById('vessel-count').value, 10);
+  const gt       = parseInt(document.getElementById('gt-input').value, 10);
+  const fuelTpy  = parseInt(document.getElementById('fuel-input').value, 10);
+  const fType    = document.getElementById('fuel-type').value;
+  const coverage = parseInt(document.getElementById('coverage-input').value, 10);
+  const f        = FUEL[fType];
+
+  document.getElementById('vessel-display').textContent = `${vessels} vessel${vessels > 1 ? 's' : ''}`;
+  document.getElementById('gt-display').textContent    = gt.toLocaleString('en') + ' GT';
+  document.getElementById('fuel-display').textContent  = fuelTpy + ' t / vessel / yr';
+  document.getElementById('coverage-display').textContent = coverage + '%';
+
+  const etsInScope = gt >= ETS_THRESHOLD_GT;
+  const mrvInScope = gt >= MRV_THRESHOLD_GT;
+
+  // ETS scope
+  const etsScopeEl = document.getElementById('ets-scope');
+  const etsScopeSub = document.getElementById('ets-scope-sub');
+  etsScopeEl.classList.remove('danger', 'saving', 'gold');
+  if (etsInScope) {
+    etsScopeEl.textContent = 'IN SCOPE';
+    etsScopeEl.classList.add('danger');
+    etsScopeSub.textContent = 'EU ETS applies ≥5,000 GT — 2026 = 100% phase-in';
+  } else if (mrvInScope) {
+    etsScopeEl.textContent = 'MRV ONLY';
+    etsScopeEl.classList.add('gold');
+    etsScopeSub.textContent = 'Below the 5,000 GT ETS threshold; MRV reporting applies (category-dependent, ≥400 GT)';
+  } else {
+    etsScopeEl.textContent = 'OUT OF SCOPE';
+    etsScopeSub.textContent = 'Below the 400 GT MRV threshold — ETS-exempt as the rules stand';
+  }
+
+  // MRV status
+  document.getElementById('mrv-status').textContent = mrvInScope ? 'REPORTING' : 'EXEMPT';
+  document.getElementById('mrv-status').className = 'sim-result-val' + (mrvInScope ? ' gold' : '');
+  document.getElementById('mrv-sub').textContent = mrvInScope
+    ? 'EU MRV reporting applies (ships ≥5,000 GT all types; 400–5,000 GT for general cargo &amp; offshore since 2025)'
+    : 'Below the MRV threshold; no EU MRV reporting obligation today';
+
+  // Emissions & obligation (mirrors eu-ets/service.ts simplified model)
+  const totalCo2 = vessels * fuelTpy * f.co2;
+  const coveredCo2 = totalCo2 * (coverage / 100);
+  const obligation = etsInScope ? coveredCo2 * PHASE_IN_2026 : null;
+  const estCost = etsInScope ? obligation * EUA_PRICE_EUR : null;
+
+  const co2El = document.getElementById('co2-total');
+  co2El.textContent = Math.round(totalCo2).toLocaleString('en') + ' t';
+
+  const oblEl = document.getElementById('eua-obligation');
+  oblEl.className = 'sim-result-val' + (etsInScope ? ' danger' : '');
+  oblEl.textContent = obligation !== null ? Math.round(obligation).toLocaleString('en') + ' EUA' : '—';
+  document.getElementById('eua-obligation-sub').textContent = etsInScope
+    ? 'Covered CO₂ × coverage (' + coverage + '%) × 100% phase-in (2026)'
+    : 'Not in EU ETS scope — shown only when GT ≥ 5,000';
+
+  const costEl = document.getElementById('eua-cost');
+  costEl.className = 'sim-result-val' + (etsInScope ? ' danger' : '');
+  costEl.textContent = estCost !== null ? formatEur(estCost) : '—';
+  document.getElementById('eua-cost-sub').textContent = etsInScope
+    ? 'EUA price assumption: €78.50 · 2026 phase-in 100%'
+    : 'Not in EU ETS scope — no allowance cost applies';
+
+  // FuelEU — single-fuel intensity vs 2025–29 target (89.34)
+  const fueleuEl = document.getElementById('fueleu-status');
+  const fueleuSub = document.getElementById('fueleu-sub');
+  fueleuEl.classList.remove('danger', 'saving');
+  const targetTxt = FUELEU_TARGET_2025.toFixed(2);
+  if (f.wtw <= FUELEU_TARGET_2025) {
+    fueleuEl.textContent = 'COMPLIANT';
+    fueleuEl.classList.add('saving');
+    fueleuSub.textContent = `${f.wtw.toFixed(1)} gCO₂e/MJ vs ${targetTxt} target (2025–29, −2%) → no penalty exposure today; target tightens to −6% from 2030`;
+  } else {
+    // Deficit — replicate fueleu/penalty.ts (estimate)
+    const totalEnergyMj = vessels * fuelTpy * 1000 * f.lhv;
+    const excessGco2e = (f.wtw - FUELEU_TARGET_2025) * totalEnergyMj;
+    const tonnesVlsfoe = (excessGco2e / VLSFO_FACTOR_GCO2E_PER_MJ) / VLSFO_ENERGY_MJ_PER_TONNE;
+    const penalty = tonnesVlsfoe * PENALTY_EUR_PER_TONNE_VLSFOE;
+    fueleuEl.textContent = 'DEFICIT';
+    fueleuEl.classList.add('danger');
+    fueleuSub.textContent = `${f.wtw.toFixed(1)} gCO₂e/MJ vs ${targetTxt} target → est. penalty exposure ${formatEur(penalty)} (FuelEU 2025.1 formula, estimate)`;
+  }
+  // Only meaningful above the 5,000 GT threshold; restate for honesty
+  if (!etsInScope) {
+    fueleuSub.textContent = (f.wtw.toFixed(1) + ' gCO₂e/MJ vs 2025–29 target ' + targetTxt +
+      ' (' + (f.wtw <= FUELEU_TARGET_2025 ? 'compliant' : 'deficit') + ') — FuelEU applies from 5,000 GT, so no obligation is shown for this fleet');
+    fueleuEl.textContent = f.wtw <= FUELEU_TARGET_2025 ? 'COMPLIANT' : 'DEFICIT';
+    fueleuEl.classList.add(f.wtw <= FUELEU_TARGET_2025 ? 'saving' : 'danger');
+  }
+
+  // SOx — always active
+  document.getElementById('sox-status').textContent = 'ACTIVE';
+  document.getElementById('sox-status').className = 'sim-result-val saving';
+
+  // Price — same source as the pricing table
+  document.getElementById('pl-cost').textContent = fleetAnnualCostLabel(vessels);
+  document.getElementById('pl-cost-sub').textContent =
+    'per-vessel month, annual billing · tier: ' + priceBracketFor(vessels).tier;
+
+  // Demo panel — mirrors the simulator so the preview never contradicts it
+  const demoEts = document.getElementById('demo-ets-val');
+  if (demoEts) {
+    demoEts.textContent = estCost !== null ? formatEur(estCost) : '—';
+    demoEts.className = 'demo-panel-v' + (estCost !== null ? ' danger' : ' teal');
+  }
+  const demoFueleu = document.getElementById('demo-fueleu-val');
+  if (demoFueleu) {
+    const vsBaseline = (f.wtw - FUELEU_BASELINE) / FUELEU_BASELINE * 100;
+    demoFueleu.textContent = (vsBaseline > 0 ? '+' : '') + vsBaseline.toFixed(1) + '%';
+  }
+
+  setScopeNotice(gt);
+}
+
+document.getElementById('vessel-count').addEventListener('input', calcRisk);
+document.getElementById('gt-input').addEventListener('input', calcRisk);
+document.getElementById('fuel-input').addEventListener('input', calcRisk);
+document.getElementById('fuel-type').addEventListener('change', calcRisk);
+document.getElementById('coverage-input').addEventListener('input', calcRisk);
+
+// Sample fleet profiles — set sliders to a coherent starting point.
+// Scope verdicts still fall out of the GT threshold; presets are labels, not claims.
+const SCENARIOS = {
+  in:  { vessels: 8, gt: 9000, fuel:  400, type: 'mgo', coverage: 50 },
+  mrv: { vessels: 4, gt: 4200, fuel:  500, type: 'mgo', coverage: 50 },
+  out: { vessels: 1, gt:  350, fuel:  300, type: 'mgo', coverage: 50 },
+};
+function applyScenario(key) {
+  const s = SCENARIOS[key];
+  if (!s) return;
+  document.getElementById('vessel-count').value = s.vessels;
+  document.getElementById('gt-input').value = s.gt;
+  document.getElementById('fuel-input').value = s.fuel;
+  document.getElementById('fuel-type').value = s.type;
+  document.getElementById('coverage-input').value = s.coverage;
+  document.querySelectorAll('.sim-preset').forEach(b => {
+    b.classList.toggle('active', b.dataset.scenario === key);
+  });
+  calcRisk();
+}
+document.querySelectorAll('.sim-preset').forEach(btn => {
+  btn.addEventListener('click', () => applyScenario(btn.dataset.scenario));
+});
+
+// ══════════════════════════════════════════════════════════════
+// FORM SUBMIT — POST /api/audit (exists in the app: src/app/api/audit)
+// Validates in the browser first; the route re-validates.
+// ══════════════════════════════════════════════════════════════
+async function submitForm() {
+  const firstName        = document.getElementById('f-fname').value.trim();
+  const lastName         = document.getElementById('f-lname').value.trim();
+  const email            = document.getElementById('f-email').value.trim();
+  const company          = document.getElementById('f-company').value.trim();
+  const fleetSize        = document.getElementById('f-fleet').value;
+  const region           = document.getElementById('f-region').value;
+  const complianceStatus = document.getElementById('f-compliance').value;
+  const primaryConcern   = document.getElementById('f-concern').value.trim();
+  const consent          = document.getElementById('f-consent').checked;
+
+  if (!firstName) { showFormError('Please enter your first name.'); return; }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showFormError('Please enter a valid email address.'); return; }
+  if (!fleetSize) { showFormError('Please select your fleet size.'); return; }
+  if (!consent) { showFormError('Please confirm consent to receive your audit report.'); return; }
+
+  const auditRef = 'PL-AU' + Date.now().toString().slice(-6);
+
+  const simVessels        = document.getElementById('vessel-display')?.textContent || '';
+  const simEtsLiability   = document.getElementById('eua-cost')?.textContent || '';
+  const simFueleuLiability= document.getElementById('fueleu-status')?.textContent || '';
+  const simInsuranceImpact= ''; // removed — no insurance claims on the site
+  const simRevenueRisk    = ''; // removed — fabricated berth-denial metric
+  const simNetValue       = '';
+  const simGt             = document.getElementById('gt-display')?.textContent || '';
+  const simCoverage       = document.getElementById('coverage-display')?.textContent || '';
+
+  const btn = document.querySelector('.form-submit');
+  const originalHTML = btn.innerHTML;
+  btn.innerHTML = '<span style="opacity:0.6">Submitting audit request…</span>';
+  btn.disabled = true;
+
+  try {
+    const response = await fetch('/api/audit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        firstName, lastName, email, company,
+        fleetSize, region, complianceStatus, primaryConcern,
+        auditRef,
+        simVessels, simEtsLiability, simFueleuLiability, simInsuranceImpact,
+        simRevenueRisk, simNetValue,
+        simGt, simCoverage,
+      }),
+    });
+
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.error || 'Server error');
+    }
+
+    document.getElementById('audit-ref').textContent = auditRef;
+    document.getElementById('audit-form-body').style.display = 'none';
+    document.getElementById('form-success').classList.add('show');
+
+  } catch (err) {
+    console.error('Submission error:', err);
+    btn.innerHTML = originalHTML;
+    btn.disabled = false;
+    showFormError('Something went wrong. Please email compliance@poseidonledger.com directly.');
+  }
+}
+
+function showFormError(msg) {
+  const existing = document.getElementById('form-error-msg');
+  if (existing) existing.remove();
+  const el = document.createElement('p');
+  el.id = 'form-error-msg';
+  el.style.cssText = [
+    'font-family:var(--mono)',
+    'font-size:11px',
+    'color:var(--red-alert)',
+    'letter-spacing:0.08em',
+    'margin:-8px 0 12px',
+    'padding:10px 14px',
+    'background:var(--red-dim)',
+    'border:1px solid rgba(217,79,79,0.3)',
+  ].join(';');
+  el.textContent = '⚠ ' + msg;
+  const btn = document.querySelector('.form-submit');
+  btn.parentNode.insertBefore(el, btn);
+  el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// ══════════════════════════════════════════════════════════════
+// INIT + SCROLL REVEAL
+// ══════════════════════════════════════════════════════════════
+renderPricingFromSource();
+calcRisk();
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('visible'); }
+  });
+}, { threshold: 0.08 });
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>

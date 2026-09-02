@@ -35,7 +35,10 @@ export async function POST(
       user: session.user,
       organization: session.organization,
     });
-    res.headers.set("Set-Cookie", sessionCookieValue(session.token));
+    res.headers.set(
+      "Set-Cookie",
+      sessionCookieValue(session.token, process.env.NODE_ENV === "production"),
+    );
     return res;
   } catch (err) {
     if (err instanceof Error) {

@@ -77,6 +77,9 @@ export interface EtsCalculationResult {
   readonly voyage_ids: ReadonlyArray<string>;
   readonly delivery_ids: ReadonlyArray<string>;
 
+  /** Port names that could not be classified (not silently coerced). */
+  readonly unknown_ports: ReadonlyArray<string>;
+
   readonly calculated_at: string;
 }
 

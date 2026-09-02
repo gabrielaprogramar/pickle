@@ -122,7 +122,7 @@ describe("ReportService", () => {
   describe("generateThetisMrrReport", () => {
     it("generates a THETIS-MRV report from existing MRV data", async () => {
       const repo = createMockReportRepo();
-      const vessel = { id: "v1", imo: "1234567", name: "Test Vessel", mmsi: null as string | null, ship_id: null as string | null, gross_tonnage: null as number | null, created_at: "", updated_at: "" };
+      const vessel = { id: "v1", imo: "1234567", name: "Test Vessel", mmsi: null as string | null, ship_id: null as string | null, gross_tonnage: null as number | null, flag: null as string | null, vessel_type: null as string | null, vessel_category: null as string | null, created_at: "", updated_at: "" };
       const mrvReport = { id: "mrv1", total_voyages: 12, total_fuel_mt: 5000, total_co2_tonnes: 15750, methodology: "A", monitoring_plan_version: "2.0", status: "approved" };
 
       const svc = createReportService({
@@ -178,7 +178,7 @@ describe("ReportService", () => {
 
     it("throws ReportGenerationError when MRV report not found", async () => {
       const repo = createMockReportRepo();
-      const vessel = { id: "v1", imo: "1234567", name: "Test", mmsi: null as string | null, ship_id: null as string | null, gross_tonnage: null as number | null, created_at: "", updated_at: "" };
+      const vessel = { id: "v1", imo: "1234567", name: "Test", mmsi: null as string | null, ship_id: null as string | null, gross_tonnage: null as number | null, flag: null as string | null, vessel_type: null as string | null, vessel_category: null as string | null, created_at: "", updated_at: "" };
       const svc = createReportService({
         reportRepo: repo,
         getVessel: async () => vessel,
@@ -204,7 +204,7 @@ describe("ReportService", () => {
   describe("generateFuelEuReport", () => {
     it("generates a FuelEU report from existing FuelEU record", async () => {
       const repo = createMockReportRepo();
-      const vessel = { id: "v1", imo: "1234567", name: "FuelEU Vessel", mmsi: null as string | null, ship_id: null as string | null, gross_tonnage: null as number | null, created_at: "", updated_at: "" };
+      const vessel = { id: "v1", imo: "1234567", name: "FuelEU Vessel", mmsi: null as string | null, ship_id: null as string | null, gross_tonnage: null as number | null, flag: null as string | null, vessel_type: null as string | null, vessel_category: null as string | null, created_at: "", updated_at: "" };
       const fuelEuRecord = { id: "fe1", ghg_intensity_gco2e_per_mj: 85, target_gco2e_per_mj: 91, compliance_balance: 6, surplus_or_deficit: "surplus", penalty_exposure_estimate: null, biofuel_energy_mj: 5000, ops_energy_mj: 1000, status: "final" };
 
       const svc = createReportService({
@@ -236,7 +236,7 @@ describe("ReportService", () => {
 
     it("throws when FuelEU record not found", async () => {
       const repo = createMockReportRepo();
-      const vessel = { id: "v1", imo: "1234567", name: "Test", mmsi: null as string | null, ship_id: null as string | null, gross_tonnage: null as number | null, created_at: "", updated_at: "" };
+      const vessel = { id: "v1", imo: "1234567", name: "Test", mmsi: null as string | null, ship_id: null as string | null, gross_tonnage: null as number | null, flag: null as string | null, vessel_type: null as string | null, vessel_category: null as string | null, created_at: "", updated_at: "" };
       const svc = createReportService({
         reportRepo: repo,
         getVessel: async () => vessel,
@@ -262,7 +262,7 @@ describe("ReportService", () => {
   describe("generateGreenZoneReport", () => {
     it("generates a Green Zone report aggregating zone events", async () => {
       const repo = createMockReportRepo();
-      const vessel = { id: "v1", imo: "1234567", name: "Zone Vessel", mmsi: null as string | null, ship_id: null as string | null, gross_tonnage: null as number | null, created_at: "", updated_at: "" };
+      const vessel = { id: "v1", imo: "1234567", name: "Zone Vessel", mmsi: null as string | null, ship_id: null as string | null, gross_tonnage: null as number | null, flag: null as string | null, vessel_type: null as string | null, vessel_category: null as string | null, created_at: "", updated_at: "" };
 
       const svc = createReportService({
         reportRepo: repo,
@@ -333,7 +333,7 @@ describe("ReportService", () => {
         getVessel: async (id: string) => {
           const v = vessels[id];
           if (!v) return null;
-          return { ...v, mmsi: null as string | null, ship_id: null as string | null, gross_tonnage: null as number | null, created_at: "", updated_at: "" };
+          return { ...v, mmsi: null as string | null, ship_id: null as string | null, gross_tonnage: null as number | null, flag: null as string | null, vessel_type: null as string | null, vessel_category: null as string | null, created_at: "", updated_at: "" };
         },
         getMrvReport: async (id: string) => {
           if (id === "v1") return { id: "mrv1", status: "approved", total_co2_tonnes: 10000 };

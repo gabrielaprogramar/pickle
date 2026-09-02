@@ -460,6 +460,9 @@ class FakeQueryBuilder {
       if (row.mmsi === undefined) row.mmsi = null;
       if (row.ship_id === undefined) row.ship_id = null;
       if (row.gross_tonnage === undefined) row.gross_tonnage = null;
+      if (row.flag === undefined) row.flag = null;
+      if (row.vessel_type === undefined) row.vessel_type = null;
+      if (row.vessel_category === undefined) row.vessel_category = null;
       if (row.updated_at === undefined) {
         row.updated_at = isUpdate
           ? new Date().toISOString()
@@ -478,6 +481,32 @@ class FakeQueryBuilder {
       if (row.arrival_port_id === undefined) row.arrival_port_id = null;
       if (row.arrival_time === undefined) row.arrival_time = null;
       if (row.distance_nm === undefined) row.distance_nm = null;
+    }
+
+    if (this.state.table === "regulatory_rules") {
+      if (row.version === undefined) row.version = 1;
+      if (row.is_active === undefined) row.is_active = true;
+      if (row.effective_until === undefined) row.effective_until = null;
+      if (row.parameters === undefined) row.parameters = {};
+      if (row.rule_text === undefined) row.rule_text = null;
+      if (row.source_reference === undefined) row.source_reference = null;
+      if (row.updated_at === undefined) row.updated_at = row.created_at;
+    }
+
+    if (this.state.table === "regulation_applicability") {
+      if (row.is_decision_final === undefined) row.is_decision_final = false;
+      if (row.rule_effective_until === undefined) row.rule_effective_until = null;
+      if (row.basis === undefined) row.basis = {};
+      if (row.notes === undefined) row.notes = null;
+      if (row.updated_at === undefined) row.updated_at = row.created_at;
+    }
+
+    if (this.state.table === "voyage_consumption") {
+      if (row.voyage_id === undefined) row.voyage_id = null;
+      if (row.source_record_ids === undefined) row.source_record_ids = [];
+      if (row.traceability === undefined) row.traceability = {};
+      if (row.notes === undefined) row.notes = null;
+      if (row.updated_at === undefined) row.updated_at = row.created_at;
     }
 
     if (this.state.table === "certificate_registry") {
@@ -649,6 +678,17 @@ class FakeQueryBuilder {
       if (row.previous_value === undefined) row.previous_value = null;
       if (row.new_value === undefined) row.new_value = null;
       if (row.notes === undefined) row.notes = null;
+    }
+
+    if (this.state.table === "audit_log") {
+      if (row.actor_id === undefined) row.actor_id = null;
+      if (row.actor_email === undefined) row.actor_email = null;
+      if (row.entity_id === undefined) row.entity_id = null;
+      if (row.before_data === undefined) row.before_data = {};
+      if (row.after_data === undefined) row.after_data = {};
+      if (row.source === undefined) row.source = "app";
+      if (row.correlation_id === undefined) row.correlation_id = null;
+      if (row.recorded_at === undefined) row.recorded_at = new Date().toISOString();
     }
 
     if (this.state.table === "fuel_deliveries") {

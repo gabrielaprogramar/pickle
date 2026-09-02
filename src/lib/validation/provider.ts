@@ -25,29 +25,32 @@ function parseBoolean(value: string | undefined, fallback: boolean): boolean {
 let cached: ValidationProvider | null = null;
 
 /**
+ * Build a provider based on the VALIDATION_USE_MOCK seam.
+ * Live mode (VALIDATION_USE_MOCK=false) returns the real rules-based validator;
+ * otherwise the deterministic mock.
+ */
+function buildProvider(): ValidationProvider {
+  const useMock = parseBoolean(process.env.VALIDATION_USE_MOCK, true);
+  return useMock ? createMockValidator() : createValidator();
+}
+
+/**
  * Returns the process-wide validation provider, building it on first call.
  * In mock mode, returns a deterministic mock provider.
  * In live mode, creates the real rules-based validator.
  */
 export function getValidationProvider(): ValidationProvider {
   if (cached) return cached;
-
-  const useMock = parseBoolean(process.env.VALIDATION_USE_MOCK, true);
-
-  if (useMock) {
-    cached = createMockValidator();
-  } else {
-    cached = createValidator();
-  }
-
+  cached = buildProvider();
   return cached;
 }
 
 /**
- * Create a fresh validation provider (for tests / DI).
+ * Create a fresh validation provider (for tests / DI), honoring the same
+ * VALIDATION_USE_MOCK seam as getValidationProvider but never cached.
  */
 export function createValidationProvider(): ValidationProvider {
-  return createMockValidator();
+  return buildProvider();
 }
 
 /**

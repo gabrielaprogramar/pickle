@@ -47,11 +47,15 @@ export async function handlePutVessel(
       );
     }
 
-    const input: { imo: string; name: string; mmsi?: string | null; ship_id?: string | null } = {
+    const input = {
       imo,
       name: parsed.data.name,
       mmsi: parsed.data.mmsi,
       ship_id: parsed.data.ship_id,
+      gross_tonnage: parsed.data.gross_tonnage,
+      flag: parsed.data.flag,
+      vessel_type: parsed.data.vessel_type,
+      vessel_category: parsed.data.vessel_category,
     };
 
     const vessel = await deps.vessels.upsertByImo(input);

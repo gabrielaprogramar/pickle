@@ -11,7 +11,10 @@ import {
 import {
   isEuPort,
   classifyVoyageCoverage,
+  classifyVoyagePortStatus,
+  PORT_CLASSIFIER_VERSION,
 } from "@/lib/eu-ets/port-classifier";
+import { ETS_PARAMETER_VERSION_WITH_CLASSIFIER } from "@/lib/eu-ets/parameters";
 import { computeEtsEmissions } from "@/lib/eu-ets/emissions";
 import { deadlineStatus, computeDeadlines } from "@/lib/eu-ets/deadlines";
 import { EtsComplianceService } from "@/lib/eu-ets/service";
@@ -176,9 +179,50 @@ describe("port classifier", () => {
     if (t !== "NON_EU") throw new Error(`Expected NON_EU, got ${t}`);
   });
 
-  it("classifies unknown ports as NON_EU", () => {
+  it("classifies unknown ports as NON_EU via legacy projection", () => {
     const t = classifyVoyageCoverage("Atlantis", "El Dorado");
     if (t !== "NON_EU") throw new Error(`Expected NON_EU, got ${t}`);
+  });
+
+  it("classifies UK ports as NON_EU", () => {
+    if (isEuPort("Southampton") !== "non_eu") throw new Error("Expected Southampton non_eu");
+    if (isEuPort("Felixstowe") !== "non_eu") throw new Error("Expected Felixstowe non_eu");
+    if (isEuPort("London") !== "non_eu") throw new Error("Expected London non_eu");
+    if (isEuPort("Liverpool") !== "non_eu") throw new Error("Expected Liverpool non_eu");
+  });
+
+  it("classifies EU→UK voyage as EU_TO_THIRD (50%)", () => {
+    const t = classifyVoyageCoverage("Rotterdam", "Felixstowe");
+    if (t !== "EU_TO_THIRD") throw new Error(`Expected EU_TO_THIRD, got ${t}`);
+  });
+
+  it("surfaces unknown ports via classifyVoyagePortStatus", () => {
+    const s = classifyVoyagePortStatus("Rotterdam", "El Dorado");
+    if (s.type !== "UNKNOWN") throw new Error(`Expected UNKNOWN, got ${s.type}`);
+    if (s.unknownPorts.length !== 1) throw new Error("Expected 1 unknown port");
+    if (s.unknownPorts[0] !== "El Dorado") throw new Error("Expected El Dorado in unknownPorts");
+  });
+
+  it("surfaces no unknown ports for fully resolved routes", () => {
+    const s = classifyVoyagePortStatus("Rotterdam", "Singapore");
+    if (s.type !== "EU_TO_THIRD") throw new Error(`Expected EU_TO_THIRD, got ${s.type}`);
+    if (s.unknownPorts.length !== 0) throw new Error("Expected no unknown ports");
+  });
+
+  it("exports a classifier version", () => {
+    if (!PORT_CLASSIFIER_VERSION || PORT_CLASSIFIER_VERSION.length === 0) {
+      throw new Error("Expected a classifier version");
+    }
+  });
+});
+
+describe("ETS parameter version carries the classifier version", () => {
+  it("contains the classifier version", () => {
+    if (!ETS_PARAMETER_VERSION_WITH_CLASSIFIER.includes(PORT_CLASSIFIER_VERSION)) {
+      throw new Error(
+        `Expected parameter version ${ETS_PARAMETER_VERSION_WITH_CLASSIFIER} to include classifier ${PORT_CLASSIFIER_VERSION}`,
+      );
+    }
   });
 });
 
@@ -346,6 +390,54 @@ describe("EtsComplianceService", () => {
 
     const record = await service.getRecord("nonexistent", 2026);
     if (record !== null) throw new Error("Expected null");
+  });
+
+  it("surfaces unknown ports and classifier version in parameter_version", async () => {
+    const repo = createFakeEuEtsRepo();
+    const service = new EtsComplianceService(repo);
+
+    const result = await service.calculate({
+      vessel_id: VESSEL_ID,
+      reporting_year: 2026,
+      gt: 15000,
+      deliveries: [makeDeliveryInput({ fuel_type: "hfo_380", quantity_mt: 100 })],
+      voyages: [
+        makeVoyageInput({ id: "v1", departure_port: "Rotterdam", arrival_port: "Hamburg" }),
+        makeVoyageInput({ id: "v2", departure_port: "Rotterdam", arrival_port: "El Dorado" }),
+      ],
+    });
+
+    if (result.parameter_version !== ETS_PARAMETER_VERSION_WITH_CLASSIFIER) {
+      throw new Error(`Expected combined parameter version, got ${result.parameter_version}`);
+    }
+    if (result.unknown_ports.length !== 1 || result.unknown_ports[0] !== "El Dorado") {
+      throw new Error(`Expected unknown port, got ${JSON.stringify(result.unknown_ports)}`);
+    }
+  });
+
+  it("never counts UK voyages as INTRA_EU", async () => {
+    const repo = createFakeEuEtsRepo();
+    const service = new EtsComplianceService(repo);
+
+    const result = await service.calculate({
+      vessel_id: VESSEL_ID,
+      reporting_year: 2026,
+      gt: 15000,
+      deliveries: [makeDeliveryInput({ fuel_type: "hfo_380", quantity_mt: 100 })],
+      voyages: [
+        makeVoyageInput({ id: "v1", departure_port: "Rotterdam", arrival_port: "Felixstowe" }),
+      ],
+    });
+
+    const contribution = result.voyage_contributions[0];
+    if (!contribution || contribution.coverage_type !== "EU_TO_THIRD") {
+      throw new Error(
+        `Expected EU_TO_THIRD (0.5), got ${JSON.stringify(contribution?.coverage_type)}`,
+      );
+    }
+    if (contribution.coverage_factor !== 0.5) {
+      throw new Error(`Expected factor 0.5, got ${contribution.coverage_factor}`);
+    }
   });
 });
 

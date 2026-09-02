@@ -1,5 +1,16 @@
 export const ETS_CURRENT_PARAMETER_VERSION = "2025.1";
 
+import { PORT_CLASSIFIER_VERSION } from "./port-classifier";
+
+/**
+ * Fully-resolved ETS parameter version that also encodes the port classifier
+ * version. This lets downstream records distinguish e.g. a UK-reclassification
+ * from a coverage-rate change without ambiguity.
+ */
+export { PORT_CLASSIFIER_VERSION } from "./port-classifier";
+export const ETS_PARAMETER_VERSION_WITH_CLASSIFIER =
+  `${ETS_CURRENT_PARAMETER_VERSION}+port-classifier-${PORT_CLASSIFIER_VERSION}`;
+
 // ── ETS coverage phase-in ──────────────────────────────────────────────────
 
 export interface EtsCoverageEntry {

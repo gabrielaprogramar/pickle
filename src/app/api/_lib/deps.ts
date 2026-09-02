@@ -15,6 +15,12 @@ import {
   type EuEtsRecordRepository,
   createMrvReportRepository,
   type MrvReportRepository,
+  createRegulatoryRuleRepository,
+  type RegulatoryRuleRepository,
+  createRegulationApplicabilityRepository,
+  type RegulationApplicabilityRepository,
+  createVoyageConsumptionRepository,
+  type VoyageConsumptionRepository,
 } from "@/lib/supabase";
 import { createMarineTrafficClient, type MarineTrafficClient } from "@/lib/marinetraffic";
 
@@ -27,6 +33,9 @@ export interface ApiDependencies {
   readonly fuelEuRecords: FuelEuRecordRepository;
   readonly euEtsRecords: EuEtsRecordRepository;
   readonly mrvReports: MrvReportRepository;
+  readonly regulatoryRules: RegulatoryRuleRepository;
+  readonly regulationApplicability: RegulationApplicabilityRepository;
+  readonly voyageConsumption: VoyageConsumptionRepository;
   readonly marineTraffic: MarineTrafficClient;
 }
 
@@ -39,9 +48,12 @@ export function createDefaultDeps(): ApiDependencies {
   const fuelEuRecords = createFuelEuRecordRepository();
   const euEtsRecords = createEuEtsRecordRepository();
   const mrvReports = createMrvReportRepository();
+  const regulatoryRules = createRegulatoryRuleRepository();
+  const regulationApplicability = createRegulationApplicabilityRepository();
+  const voyageConsumption = createVoyageConsumptionRepository();
   const marineTraffic = createMarineTrafficClient();
 
-  return { vessels, voyages, aisPositions, fuelDeliveries, fuelTypes, fuelEuRecords, euEtsRecords, mrvReports, marineTraffic };
+  return { vessels, voyages, aisPositions, fuelDeliveries, fuelTypes, fuelEuRecords, euEtsRecords, mrvReports, regulatoryRules, regulationApplicability, voyageConsumption, marineTraffic };
 }
 
 export function createApiDeps(
@@ -56,6 +68,9 @@ export function createApiDeps(
     fuelEuRecords: overrides.fuelEuRecords ?? createFuelEuRecordRepository(),
     euEtsRecords: overrides.euEtsRecords ?? createEuEtsRecordRepository(),
     mrvReports: overrides.mrvReports ?? createMrvReportRepository(),
+    regulatoryRules: overrides.regulatoryRules ?? createRegulatoryRuleRepository(),
+    regulationApplicability: overrides.regulationApplicability ?? createRegulationApplicabilityRepository(),
+    voyageConsumption: overrides.voyageConsumption ?? createVoyageConsumptionRepository(),
     marineTraffic: overrides.marineTraffic ?? createMarineTrafficClient(),
   };
 }

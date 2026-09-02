@@ -36,6 +36,14 @@
 -- ════════════════════════════════════════════════════════════════════════════
 
 -- ──────────────────────────────────────────────────────────────────────────────
+-- 0. Required extension — pgvector provides the `vector` type + `hnsw` index
+--    used below by `knowledge_chunks.embedding`. Idempotent; on hosts that ship
+--    pgvector pre-installed this is a no-op, on bare Postgres it provisions it.
+--    Enabling it here (before use) keeps 0012 safe on a genuinely fresh target.
+-- ──────────────────────────────────────────────────────────────────────────────
+CREATE EXTENSION IF NOT EXISTS vector;
+
+-- ──────────────────────────────────────────────────────────────────────────────
 -- 1. Knowledge documents — versioned regulatory sources
 -- ──────────────────────────────────────────────────────────────────────────────
 CREATE TABLE knowledge_documents (

@@ -33,6 +33,9 @@ export interface DemoSeedVessel {
   readonly mmsi: string;
   readonly shipId: string;
   readonly grossTonnage: number;
+  readonly flag: string;
+  readonly vesselType: string;
+  readonly vesselCategory: string;
 }
 
 export const DEMO_ORG = {
@@ -43,11 +46,11 @@ export const DEMO_ORG = {
 export { DEMO_OWNER };
 
 export const DEMO_VESSELS: ReadonlyArray<DemoSeedVessel> = [
-  { id: "vsl-aurelia", imo: "9074729", name: "Aurelia", mmsi: "310625000", shipId: "371663", grossTonnage: 31240 },
-  { id: "vsl-atlas", imo: "9432891", name: "Atlas", mmsi: "538005432", shipId: "411552", grossTonnage: 55460 },
-  { id: "vsl-horizon", imo: "9587420", name: "Horizon", mmsi: "636012345", shipId: "623451", grossTonnage: 29870 },
-  { id: "vsl-neptune", imo: "9338490", name: "Neptune", mmsi: "215008765", shipId: "884532", grossTonnage: 18650 },
-  { id: "vsl-odyssey", imo: "9712215", name: "Odyssey", mmsi: "374712000", shipId: "915611", grossTonnage: 38980 },
+  { id: "vsl-aurelia", imo: "9074729", name: "Aurelia", mmsi: "310625000", shipId: "371663", grossTonnage: 31240, flag: "PAN", vesselType: "passenger", vesselCategory: "commercial" },
+  { id: "vsl-atlas", imo: "9432891", name: "Atlas", mmsi: "538005432", shipId: "411552", grossTonnage: 55460, flag: "PAN", vesselType: "cargo", vesselCategory: "commercial" },
+  { id: "vsl-horizon", imo: "9587420", name: "Horizon", mmsi: "636012345", shipId: "623451", grossTonnage: 29870, flag: "MHL", vesselType: "tanker", vesselCategory: "commercial" },
+  { id: "vsl-neptune", imo: "9338490", name: "Neptune", mmsi: "215008765", shipId: "884532", grossTonnage: 18650, flag: "MLT", vesselType: "pleasure", vesselCategory: "private" },
+  { id: "vsl-odyssey", imo: "9712215", name: "Odyssey", mmsi: "374712000", shipId: "915611", grossTonnage: 38980, flag: "GRC", vesselType: "cargo", vesselCategory: "commercial" },
 ];
 
 interface PortRef {
@@ -208,6 +211,9 @@ export function buildDemoSeedTables(): Record<string, readonly unknown[]> {
     mmsi: v.mmsi,
     ship_id: v.shipId,
     gross_tonnage: v.grossTonnage,
+    flag: v.flag,
+    vessel_type: v.vesselType,
+    vessel_category: v.vesselCategory,
     created_at: ago(60 * DAY),
     updated_at: ago(60 * DAY),
   }));

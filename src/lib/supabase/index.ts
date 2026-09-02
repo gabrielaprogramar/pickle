@@ -88,6 +88,16 @@ export type {
   MapConfigInsert,
 } from "./types";
 
+// Part 1 — Regulatory Foundation domain row types + insert payloads.
+export type {
+  RegulatoryRuleRow,
+  RegulatoryRuleInsert,
+  RegulationApplicabilityRow,
+  RegulationApplicabilityInsert,
+  VoyageConsumptionRow,
+  VoyageConsumptionInsert,
+} from "./types";
+
 // Document domain row types + insert payloads.
 export type {
   DocumentRow,
@@ -311,6 +321,13 @@ export type {
   CreateReviewAuditLogRepositoryOptions,
 } from "./repositories/review_audit_log";
 
+// Org-wide immutable Audit Log repository.
+export { createAuditLogRepository } from "./repositories/audit_log";
+export type {
+  AuditLogRepository,
+  CreateAuditLogRepositoryOptions,
+} from "./repositories/audit_log";
+
 // Fuel Delivery repositories.
 export { createFuelDeliveryRepository, createFuelTypeRepository } from "./repositories/fuel_deliveries";
 export type {
@@ -330,6 +347,25 @@ export type { EuEtsRecordRepository } from "./repositories/eu_ets_records";
 // MRV repository.
 export { createMrvReportRepository } from "./repositories/mrv_reports";
 export type { MrvReportRepository } from "./repositories/mrv_reports";
+
+// Part 1 — Regulatory Foundation repositories.
+export { createRegulatoryRuleRepository } from "./repositories/regulatory_rules";
+export type {
+  RegulatoryRuleRepository,
+  CreateRegulatoryRuleRepositoryOptions,
+} from "./repositories/regulatory_rules";
+
+export { createRegulationApplicabilityRepository } from "./repositories/regulation_applicability";
+export type {
+  RegulationApplicabilityRepository,
+  CreateRegulationApplicabilityRepositoryOptions,
+} from "./repositories/regulation_applicability";
+
+export { createVoyageConsumptionRepository } from "./repositories/voyage_consumption";
+export type {
+  VoyageConsumptionRepository,
+  CreateVoyageConsumptionRepositoryOptions,
+} from "./repositories/voyage_consumption";
 
 // Email ingestion types.
 export type {

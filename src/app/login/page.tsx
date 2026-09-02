@@ -42,6 +42,11 @@ export default function LoginPage() {
 
   const busy = isLoading || submitting || demoBusy;
 
+  // Demo access is gated behind NEXT_PUBLIC_ENABLE_DEMO so it can be shown in
+  // development/demo builds but hidden in production (where its credentials
+  // must never exist in the real database).
+  const demoEnabled = process.env.NEXT_PUBLIC_ENABLE_DEMO === "true";
+
   return (
     <AuthShell label="Secure Access" title="Sign in" subtitle="Access your Poseidon Ledger workspace">
       <form onSubmit={onSubmit} className="space-y-3">
@@ -91,28 +96,30 @@ export default function LoginPage() {
         </Button>
       </form>
 
-      <div className="mt-4">
-        <div className="mb-3 flex items-center gap-3">
-          <span className="h-px flex-1 bg-border" aria-hidden="true" />
-          <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-muted-foreground">
-            Demo
-          </span>
-          <span className="h-px flex-1 bg-border" aria-hidden="true" />
+      {demoEnabled && (
+        <div className="mt-4">
+          <div className="mb-3 flex items-center gap-3">
+            <span className="h-px flex-1 bg-border" aria-hidden="true" />
+            <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-muted-foreground">
+              Demo
+            </span>
+            <span className="h-px flex-1 bg-border" aria-hidden="true" />
+          </div>
+          <Button
+            type="button"
+            variant="secondary"
+            className="w-full"
+            disabled={busy}
+            onClick={onDemoAccess}
+          >
+            <Sparkles className="mr-2 h-3.5 w-3.5" />
+            {demoBusy ? "Entering demo…" : "Enter demo workspace"}
+          </Button>
+          <p className="mt-2 text-center font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+            One click — no credentials needed
+          </p>
         </div>
-        <Button
-          type="button"
-          variant="secondary"
-          className="w-full"
-          disabled={busy}
-          onClick={onDemoAccess}
-        >
-          <Sparkles className="mr-2 h-3.5 w-3.5" />
-          {demoBusy ? "Entering demo…" : "Enter demo workspace"}
-        </Button>
-        <p className="mt-2 text-center font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-          One click — no credentials needed
-        </p>
-      </div>
+      )}
     </AuthShell>
   );
 }

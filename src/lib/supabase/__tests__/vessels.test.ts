@@ -34,6 +34,9 @@ function makeRow(overrides: Partial<VesselRow> & Pick<VesselRow, "imo">): Vessel
     mmsi: overrides.mmsi ?? null,
     ship_id: overrides.ship_id ?? null,
     gross_tonnage: overrides.gross_tonnage ?? null,
+    flag: overrides.flag ?? null,
+    vessel_type: overrides.vessel_type ?? null,
+    vessel_category: overrides.vessel_category ?? null,
     created_at: overrides.created_at ?? NOW,
     updated_at: overrides.updated_at ?? NOW,
   };
