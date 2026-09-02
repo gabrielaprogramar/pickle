@@ -329,9 +329,9 @@ describe("EtsComplianceService", () => {
     if (result.ets_scope !== "IN_SCOPE") throw new Error(`Expected IN_SCOPE, got ${result.ets_scope}`);
     if (result.is_in_scope !== true) throw new Error("Expected in scope");
     if (result.total_ttw_co2_tonnes <= 0) throw new Error("Expected positive CO2");
-    if (result.covered_co2_tonnes <= 0) throw new Error("Expected positive covered CO2");
+    if (result.covered_co2_tonnes === null || result.covered_co2_tonnes <= 0) throw new Error("Expected positive covered CO2");
     if (result.coverage_rate !== 1.0) throw new Error(`Expected 1.0, got ${result.coverage_rate}`);
-    if (result.eua_obligation_tonnes <= 0) throw new Error("Expected positive obligation");
+    if (result.eua_obligation_tonnes === null || result.eua_obligation_tonnes <= 0) throw new Error("Expected positive obligation");
     if (result.eua_price_available !== true) throw new Error("Expected price available");
     if (result.estimated_cost_eur === null) throw new Error("Expected estimated cost");
     if (!result.surrender_deadline) throw new Error("Expected surrender deadline");
@@ -353,6 +353,10 @@ describe("EtsComplianceService", () => {
       vessel_id: VESSEL_ID,
       reporting_year: 2026,
       gt: 1000,
+      // Foundation decision: below the 5000 GT scope rule → NOT_APPLICABLE.
+      // The genuine 0 obligation below comes from this decision, not from
+      // coercing an unresolved/UNKNOWN scope to 0.
+      applicability: { status: "NOT_APPLICABLE", is_decision_final: true },
       deliveries: [makeDeliveryInput({ fuel_type: "hfo_380", quantity_mt: 100 })],
       voyages: [makeVoyageInput()],
     });

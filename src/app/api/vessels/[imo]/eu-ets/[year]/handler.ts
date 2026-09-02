@@ -8,6 +8,7 @@ import {
 import { NOT_FOUND, VALIDATION_ERROR } from "@/app/api/_lib/errors";
 import type { ApiDependencies } from "@/app/api/_lib/deps";
 import { EtsComplianceService } from "@/lib/eu-ets/service";
+import { EtsPipelineService } from "@/lib/eu-ets/pipeline";
 
 interface RouteParams {
   imo: string;
@@ -68,67 +69,27 @@ export async function handlePostEuEtsCalculate(
       return apiError(VALIDATION_ERROR, "Request body must be valid JSON.", 400);
     }
 
-    const deliveries = await deps.fuelDeliveries.findByVesselAndYear(vessel.id, yearNum);
-    const voyageRows = await deps.voyages.findByVesselAndYear(vessel.id, yearNum);
-    const applicability = await deps.regulationApplicability.find(
-      vessel.id,
-      "EU_ETS",
-      yearNum,
-    );
-    const consumption = await deps.voyageConsumption.listByVessel(vessel.id, yearNum);
-    const coverageRule = await deps.regulatoryRules.findEffective(
-      "EU_ETS",
-      "ets_coverage",
-      `${yearNum}-01-01`,
-    );
-    const coverageParams = (coverageRule?.parameters ?? {}) as { rate?: number };
-    const coverageRate =
-      typeof coverageParams.rate === "number" ? coverageParams.rate : undefined;
-
-    const service = new EtsComplianceService(deps.euEtsRecords);
-    const result = await service.calculateAndSave({
-      vessel_id: vessel.id,
-      reporting_year: yearNum,
-      gt: vessel.gross_tonnage ?? null,
-      vessel_profile: {
-        flag: vessel.flag ?? null,
-        vessel_type: vessel.vessel_type ?? null,
-        vessel_category: vessel.vessel_category ?? null,
-      },
-      applicability: applicability
-        ? {
-            status: applicability.applicability as
-              | "APPLICABLE"
-              | "NOT_APPLICABLE"
-              | "UNKNOWN"
-              | "REQUIRES_REVIEW",
-            is_decision_final: applicability.is_decision_final,
-            rule_version: applicability.rule_version,
-            rule_effective_from: applicability.rule_effective_from,
-            rule_effective_until: applicability.rule_effective_until,
-            basis: applicability.basis,
-            notes: applicability.notes,
-          }
-        : null,
-      consumption,
-      deliveries: deliveries.map((d) => ({
-        id: d.id,
-        fuel_type: d.fuel_type,
-        quantity_mt: d.quantity_mt,
-        delivery_date: d.delivery_date,
-      })),
-      voyages: voyageRows.map((v) => ({
-        id: v.id,
-        departure_port: v.departure_port_name,
-        arrival_port: v.arrival_port_name,
-      })),
-      parameter_version_override: body.parameter_version,
-      eua_price_eur: body.eua_price_eur,
-      coverage_rate: coverageRate,
-      coverage_rate_source: coverageRule
-        ? coverageRule.source_reference ?? "regulatory_rules.ets_coverage"
-        : undefined,
+    // ── End-to-end pipeline ────────────────────────────────────────────────
+    // Produces applicability from the seeded `ets_scope` rule, attributes
+    // BDN-evidenced per-(voyage, fuel) consumption, resolves port countries
+    // from `port_calls`, reads the contracted coverage rate from the seeded
+    // `ets_coverage` rule (never the hardcoded schedule), runs the compliance
+    // engine, persists the `eu_ets_record`, and writes an audit trail.
+    const pipeline = new EtsPipelineService({
+      vessels: deps.vessels,
+      voyages: deps.voyages,
+      fuelDeliveries: deps.fuelDeliveries,
+      noonReports: deps.noonReports,
+      portCalls: deps.portCalls,
+      regulatoryRules: deps.regulatoryRules,
+      regulationApplicability: deps.regulationApplicability,
+      voyageConsumption: deps.voyageConsumption,
+      euEtsRecords: deps.euEtsRecords,
+      auditLog: deps.auditLog,
+      organizationId: deps.organizationId,
     });
+
+    const result = await pipeline.run(vessel.id, yearNum);
 
     return apiCreated(result);
   } catch (err) {

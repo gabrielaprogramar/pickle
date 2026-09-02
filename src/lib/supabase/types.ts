@@ -1002,10 +1002,10 @@ export type EuEtsRecordRow = {
   readonly ets_scope: string;
   readonly mrv_scope: string;
   readonly total_ttw_co2_tonnes: number;
-  readonly covered_co2_tonnes: number;
+  readonly covered_co2_tonnes: number | null;
   readonly coverage_rate: number;
   readonly coverage_rate_version: string;
-  readonly eua_obligation_tonnes: number;
+  readonly eua_obligation_tonnes: number | null;
   readonly eua_price_eur: number | null;
   readonly eua_price_available: boolean;
   readonly estimated_cost_eur: number | null;
@@ -1029,10 +1029,10 @@ export type EuEtsRecordInsert = {
   readonly ets_scope: string;
   readonly mrv_scope: string;
   readonly total_ttw_co2_tonnes: number;
-  readonly covered_co2_tonnes: number;
+  readonly covered_co2_tonnes: number | null;
   readonly coverage_rate: number;
   readonly coverage_rate_version: string;
-  readonly eua_obligation_tonnes: number;
+  readonly eua_obligation_tonnes: number | null;
   readonly eua_price_eur?: number | null;
   readonly eua_price_available: boolean;
   readonly estimated_cost_eur?: number | null;

@@ -246,6 +246,12 @@ export type {
   NoonReportUpdate,
 } from "./repositories/noon_reports";
 
+export { createPortCallRepository } from "./repositories/port_calls";
+export type {
+  PortCallRepository,
+  CreatePortCallRepositoryOptions,
+} from "./repositories/port_calls";
+
 // Phase 4.5 Product Foundation repositories.
 export { createOrganizationRepository } from "./repositories/organizations";
 export type {

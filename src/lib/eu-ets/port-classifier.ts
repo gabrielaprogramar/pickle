@@ -82,7 +82,7 @@ const NON_EU_PORTS: ReadonlySet<string> = new Set([
 ]);
 
 /**
- * Determine whether a port is in the EU/EEA.
+ * Determine whether a port is in the EU/EEA based on the port NAME heuristic.
  */
 export function isEuPort(portName: string): RegionResult {
   const key = portName.toLowerCase().trim();
@@ -95,6 +95,79 @@ export function isEuPort(portName: string): RegionResult {
   }
 
   return "unknown";
+}
+
+// ISO 3166 alpha-2 / alpha-3 codes for EU/EEA member states, for authoritative
+// country-code resolution (e.g. from `port_calls.port_country`).
+const EU_ISO_CODES: ReadonlySet<string> = new Set([
+  "at", "be", "bg", "hr", "cy", "cz", "dk", "ee", "fi", "fr", "de", "gr",
+  "hu", "ie", "it", "lv", "lt", "lu", "mt", "nl", "pl", "pt", "ro", "sk",
+  "si", "es", "se",
+  "is", "no", "li", // EEA
+  "aut", "bel", "bgr", "hrv", "cyp", "cze", "dnk", "est", "fin", "fra",
+  "deu", "grc", "hun", "irl", "ita", "lva", "ltu", "lux", "mlt", "nld",
+  "pol", "prt", "rou", "svk", "svn", "esp", "swe",
+  "isl", "nor", "lie", // EEA
+]);
+
+/**
+ * Authoritative country-based check against the EU/EEA. Accepts ISO alpha-2,
+ * ISO alpha-3, or a lowercase country name. Returns true/false only when the
+ * country is a definitive EU/EEA member; unknown strings return false.
+ */
+export function isEuCountry(country: string | null | undefined): boolean {
+  if (!country) return false;
+  const c = country.trim().toLowerCase();
+  if (EU_MEMBER_COUNTRIES.has(c)) return true;
+  return EU_ISO_CODES.has(c);
+}
+
+/**
+ * Deterministic EU ETS coverage classification, preferring authoritative
+ * country facts (e.g. `port_calls.port_country`) over the name heuristic.
+ *
+ * Dep/arr country hints are optional. When a country is authoritative EU it
+ * wins over a name that would otherwise be unknown. When the country looks like
+ * a definitive ISO code that is NOT EU it is treated as non-EU. Anything still
+ * unresolved is surfaced as UNKNOWN (never coerced).
+ */
+export function classifyVoyagePortStatusWithHints(
+  departurePort: string,
+  arrivalPort: string,
+  departureCountry?: string | null,
+  arrivalCountry?: string | null,
+): VoyagePortStatus {
+  const dep = resolvePortRegion(departurePort, departureCountry);
+  const arr = resolvePortRegion(arrivalPort, arrivalCountry);
+  const unknownPorts: string[] = [];
+  if (dep === "unknown") unknownPorts.push(departurePort);
+  if (arr === "unknown") unknownPorts.push(arrivalPort);
+
+  if (dep === "eu" && arr === "eu") return { type: "INTRA_EU", unknownPorts };
+  if (unknownPorts.length > 0) return { type: "UNKNOWN", unknownPorts };
+
+  if (dep === "eu" && arr === "non_eu") return { type: "EU_TO_THIRD", unknownPorts };
+  if (dep === "non_eu" && arr === "eu") return { type: "THIRD_TO_EU", unknownPorts };
+  return { type: "NON_EU", unknownPorts };
+}
+
+function resolvePortRegion(
+  portName: string,
+  country?: string | null,
+): RegionResult {
+  // Authoritative country fact wins when it is EU.
+  const effCountry = country ?? null;
+  if (isEuCountry(effCountry)) return "eu";
+  // A definitive non-EU ISO country code → non-EU.
+  if (effCountry !== null && looksLikeIsoCode(effCountry) && !isEuCountry(effCountry)) {
+    return "non_eu";
+  }
+  // Otherwise fall back to the (fragile) name heuristic.
+  return isEuPort(portName);
+}
+
+function looksLikeIsoCode(country: string): boolean {
+  return /^[A-Za-z]{2,3}$/.test(country.trim());
 }
 
 /** A voyage coverage classification plus any ports that could not be resolved. */

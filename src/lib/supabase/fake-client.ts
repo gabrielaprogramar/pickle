@@ -319,12 +319,17 @@ class FakeQueryBuilder {
 
         for (const raw of inputs) {
           if (this.state.kind === "upsert" && this.state.onConflict) {
-            const conflictCol = this.state.onConflict;
-            const conflictVal = (raw as Record<string, unknown>)[conflictCol];
-            const existingIdx = tableRows.findIndex(
-              (r) =>
-                (r as Record<string, unknown>)[conflictCol] === conflictVal,
-            );
+            const conflictCols = this.state.onConflict
+              .split(",")
+              .map((c) => c.trim())
+              .filter(Boolean);
+            const findsConflict = (r: unknown): boolean => {
+              const row = r as Record<string, unknown>;
+              return conflictCols.every(
+                (col) => (raw as Record<string, unknown>)[col] === row[col],
+              );
+            };
+            const existingIdx = tableRows.findIndex(findsConflict);
 
             if (existingIdx >= 0) {
               const existing = tableRows[existingIdx] as Record<string, unknown>;

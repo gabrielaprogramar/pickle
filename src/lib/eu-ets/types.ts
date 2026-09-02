@@ -31,7 +31,8 @@ export type VoyageCoverageType =
   | "INTRA_EU"
   | "EU_TO_THIRD"
   | "THIRD_TO_EU"
-  | "NON_EU";
+  | "NON_EU"
+  | "UNKNOWN";
 
 export interface VoyageCoverageContribution {
   readonly voyage_id: string;
@@ -40,7 +41,10 @@ export interface VoyageCoverageContribution {
   readonly coverage_type: VoyageCoverageType;
   readonly coverage_factor: number;
   readonly ttw_co2_tonnes: number;
-  readonly covered_co2_tonnes: number;
+  /** NULL when coverage is unresolved (UNKNOWN) — never coerced to 0. */
+  readonly covered_co2_tonnes: number | null;
+  /** Ports that could not be resolved (empty when confident). */
+  readonly unknown_ports: readonly string[];
 }
 
 // ── Deadline ───────────────────────────────────────────────────────────────
@@ -69,11 +73,13 @@ export interface EtsCalculationResult {
   readonly is_in_scope: boolean;
 
   readonly total_ttw_co2_tonnes: number;
-  readonly covered_co2_tonnes: number;
+  /** NULL when unresolved/ignored — never a fabricated 0. */
+  readonly covered_co2_tonnes: number | null;
   readonly coverage_rate: number;
   readonly coverage_rate_version: string;
 
-  readonly eua_obligation_tonnes: number;
+  /** NULL when unresolved/ignored — never a fabricated 0. */
+  readonly eua_obligation_tonnes: number | null;
   readonly eua_price_eur: number | null;
   readonly eua_price_available: boolean;
   readonly estimated_cost_eur: number | null;
@@ -136,6 +142,9 @@ export interface EtsCalculationInput {
     id: string;
     departure_port: string;
     arrival_port: string;
+    /** Optional authoritative country facts (e.g. port_calls.port_country). */
+    departure_country?: string | null;
+    arrival_country?: string | null;
   }>;
   readonly parameter_version_override?: string;
   readonly eua_price_eur?: number | null;
@@ -187,10 +196,10 @@ export interface EuEtsRecordRow {
   readonly ets_scope: string;
   readonly mrv_scope: string;
   readonly total_ttw_co2_tonnes: number;
-  readonly covered_co2_tonnes: number;
+  readonly covered_co2_tonnes: number | null;
   readonly coverage_rate: number;
   readonly coverage_rate_version: string;
-  readonly eua_obligation_tonnes: number;
+  readonly eua_obligation_tonnes: number | null;
   readonly eua_price_eur: number | null;
   readonly eua_price_available: boolean;
   readonly estimated_cost_eur: number | null;
@@ -213,10 +222,10 @@ export interface EuEtsRecordInsert {
   readonly ets_scope: string;
   readonly mrv_scope: string;
   readonly total_ttw_co2_tonnes: number;
-  readonly covered_co2_tonnes: number;
+  readonly covered_co2_tonnes: number | null;
   readonly coverage_rate: number;
   readonly coverage_rate_version: string;
-  readonly eua_obligation_tonnes: number;
+  readonly eua_obligation_tonnes: number | null;
   readonly eua_price_eur?: number | null;
   readonly eua_price_available: boolean;
   readonly estimated_cost_eur?: number | null;

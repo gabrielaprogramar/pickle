@@ -21,6 +21,12 @@ import {
   type RegulationApplicabilityRepository,
   createVoyageConsumptionRepository,
   type VoyageConsumptionRepository,
+  createNoonReportRepository,
+  type NoonReportRepository,
+  createPortCallRepository,
+  type PortCallRepository,
+  createAuditLogRepository,
+  type AuditLogRepository,
 } from "@/lib/supabase";
 import { createMarineTrafficClient, type MarineTrafficClient } from "@/lib/marinetraffic";
 
@@ -36,6 +42,11 @@ export interface ApiDependencies {
   readonly regulatoryRules: RegulatoryRuleRepository;
   readonly regulationApplicability: RegulationApplicabilityRepository;
   readonly voyageConsumption: VoyageConsumptionRepository;
+  readonly noonReports: NoonReportRepository;
+  readonly portCalls: PortCallRepository;
+  readonly auditLog: AuditLogRepository;
+  /** Organization context for audit-trail writes (e.g. EU ETS calculations). */
+  readonly organizationId?: string;
   readonly marineTraffic: MarineTrafficClient;
 }
 
@@ -51,9 +62,12 @@ export function createDefaultDeps(): ApiDependencies {
   const regulatoryRules = createRegulatoryRuleRepository();
   const regulationApplicability = createRegulationApplicabilityRepository();
   const voyageConsumption = createVoyageConsumptionRepository();
+  const noonReports = createNoonReportRepository();
+  const portCalls = createPortCallRepository();
+  const auditLog = createAuditLogRepository();
   const marineTraffic = createMarineTrafficClient();
 
-  return { vessels, voyages, aisPositions, fuelDeliveries, fuelTypes, fuelEuRecords, euEtsRecords, mrvReports, regulatoryRules, regulationApplicability, voyageConsumption, marineTraffic };
+  return { vessels, voyages, aisPositions, fuelDeliveries, fuelTypes, fuelEuRecords, euEtsRecords, mrvReports, regulatoryRules, regulationApplicability, voyageConsumption, noonReports, portCalls, auditLog, marineTraffic };
 }
 
 export function createApiDeps(
@@ -71,6 +85,9 @@ export function createApiDeps(
     regulatoryRules: overrides.regulatoryRules ?? createRegulatoryRuleRepository(),
     regulationApplicability: overrides.regulationApplicability ?? createRegulationApplicabilityRepository(),
     voyageConsumption: overrides.voyageConsumption ?? createVoyageConsumptionRepository(),
+    noonReports: overrides.noonReports ?? createNoonReportRepository(),
+    portCalls: overrides.portCalls ?? createPortCallRepository(),
+    auditLog: overrides.auditLog ?? createAuditLogRepository(),
     marineTraffic: overrides.marineTraffic ?? createMarineTrafficClient(),
   };
 }

@@ -1,9 +1,9 @@
 import type { EuEtsRecordRepository } from "@/lib/supabase/repositories/eu_ets_records";
 import type { AuditLogRepository } from "@/lib/supabase/repositories/audit_log";
-import type { EtsCalculationInput, EtsCalculationResult, EuEtsRecordInsert } from "@/lib/eu-ets/types";
+import type { EtsCalculationInput, EtsCalculationResult, EuEtsRecordInsert, DeadlineInfo, VoyageCoverageType } from "@/lib/eu-ets/types";
 import { ETS_CALCULATION_VERSION, etsScopeForGt, mrvScopeForGt } from "@/lib/eu-ets/types";
 import { ETS_PARAMETER_VERSION_WITH_CLASSIFIER, getEtsCoverageRate } from "@/lib/eu-ets/parameters";
-import { classifyVoyagePortStatus, type VoyagePortStatus } from "@/lib/eu-ets/port-classifier";
+import { classifyVoyagePortStatusWithHints, type VoyagePortStatus } from "@/lib/eu-ets/port-classifier";
 import { computeDeadlines } from "@/lib/eu-ets/deadlines";
 import { evaluateEtsCompliance } from "@/lib/eu-ets/compliance";
 import type { EtsComplianceStatus, EtsException } from "@/lib/eu-ets/compliance";
@@ -74,7 +74,12 @@ export class EtsComplianceService {
       voyage_id: v.id,
       departure_port: v.departure_port,
       arrival_port: v.arrival_port,
-      status: classifyVoyagePortStatus(v.departure_port, v.arrival_port) as VoyagePortStatus,
+      status: classifyVoyagePortStatusWithHints(
+        v.departure_port,
+        v.arrival_port,
+        v.departure_country,
+        v.arrival_country,
+      ) as VoyagePortStatus,
     }));
 
     // ── EUA price ─────────────────────────────────────────────────────────
@@ -135,15 +140,17 @@ export class EtsComplianceService {
     // Unknown ports (explicit)
     const unknownPorts = classified.flatMap((c) => c.status.unknownPorts);
 
-    // Voyage contributions — map from the compliance engine.
+    // Voyage contributions — map from the compliance engine. Coverage UNKNOWN is
+    // preserved (never coerced to NON_EU); covered CO2 stays NULL when unresolved.
     const voyageContribs = compliance.voyageCompliance.map((vc) => ({
       voyage_id: vc.voyage_id,
       departure_port: vc.departure_port,
       arrival_port: vc.arrival_port,
-      coverage_type: vc.coverage_type === "UNKNOWN" ? "NON_EU" : vc.coverage_type,
+      coverage_type: vc.coverage_type,
       coverage_factor: vc.coverage_factor,
       ttw_co2_tonnes: vc.ttw_co2_tonnes,
-      covered_co2_tonnes: vc.covered_co2_tonnes ?? 0,
+      covered_co2_tonnes: vc.covered_co2_tonnes,
+      unknown_ports: vc.unknown_ports,
     }));
 
     return {
@@ -158,11 +165,11 @@ export class EtsComplianceService {
       is_in_scope: isInScope,
 
       total_ttw_co2_tonnes: compliance.total_ttw_co2_tonnes,
-      covered_co2_tonnes: coveredCo2 !== null ? round(coveredCo2, 4) : 0,
+      covered_co2_tonnes: coveredCo2 !== null ? round(coveredCo2, 4) : null,
       coverage_rate: coverageEntry.rate,
       coverage_rate_version: coverageEntry.source,
 
-      eua_obligation_tonnes: euaObligation !== null ? round(euaObligation, 4) : 0,
+      eua_obligation_tonnes: euaObligation !== null ? round(euaObligation, 4) : null,
       eua_price_eur: priceValue,
       eua_price_available: priceAvailable,
       estimated_cost_eur: estimatedCost !== null ? round(estimatedCost, 2) : null,
@@ -243,9 +250,23 @@ export class EtsComplianceService {
         })),
         voyage_contributions: result.voyage_contributions.map((vc) => ({
           voyage_id: vc.voyage_id,
+          departure_port: vc.departure_port,
+          arrival_port: vc.arrival_port,
           coverage_type: vc.coverage_type,
           coverage_factor: vc.coverage_factor,
+          ttw_co2_tonnes: vc.ttw_co2_tonnes,
+          covered_co2_tonnes: vc.covered_co2_tonnes,
+          unknown_ports: vc.unknown_ports,
         })),
+        voyage_ids: result.voyage_ids,
+        delivery_ids: result.delivery_ids,
+        unknown_ports: result.unknown_ports,
+        deadlines: {
+          surrender_deadline: deadlines.surrender?.deadline_date ?? null,
+          surrender_status: deadlines.surrender?.status ?? null,
+          mrv_deadline: deadlines.mrvReporting?.deadline_date ?? null,
+          mrv_deadline_status: deadlines.mrvReporting?.status ?? null,
+        },
       },
       calculated_at: result.calculated_at,
     };
@@ -299,7 +320,28 @@ export class EtsComplianceService {
         confidence: string;
         status: string;
       }>;
+      voyage_contributions?: Array<{
+        voyage_id: string;
+        departure_port: string;
+        arrival_port: string;
+        coverage_type: VoyageCoverageType;
+        coverage_factor: number;
+        ttw_co2_tonnes: number;
+        covered_co2_tonnes: number | null;
+        unknown_ports?: string[];
+      }>;
+      voyage_ids?: string[];
+      delivery_ids?: string[];
+      unknown_ports?: string[];
     };
+    const deadlines = (row.calculation_details as Record<string, unknown>)?.deadlines as
+      | {
+          surrender_deadline?: string | null;
+          surrender_status?: string | null;
+          mrv_deadline?: string | null;
+          mrv_deadline_status?: string | null;
+        }
+      | undefined;
 
     return {
       calculation_version: row.calculation_version,
@@ -318,12 +360,25 @@ export class EtsComplianceService {
       eua_price_eur: row.eua_price_eur,
       eua_price_available: row.eua_price_available,
       estimated_cost_eur: row.estimated_cost_eur,
-      surrender_deadline: null,
-      mrv_deadline: null,
-      voyage_contributions: [],
-      voyage_ids: [],
-      delivery_ids: [],
-      unknown_ports: [],
+      surrender_deadline: deadlines?.surrender_deadline
+        ? toDeadlineInfo("surrender", deadlines.surrender_deadline, deadlines.surrender_status)
+        : null,
+      mrv_deadline: deadlines?.mrv_deadline
+        ? toDeadlineInfo("mrv_reporting", deadlines.mrv_deadline, deadlines.mrv_deadline_status)
+        : null,
+      voyage_contributions: (details.voyage_contributions ?? []).map((vc) => ({
+        voyage_id: vc.voyage_id,
+        departure_port: vc.departure_port,
+        arrival_port: vc.arrival_port,
+        coverage_type: vc.coverage_type,
+        coverage_factor: vc.coverage_factor,
+        ttw_co2_tonnes: vc.ttw_co2_tonnes,
+        covered_co2_tonnes: vc.covered_co2_tonnes ?? null,
+        unknown_ports: vc.unknown_ports ?? [],
+      })),
+      voyage_ids: details.voyage_ids ?? [],
+      delivery_ids: details.delivery_ids ?? [],
+      unknown_ports: details.unknown_ports ?? [],
       compliance_status: (details.compliance?.status ?? "UNKNOWN") as EtsComplianceStatus,
       exceptions: (details.compliance?.exceptions ?? []) as readonly EtsException[],
       compliance_applicable: details.compliance?.applicable ?? false,
@@ -339,6 +394,25 @@ export class EtsComplianceService {
       calculated_at: row.calculated_at,
     };
   }
+}
+
+function toDeadlineInfo(
+  type: "surrender" | "mrv_reporting",
+  deadlineDate: string,
+  status: string | null | undefined,
+): DeadlineInfo {
+  const daysRemaining = Math.max(
+    0,
+    Math.round((new Date(deadlineDate + "T23:59:59Z").getTime() - Date.now()) / 86400000),
+  );
+  const label = type === "surrender" ? "EUA Surrender" : "MRV Annual Report";
+  return {
+    type,
+    label,
+    deadline_date: deadlineDate,
+    days_remaining: daysRemaining,
+    status: (status ?? "OK") as DeadlineInfo["status"],
+  };
 }
 
 function round(n: number, dp: number): number {
