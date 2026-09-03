@@ -353,6 +353,16 @@ export type { EuEtsRecordRepository } from "./repositories/eu_ets_records";
 // MRV repository.
 export { createMrvReportRepository } from "./repositories/mrv_reports";
 export type { MrvReportRepository } from "./repositories/mrv_reports";
+export { createMrvMonitoringPlanRepository } from "./repositories/mrv_monitoring_plans";
+export type {
+  MrvMonitoringPlanRepository,
+  CreateMrvMonitoringPlanRepositoryOptions,
+} from "./repositories/mrv_monitoring_plans";
+export { createMrvReportVersionRepository } from "./repositories/mrv_report_versions";
+export type {
+  MrvReportVersionRepository,
+  CreateMrvReportVersionRepositoryOptions,
+} from "./repositories/mrv_report_versions";
 
 // Part 1 — Regulatory Foundation repositories.
 export { createRegulatoryRuleRepository } from "./repositories/regulatory_rules";

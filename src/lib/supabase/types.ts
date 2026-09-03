@@ -1072,6 +1072,12 @@ export type MrvReportRow = {
   readonly calculation_version: string;
   readonly parameter_version: string;
   readonly ets_record_id: string | null;
+  readonly lifecycle: string | null;
+  readonly period_start: string | null;
+  readonly period_end: string | null;
+  readonly monitoring_plan_ver: number | null;
+  readonly total_distance_nm: number | null;
+  readonly total_time_at_sea_hours: number | null;
   readonly generated_at: string;
   readonly created_at: string;
   readonly updated_at: string;
@@ -1101,6 +1107,12 @@ export type MrvReportInsert = {
   readonly calculation_version: string;
   readonly parameter_version: string;
   readonly ets_record_id?: string | null;
+  readonly lifecycle?: string | null;
+  readonly period_start?: string | null;
+  readonly period_end?: string | null;
+  readonly monitoring_plan_ver?: number | null;
+  readonly total_distance_nm?: number | null;
+  readonly total_time_at_sea_hours?: number | null;
   readonly generated_at?: string;
 };
 
@@ -1237,6 +1249,93 @@ export type VoyageConsumptionInsert = {
   readonly attribution_method: string;
   readonly traceability?: Record<string, unknown>;
   readonly notes?: string | null;
+};
+
+// ── 1m2. MRV MONITORING PLAN ROW TYPES (1:1 with migration 0023) ───────────
+
+/** One row of the `mrv_monitoring_plans` table. */
+export type MrvMonitoringPlanRow = {
+  readonly id: string;
+  readonly vessel_id: string;
+  readonly version: number;
+  readonly status: string;
+  readonly methodology: string;
+  readonly monitoring_method: string | null;
+  readonly effective_from: string | null;
+  readonly effective_until: string | null;
+  readonly emission_factors_snapshot: Record<string, unknown>;
+  readonly activity_data_procedures: Record<string, unknown>;
+  readonly data_gap_methods: Record<string, unknown>;
+  readonly source_reference: string | null;
+  readonly approved_at: string | null;
+  readonly created_at: string;
+  readonly updated_at: string;
+};
+
+/** Payload for inserting a monitoring plan version. id/timestamps are server-defaulted. */
+export type MrvMonitoringPlanInsert = {
+  readonly vessel_id: string;
+  readonly version: number;
+  readonly status?: string;
+  readonly methodology?: string;
+  readonly monitoring_method?: string | null;
+  readonly effective_from?: string | null;
+  readonly effective_until?: string | null;
+  readonly emission_factors_snapshot?: Record<string, unknown>;
+  readonly activity_data_procedures?: Record<string, unknown>;
+  readonly data_gap_methods?: Record<string, unknown>;
+  readonly source_reference?: string | null;
+  readonly approved_at?: string | null;
+};
+
+// ── 1m3. MRV REPORT VERSION ROW TYPES (1:1 with migration 0023) ────────────
+
+/** One row of the `mrv_report_versions` table (append-only revision trail). */
+export type MrvReportVersionRow = {
+  readonly id: string;
+  readonly mrv_report_id: string;
+  readonly version_number: number;
+  readonly submission_status: string;
+  readonly calculation_version: string;
+  readonly parameter_version: string;
+  readonly monitoring_plan_version: number | null;
+  readonly period_start: string;
+  readonly period_end: string;
+  readonly total_fuel_mt: number;
+  readonly fuel_by_type: Record<string, unknown>;
+  readonly co2_tonnes: number;
+  readonly ch4_co2e_tonnes: number;
+  readonly n2o_co2e_tonnes: number;
+  readonly total_co2e_tonnes: number;
+  readonly total_distance_nm: number | null;
+  readonly total_time_at_sea_hours: number | null;
+  readonly source_consumption_ids: unknown[];
+  readonly source_voyage_ids: unknown[];
+  readonly traceability: Record<string, unknown>;
+  readonly created_at: string;
+};
+
+/** Payload for inserting a report version. id/created_at are server-defaulted. */
+export type MrvReportVersionInsert = {
+  readonly mrv_report_id: string;
+  readonly version_number: number;
+  readonly submission_status?: string;
+  readonly calculation_version: string;
+  readonly parameter_version: string;
+  readonly monitoring_plan_version?: number | null;
+  readonly period_start: string;
+  readonly period_end: string;
+  readonly total_fuel_mt: number;
+  readonly fuel_by_type?: Record<string, unknown>;
+  readonly co2_tonnes: number;
+  readonly ch4_co2e_tonnes?: number;
+  readonly n2o_co2e_tonnes?: number;
+  readonly total_co2e_tonnes: number;
+  readonly total_distance_nm?: number | null;
+  readonly total_time_at_sea_hours?: number | null;
+  readonly source_consumption_ids?: unknown[];
+  readonly source_voyage_ids?: unknown[];
+  readonly traceability?: Record<string, unknown>;
 };
 
 // ── 1m. PORT CALL ROW TYPES (1:1 with migration 0009) ──────────────────────
@@ -2143,6 +2242,18 @@ export type Database = {
         Row: MrvReportRow;
         Insert: MrvReportInsert;
         Update: Partial<MrvReportInsert>;
+        Relationships: Relationships;
+      };
+      mrv_monitoring_plans: {
+        Row: MrvMonitoringPlanRow;
+        Insert: MrvMonitoringPlanInsert;
+        Update: Partial<MrvMonitoringPlanInsert>;
+        Relationships: Relationships;
+      };
+      mrv_report_versions: {
+        Row: MrvReportVersionRow;
+        Insert: MrvReportVersionInsert;
+        Update: Partial<MrvReportVersionInsert>;
         Relationships: Relationships;
       };
       environmental_zones: {

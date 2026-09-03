@@ -1,8 +1,9 @@
 import type { MrvReportRepository } from "@/lib/supabase/repositories/mrv_reports";
+import type { MrvReportVersionRepository } from "@/lib/supabase/repositories/mrv_report_versions";
+import type { AuditLogRepository } from "@/lib/supabase/repositories/audit_log";
 import type {
   MrvReportResult,
   MrvReportInsert,
-  MrvVoyageEntry,
   MrvChecklistResult,
   MrvExportResult,
   MrvVerifierPackage,
@@ -13,10 +14,19 @@ import { runMrvCompletenessCheck, type MrvDatasetInfo, type MrvCompletenessResul
 import { runPreSubmissionChecklist, type MrvPreSubmissionInput } from "@/lib/mrv/checklist";
 import { generateXmlExport, generateCsvExport } from "@/lib/mrv/export";
 import { buildVerifierPackage, type VerifierPackageInput } from "@/lib/mrv/verifier-package";
-import { getFuelEmissionInfo } from "@/lib/fuel-delivery/emission-factors";
+import {
+  generateAnnualMrvReport,
+  type MrvPipelineInput,
+} from "@/lib/mrv/pipeline";
+import type { MrvReportVersionInsert } from "@/lib/supabase/types";
 
 export class MrvReportService {
-  constructor(private readonly repo: MrvReportRepository) {}
+  constructor(
+    private readonly repo: MrvReportRepository,
+    private readonly versionRepo?: MrvReportVersionRepository,
+    private readonly auditLog?: AuditLogRepository,
+    private readonly organizationId?: string,
+  ) {}
 
   /**
    * Run completeness check without generating a report.
@@ -30,122 +40,20 @@ export class MrvReportService {
   }
 
   /**
-   * Generate an annual MRV report.
+   * Generate an annual MRV report by running the Part 4 pipeline (shared
+   * applicability, canonical consumption, active monitoring-plan resolution,
+   * explicit lifecycle, auditable distance/time). Consumes `voyage_consumption`;
+   * there is NO equal-share allocation here.
    */
-  async generateReport(input: {
-    vessel_id: string;
-    reporting_year: number;
-    dataset: MrvDatasetInfo;
-    deliveries: ReadonlyArray<{
-      id: string;
-      fuel_type: string;
-      quantity_mt: number;
-      delivery_date: string;
-    }>;
-    voyages: ReadonlyArray<{
-      id: string;
-      departure_port: string;
-      arrival_port: string;
-      departure_time: string;
-      arrival_time: string;
-      distance_nm: number | null;
-    }>;
-    methodology?: string;
-    monitoring_plan_version?: string | null;
-    ets_record_id?: string | null;
-  }): Promise<MrvReportResult> {
-    const completeness = runMrvCompletenessCheck(input.dataset);
-    if (completeness.status === "BLOCKED") {
-      const ts = new Date().toISOString();
-      return {
-        calculation_version: MRV_CALCULATION_VERSION,
-        parameter_version: ETS_CURRENT_PARAMETER_VERSION,
-        vessel_id: input.vessel_id,
-        reporting_year: input.reporting_year,
-        status: "blocked",
-        completeness_status: "BLOCKED",
-        completeness_checks: completeness.checks,
-        blocking_issues: completeness.blocking_issues,
-        warnings: completeness.warnings,
-        total_voyages: 0,
-        total_fuel_mt: 0,
-        total_co2_tonnes: 0,
-        monitoring_plan_version: input.monitoring_plan_version ?? null,
-        methodology: input.methodology ?? "default",
-        voyage_entries: [],
-        delivery_ids: [],
-        voyage_ids: [],
-        report_data: {},
-        generated_at: ts,
-      };
-    }
+  async generateReport(input: MrvPipelineInput): Promise<MrvReportResult> {
+    const { result, version } = generateAnnualMrvReport(input);
 
-    // Build voyage entries
-    const voyageEntries: MrvVoyageEntry[] = [];
-    let totalFuelMt = 0;
-    let totalCo2 = 0;
+    // Capture the prior lifecycle so every state transition is auditable; never
+    // a silent coercion — the state machine itself (lifecycle.ts) guards this.
+    const prior = await this.repo.findByVesselAndYear(input.vessel_id, input.reporting_year);
+    const priorLifecycle = prior?.lifecycle ?? null;
 
-    // Simplified: distribute deliveries across voyages
-    const perVoyageFuel =
-      input.voyages.length > 0
-        ? totalDeliveryMt(input.deliveries) / input.voyages.length
-        : 0;
-    const perVoyageCo2 =
-      input.voyages.length > 0
-        ? totalDeliveryCo2(input.deliveries) / input.voyages.length
-        : 0;
-
-    for (const v of input.voyages) {
-      // Find the first delivery's fuel type as representative
-      const firstFuel = input.deliveries[0]?.fuel_type ?? "unknown";
-      voyageEntries.push({
-        voyage_id: v.id,
-        departure_port: v.departure_port,
-        arrival_port: v.arrival_port,
-        departure_date: v.departure_time,
-        arrival_date: v.arrival_time,
-        distance_nm: v.distance_nm,
-        fuel_type: firstFuel,
-        fuel_consumption_mt: perVoyageFuel,
-        co2_tonnes: perVoyageCo2,
-        voyage_type: "MRV",
-        data_quality: "reconciled",
-      });
-      totalFuelMt += perVoyageFuel;
-      totalCo2 += perVoyageCo2;
-    }
-
-    const ts = new Date().toISOString();
-    const reportData: Record<string, unknown> = {
-      calculation_version: MRV_CALCULATION_VERSION,
-      methodology: input.methodology ?? "default",
-      voyage_count: input.voyages.length,
-      delivery_count: input.deliveries.length,
-    };
-
-    const result: MrvReportResult = {
-      calculation_version: MRV_CALCULATION_VERSION,
-      parameter_version: ETS_CURRENT_PARAMETER_VERSION,
-      vessel_id: input.vessel_id,
-      reporting_year: input.reporting_year,
-      status: "draft",
-      completeness_status: completeness.status,
-      completeness_checks: completeness.checks,
-      blocking_issues: completeness.blocking_issues,
-      warnings: completeness.warnings,
-      total_voyages: input.voyages.length,
-      total_fuel_mt: Math.round(totalFuelMt * 10000) / 10000,
-      total_co2_tonnes: Math.round(totalCo2 * 10000) / 10000,
-      monitoring_plan_version: input.monitoring_plan_version ?? null,
-      methodology: input.methodology ?? "default",
-      voyage_entries: voyageEntries,
-      delivery_ids: input.deliveries.map((d) => d.id),
-      voyage_ids: input.voyages.map((v) => v.id),
-      report_data: reportData,
-      generated_at: ts,
-    };
-
-    // Persist
+    // Persist the annual HEAD.
     const insert: MrvReportInsert = {
       vessel_id: input.vessel_id,
       reporting_year: input.reporting_year,
@@ -163,9 +71,70 @@ export class MrvReportService {
       calculation_version: result.calculation_version,
       parameter_version: result.parameter_version,
       ets_record_id: input.ets_record_id ?? null,
-      generated_at: ts,
+      lifecycle: result.lifecycle,
+      period_start: version.period_start,
+      period_end: version.period_end,
+      monitoring_plan_ver: result.monitoring_plan_ver,
+      total_distance_nm: result.total_distance_nm,
+      total_time_at_sea_hours: result.total_time_at_sea_hours,
+      generated_at: result.generated_at,
     };
-    await this.repo.upsert(insert);
+    const saved = await this.repo.upsert(insert);
+
+    // Append the immutable report version (append-only revision trail). When no
+    // version repo is wired (e.g. legacy tests), skip — the HEAD still mirrors.
+    if (this.versionRepo && saved?.id) {
+      const vInsert: MrvReportVersionInsert = {
+        mrv_report_id: saved.id,
+        version_number: version.version_number,
+        submission_status: version.submission_status,
+        calculation_version: MRV_CALCULATION_VERSION,
+        parameter_version: ETS_CURRENT_PARAMETER_VERSION,
+        monitoring_plan_version: result.monitoring_plan_ver,
+        period_start: version.period_start,
+        period_end: version.period_end,
+        total_fuel_mt: version.total_fuel_mt,
+        fuel_by_type: version.fuel_by_type as Record<string, unknown>,
+        co2_tonnes: version.co2_tonnes,
+        ch4_co2e_tonnes: version.ch4_co2e_tonnes,
+        n2o_co2e_tonnes: version.n2o_co2e_tonnes,
+        total_co2e_tonnes: version.total_co2e_tonnes,
+        total_distance_nm: version.total_distance_nm,
+        total_time_at_sea_hours: version.total_time_at_sea_hours,
+        source_consumption_ids: version.source_consumption_ids as unknown[],
+        source_voyage_ids: version.source_voyage_ids as unknown[],
+        traceability: {
+          consumption_source: "voyage_consumption",
+          emission_factor_source: "shared_registry",
+        },
+      };
+      await this.versionRepo.append(vInsert);
+    }
+
+    // Immutable audit trail for the lifecycle state transition — reuse the
+    // existing `audit_log` (never a second mechanism). Recorded for every
+    // generated state, including from/to so a regression to an earlier state is
+    // traceable. The state machine (lifecycle.ts) is what forbids illegal jumps.
+    if (this.auditLog && this.organizationId) {
+      await this.auditLog.insert({
+        organization_id: this.organizationId,
+        action: "mrv.lifecycle_transition",
+        entity_type: "mrv_report",
+        entity_id: saved?.id,
+        before_data: { lifecycle: priorLifecycle },
+        after_data: {
+          lifecycle: result.lifecycle,
+          reporting_year: input.reporting_year,
+          calculation_version: MRV_CALCULATION_VERSION,
+          total_fuel_mt: result.total_fuel_mt,
+          total_co2_tonnes: result.total_co2_tonnes,
+          monitoring_plan_ver: result.monitoring_plan_ver,
+          monitored_period_start: version.period_start,
+          monitored_period_end: version.period_end,
+        },
+        source: "mrv-reporting",
+      });
+    }
 
     return result;
   }
@@ -206,23 +175,4 @@ export class MrvReportService {
   async buildVerifierPackage(input: VerifierPackageInput): Promise<MrvVerifierPackage> {
     return buildVerifierPackage(input);
   }
-}
-
-function totalDeliveryMt(
-  deliveries: ReadonlyArray<{ quantity_mt: number }>,
-): number {
-  return deliveries.reduce((s, d) => s + d.quantity_mt, 0);
-}
-
-function totalDeliveryCo2(
-  deliveries: ReadonlyArray<{ fuel_type: string; quantity_mt: number }>,
-): number {
-  let total = 0;
-  for (const d of deliveries) {
-    const info = getFuelEmissionInfo(d.fuel_type);
-    if (info) {
-      total += d.quantity_mt * 1000 * info.co2_factor / 1000;
-    }
-  }
-  return total;
 }

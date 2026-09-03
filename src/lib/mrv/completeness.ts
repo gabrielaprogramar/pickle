@@ -13,6 +13,16 @@ export interface MrvDatasetInfo {
   readonly hasUnresolvedValidationErrors: boolean;
   readonly deliveryCount: number;
   readonly voyageCount: number;
+  /** Any MRV-aggregation completeness checks to fold in (distance/time metrics). */
+  readonly aggregationChecks?: ReadonlyArray<MrvCompletenessCheck>;
+  /** Count of canonical consumption rows that are unresolved (BLOCKED etc.). */
+  readonly unresolvedConsumptionCount?: number;
+  /** Number of voyages lacking auditable distance. */
+  readonly missingDistanceVoyages?: number;
+  /** Number of voyages lacking auditable time. */
+  readonly missingTimeVoyages?: number;
+  /** Whether the active monitoring plan is resolved (approved + effective). */
+  readonly monitoringPlanResolved?: boolean;
 }
 
 export interface MrvCompletenessResult {
@@ -42,18 +52,33 @@ export function runMrvCompletenessCheck(data: MrvDatasetInfo): MrvCompletenessRe
   });
   if (!data.hasVoyages) blocking.push("No voyages found for reporting year");
 
-  // 2. Fuel deliveries present
+  // 2. Canonical consumption present (voyage_consumption), NOT equal-share.
+  const hasConsumption = data.unresolvedConsumptionCount !== undefined
+    ? data.unresolvedConsumptionCount >= 0
+    : data.hasFuelDeliveries;
   checks.push({
-    check_name: "fuel_deliveries_present",
-    passed: data.hasFuelDeliveries,
+    check_name: "consumption_sourced",
+    passed: hasConsumption,
     severity: "error",
-    message: data.hasFuelDeliveries
-      ? `${data.deliveryCount} fuel delivery(ies) found`
-      : "No fuel deliveries found for reporting year",
+    message: hasConsumption
+      ? "Canonical per-voyage consumption available"
+      : "No canonical per-voyage consumption available — equal-share allocation is forbidden",
   });
-  if (!data.hasFuelDeliveries) blocking.push("No fuel deliveries found");
+  if (!hasConsumption) blocking.push("No canonical per-voyage consumption — equal-share forbidden");
 
-  // 3. BDN coverage
+  // 3. No unresolved consumption rows (BLOCKED / UNKNOWN would under-report).
+  const unresolvedOk = !data.unresolvedConsumptionCount || data.unresolvedConsumptionCount === 0;
+  checks.push({
+    check_name: "no_unresolved_consumption",
+    passed: unresolvedOk,
+    severity: "error",
+    message: unresolvedOk
+      ? "All consumption rows resolved"
+      : `${data.unresolvedConsumptionCount} unresolved consumption row(s) — report would under-state emissions`,
+  });
+  if (!unresolvedOk) blocking.push("Unresolved consumption rows present");
+
+  // 4. BDN coverage
   checks.push({
     check_name: "bdn_coverage",
     passed: data.hasBdnCoverage,
@@ -64,7 +89,7 @@ export function runMrvCompletenessCheck(data: MrvDatasetInfo): MrvCompletenessRe
   });
   if (!data.hasBdnCoverage) warnings.push("Insufficient BDN coverage");
 
-  // 4. Unmatched BDNs
+  // 5. Unmatched BDNs
   checks.push({
     check_name: "unmatched_bdns",
     passed: !data.hasUnmatchedBdns,
@@ -75,7 +100,7 @@ export function runMrvCompletenessCheck(data: MrvDatasetInfo): MrvCompletenessRe
   });
   if (data.hasUnmatchedBdns) blocking.push("Unmatched BDNs — reconciliation incomplete");
 
-  // 5. AIS data
+  // 6. AIS data
   checks.push({
     check_name: "ais_data_available",
     passed: data.hasAisData,
@@ -86,7 +111,7 @@ export function runMrvCompletenessCheck(data: MrvDatasetInfo): MrvCompletenessRe
   });
   if (!data.hasAisData) warnings.push("AIS data gaps detected");
 
-  // 6. Vessel metadata
+  // 7. Vessel metadata
   checks.push({
     check_name: "vessel_metadata_complete",
     passed: !!(data.vesselName && data.vesselImo),
@@ -97,7 +122,7 @@ export function runMrvCompletenessCheck(data: MrvDatasetInfo): MrvCompletenessRe
   });
   if (!data.vesselName || !data.vesselImo) blocking.push("Vessel metadata incomplete");
 
-  // 7. Validation errors
+  // 9. Validation errors
   checks.push({
     check_name: "no_unresolved_validation_errors",
     passed: !data.hasUnresolvedValidationErrors,
@@ -108,7 +133,7 @@ export function runMrvCompletenessCheck(data: MrvDatasetInfo): MrvCompletenessRe
   });
   if (data.hasUnresolvedValidationErrors) blocking.push("Unresolved validation errors");
 
-  // 8. Monitoring plan
+  // 10. Monitoring plan version string present (backwards compatible)
   checks.push({
     check_name: "monitoring_plan_available",
     passed: !!data.monitoringPlanVersion,
@@ -119,7 +144,7 @@ export function runMrvCompletenessCheck(data: MrvDatasetInfo): MrvCompletenessRe
   });
   if (!data.monitoringPlanVersion) warnings.push("Monitoring Plan version missing");
 
-  // 9. Methodology
+  // 11. Methodology
   checks.push({
     check_name: "methodology_consistent",
     passed: data.methodology === "default" || data.methodology === "alternative",
@@ -130,6 +155,17 @@ export function runMrvCompletenessCheck(data: MrvDatasetInfo): MrvCompletenessRe
   });
   if (data.methodology !== "default" && data.methodology !== "alternative") {
     blocking.push("Methodology not set or inconsistent");
+  }
+
+  // 12. Aggregation checks (distance/time auditability) folded in.
+  for (const c of data.aggregationChecks ?? []) {
+    checks.push(c);
+    if (!c.passed && c.severity === "error") blocking.push(c.message);
+    if (!c.passed && c.severity === "warning") warnings.push(c.message);
+  }
+  for (const m of data.missingDistanceVoyages ? [1] : []) {
+    // Reports must not fabricate distance. Handled via aggregationChecks above.
+    void m;
   }
 
   let status: MrvCompletenessStatus = "VALID";

@@ -15,6 +15,10 @@ import {
   type EuEtsRecordRepository,
   createMrvReportRepository,
   type MrvReportRepository,
+  createMrvMonitoringPlanRepository,
+  type MrvMonitoringPlanRepository,
+  createMrvReportVersionRepository,
+  type MrvReportVersionRepository,
   createRegulatoryRuleRepository,
   type RegulatoryRuleRepository,
   createRegulationApplicabilityRepository,
@@ -41,6 +45,8 @@ export interface ApiDependencies {
   readonly fuelEuRecords: FuelEuRecordRepository;
   readonly euEtsRecords: EuEtsRecordRepository;
   readonly mrvReports: MrvReportRepository;
+  readonly mrvMonitoringPlans: MrvMonitoringPlanRepository;
+  readonly mrvReportVersions: MrvReportVersionRepository;
   readonly regulatoryRules: RegulatoryRuleRepository;
   readonly regulationApplicability: RegulationApplicabilityRepository;
   readonly voyageConsumption: VoyageConsumptionRepository;
@@ -62,6 +68,8 @@ export function createDefaultDeps(): ApiDependencies {
   const fuelEuRecords = createFuelEuRecordRepository();
   const euEtsRecords = createEuEtsRecordRepository();
   const mrvReports = createMrvReportRepository();
+  const mrvMonitoringPlans = createMrvMonitoringPlanRepository();
+  const mrvReportVersions = createMrvReportVersionRepository();
   const regulatoryRules = createRegulatoryRuleRepository();
   const regulationApplicability = createRegulationApplicabilityRepository();
   const voyageConsumption = createVoyageConsumptionRepository();
@@ -71,7 +79,7 @@ export function createDefaultDeps(): ApiDependencies {
   const certificates = createCertificateRepository();
   const marineTraffic = createMarineTrafficClient();
 
-  return { vessels, voyages, aisPositions, fuelDeliveries, fuelTypes, fuelEuRecords, euEtsRecords, mrvReports, regulatoryRules, regulationApplicability, voyageConsumption, noonReports, portCalls, auditLog, certificates, marineTraffic };
+  return { vessels, voyages, aisPositions, fuelDeliveries, fuelTypes, fuelEuRecords, euEtsRecords, mrvReports, mrvMonitoringPlans, mrvReportVersions, regulatoryRules, regulationApplicability, voyageConsumption, noonReports, portCalls, auditLog, certificates, marineTraffic };
 }
 
 export function createApiDeps(
@@ -86,6 +94,8 @@ export function createApiDeps(
     fuelEuRecords: overrides.fuelEuRecords ?? createFuelEuRecordRepository(),
     euEtsRecords: overrides.euEtsRecords ?? createEuEtsRecordRepository(),
     mrvReports: overrides.mrvReports ?? createMrvReportRepository(),
+    mrvMonitoringPlans: overrides.mrvMonitoringPlans ?? createMrvMonitoringPlanRepository(),
+    mrvReportVersions: overrides.mrvReportVersions ?? createMrvReportVersionRepository(),
     regulatoryRules: overrides.regulatoryRules ?? createRegulatoryRuleRepository(),
     regulationApplicability: overrides.regulationApplicability ?? createRegulationApplicabilityRepository(),
     voyageConsumption: overrides.voyageConsumption ?? createVoyageConsumptionRepository(),
