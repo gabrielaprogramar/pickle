@@ -24,7 +24,7 @@
 
 import { FuelEUComplianceService } from "@/lib/fueleu/service";
 import type { FuelEuCalculationResult } from "@/lib/fueleu/types";
-import { determineApplicability, ruleEffectiveOn } from "@/lib/regulatory/applicability";
+import { determineApplicability, ruleEffectiveOn, type ApplicabilityDecision } from "@/lib/regulatory/applicability";
 import { attributeVoyageConsumption } from "@/lib/regulatory/consumption";
 import type { VesselProfile } from "@/lib/regulatory/types";
 import type { FuelEuVoyageScopeType } from "@/lib/fueleu/types";
@@ -42,6 +42,67 @@ import type { FuelEuRecordRepository } from "@/lib/supabase/repositories/fuel_eu
 import type { AuditLogRepository } from "@/lib/supabase/repositories/audit_log";
 import type { CertificateRepository } from "@/lib/supabase/repositories/certificates";
 import { getLhv } from "@/lib/fueleu/parameters";
+
+/**
+ * Refine the GT-only FuelEU applicability decision with EU-participation
+ * awareness derived from per-voyage scope (port-call data).
+ *
+ *   - GT gate not APPLICABLE → decision is returned unchanged (never overridden).
+ *   - At least one EU-scope voyage (INTRA_EU / EU_TO_THIRD / THIRD_TO_EU) → the
+ *     GT threshold genuinely applies; keep APPLICABLE.
+ *   - No voyages recorded at all → REQUIRES_REVIEW (cannot prove EU engagement).
+ *   - All voyages NON_EU and none carry unresolved ports → NOT_APPLICABLE for
+ *     that year.
+ *   - Indeterminate scope or unresolved ports → REQUIRES_REVIEW (never pretend).
+ */
+function refineFuelEuApplicability(
+  decision: ApplicabilityDecision,
+  voyagesScope: ReadonlyArray<{
+    id: string;
+    scope_type: string;
+    unknown_ports?: string[];
+  }>,
+): ApplicabilityDecision {
+  if (decision.applicability !== "APPLICABLE") return decision;
+
+  const euScoped = ["INTRA_EU", "EU_TO_THIRD", "THIRD_TO_EU"];
+  if (voyagesScope.some((v) => euScoped.includes(v.scope_type))) return decision;
+
+  const anyUnknownPort = voyagesScope.some((v) => (v.unknown_ports ?? []).length > 0);
+  const base = decision.notes ?? "";
+
+  if (voyagesScope.length === 0) {
+    return {
+      ...decision,
+      applicability: "REQUIRES_REVIEW",
+      is_decision_final: false,
+      notes:
+        base +
+        " GT threshold met but no voyage/port-call activity is recorded for the year — EU participation cannot be confirmed without evidence; review.",
+    };
+  }
+
+  const allNonEu = voyagesScope.every((v) => v.scope_type === "NON_EU");
+  if (allNonEu && !anyUnknownPort) {
+    return {
+      ...decision,
+      applicability: "NOT_APPLICABLE",
+      is_decision_final: true,
+      notes:
+        base +
+        " GT threshold met but all recorded voyages are NON_EU (no EU engagement) — FuelEU not applicable for the year.",
+    };
+  }
+
+  return {
+    ...decision,
+    applicability: "REQUIRES_REVIEW",
+    is_decision_final: false,
+    notes:
+      base +
+      " GT threshold met but voyage scope is indeterminate (unknown/unresolved ports) — EU-participation review required.",
+  };
+}
 
 /**
  * Orchestrates the FuelEU production pipeline end-to-end so a real vessel/year
@@ -131,20 +192,10 @@ export class FuelEuPipelineService {
       );
     }
 
-    // ── Applicability (produce + persist) ─────────────────────────────────
+    // ── Applicability (rule/GT gate only) ─────────────────────────────────
+    // The port-call / EU-participation aware refinement is applied below, after
+    // per-voyage scope is derived, so GT alone is never over-claimed.
     const decision = determineApplicability({ rule: scopeRule, facts }, "FUEL_EU", asOf);
-    await this.deps.regulationApplicability.upsert({
-      vessel_id: vesselId,
-      regulation: "FUEL_EU",
-      reporting_year: reportingYear,
-      applicability: decision.applicability,
-      is_decision_final: decision.is_decision_final,
-      rule_version: decision.rule_version,
-      rule_effective_from: decision.rule_effective_from,
-      rule_effective_until: decision.rule_effective_until,
-      basis: decision.basis,
-      notes: decision.notes,
-    });
 
     // ── Consumption (produce + persist) ───────────────────────────────────
     const voyages = await this.deps.voyages.findByVesselAndYear(vesselId, reportingYear);
@@ -167,13 +218,16 @@ export class FuelEuPipelineService {
       );
       const fuels = new Set(evidence.map((d) => d.fuel_type));
       for (const fuelType of fuels) {
-        const fuelEvidence = evidence.filter((d) => d.fuel_type === fuelType);
+        // NOTE: pass the FULL per-voyage delivery set (not a per-fuel subset) so
+        // the shared attribution layer can split aggregate noon consumption
+        // across fuel types by BDN ratio (Part 3.6 double-count fix). The
+        // requested fuelType selects the fuel; the engine resolves per-fuel.
         const attribution = attributeVoyageConsumption({
           vessel_id: vesselId,
           voyage,
           reporting_year: reportingYear,
           noonReports,
-          deliveries: fuelEvidence,
+          deliveries: evidence,
           robsByDate,
           fuelType,
         });
@@ -227,6 +281,26 @@ export class FuelEuPipelineService {
       };
     });
 
+    // ── Applicability — port-call / EU-participation aware refinement ─────
+    // FuelEU applies to ships >5000 GT that ACTUALLY engage in EU trade in the
+    // year. GT alone is the rule gate; we now fold in the derived voyage scope
+    // so a large vessel with no EU-call evidence is NOT over-claimed as
+    // APPLICABLE, and one whose voyages are all confirmed NON_EU is correctly
+    // NOT_APPLICABLE for the year. Conflicting/indeterminate evidence -> REVIEW.
+    const finalDecision = refineFuelEuApplicability(decision, voyagesScope);
+    await this.deps.regulationApplicability.upsert({
+      vessel_id: vesselId,
+      regulation: "FUEL_EU",
+      reporting_year: reportingYear,
+      applicability: finalDecision.applicability,
+      is_decision_final: finalDecision.is_decision_final,
+      rule_version: finalDecision.rule_version,
+      rule_effective_from: finalDecision.rule_effective_from,
+      rule_effective_until: finalDecision.rule_effective_until,
+      basis: finalDecision.basis,
+      notes: finalDecision.notes,
+    });
+
     // ── Biofuel (ISCC) certification evidence from the certificate registry ─
     const biofuelCertification = await this.buildBiofuelCertification(
       vesselId,
@@ -236,8 +310,9 @@ export class FuelEuPipelineService {
 
     // ── OPS (shore power) — regulatory sub-component tied to the canonical
     //    activity model. With no separate OPS consumption source wired, OPS is
-    //    surfaced as data-unavailable so the berth energy gap is visible. ─────
-    const opsEnergyMj = 0;
+    //    surfaced as data-unavailable (ops_energy_mj = null, NOT a fabricated 0)
+    //    so the berth energy gap is visible rather than silently zeroed. ─────
+    const opsEnergyMj: number | null = null;
     const opsDataAvailable = false;
 
     // ── Engine (persists fuel_eu_record + audit trail) ────────────────────
@@ -252,13 +327,13 @@ export class FuelEuPipelineService {
         vessel_category: facts.vesselCategory,
       },
       applicability: {
-        status: decision.applicability,
-        is_decision_final: decision.is_decision_final,
-        rule_version: decision.rule_version,
-        rule_effective_from: decision.rule_effective_from,
-        rule_effective_until: decision.rule_effective_until,
-        basis: decision.basis,
-        notes: decision.notes,
+        status: finalDecision.applicability,
+        is_decision_final: finalDecision.is_decision_final,
+        rule_version: finalDecision.rule_version,
+        rule_effective_from: finalDecision.rule_effective_from,
+        rule_effective_until: finalDecision.rule_effective_until,
+        basis: finalDecision.basis,
+        notes: finalDecision.notes,
       },
       consumption: consumptionRows,
       voyages: voyagesScope,

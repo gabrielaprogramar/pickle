@@ -106,7 +106,7 @@ export interface FuelEuComplianceInput {
     readonly penalty_eur_per_tonne_vlsfoe: number | null;
     readonly penalty_formula_version: string | null;
   };
-  readonly ops_energy_mj: number;
+  readonly ops_energy_mj: number | null;
   readonly ops_data_available: boolean;
   readonly biofuel_certification: ReadonlyArray<{
     readonly fuel_type: string;
@@ -126,7 +126,7 @@ export interface FuelEuComplianceInput {
   readonly pool_snapshot: ReadonlyArray<{
     readonly vessel_id: string;
     readonly imo: string;
-    readonly surplus_energy_mj: number;
+    readonly surplus_intensity_gco2e_per_mj: number;
   }>;
 }
 
@@ -153,7 +153,7 @@ export interface FuelEuComplianceResult {
     certificate_status: string;
     detail: string;
   }>;
-  readonly ops_energy_mj: number;
+  readonly ops_energy_mj: number | null;
   readonly ops_data_available: boolean;
   readonly penalty_exposure_estimate: number | null;
   readonly penalty_is_estimate: boolean;
@@ -366,8 +366,10 @@ export function evaluateFuelEuCompliance(input: FuelEuComplianceInput): FuelEuCo
   );
 
   // ── OPS (low-carbon shore power reduces effective intensity) ────────────
-  const opsEnergy = Math.max(0, input.ops_energy_mj);
+  // Distinguish "OPS is genuinely zero" from "OPS data unavailable": we never
+  // fabricate an OPS=0 figure when we have no OPS source. Unavailable -> null.
   const opsAvailable = input.ops_data_available;
+  const opsEnergy = opsAvailable ? Math.max(0, input.ops_energy_mj ?? 0) : null;
   // Under FuelEU, OPS energy at berth is zero-GHG (it is not ship fuel). It
   // does not add to the numerator but does NOT reduce the denominator either;
   // we track it separately and surface it so an OPS gap is visible.
@@ -587,28 +589,23 @@ interface BalanceToolArgs {
   requested: boolean;
   sign: ComplianceSign | null;
   balance: number | null;
-  pool_snapshot?: ReadonlyArray<{ vessel_id: string; imo: string; surplus_energy_mj: number }>;
+  pool_snapshot?: ReadonlyArray<{ vessel_id: string; imo: string; surplus_intensity_gco2e_per_mj: number }>;
 }
 
 function resolveBanking(args: BalanceToolArgs): FuelEuBalanceToolResult {
   if (!args.requested) {
     return { tool: null, status: "UNAVAILABLE", detail: "Banking was not requested.", energy_mj_applied: null, evidence: [] };
   }
-  if (args.sign !== "surplus" || args.balance === null) {
-    return {
-      tool: "BANKING",
-      status: "REQUIRES_REVIEW",
-      detail: "Banking was requested but the vessel has no resolved surplus to bank.",
-      energy_mj_applied: 0,
-      evidence: [],
-    };
-  }
+  // Part 3.6: banking is SAFELY DEFERRED. There is no persistent cross-year
+  // ledger with double-spend protection, so the engine must not claim a surplus
+  // was banked. We flag REQUIRES_REVIEW instead of reporting an APPLIED amount.
   return {
     tool: "BANKING",
-    status: "APPLIED",
-    detail: "Surplus banked for a future compliance period.",
-    energy_mj_applied: args.balance,
-    evidence: [`balance_${args.balance}`, "rule:fueleu_banking_v1"],
+    status: "REQUIRES_REVIEW",
+    detail:
+      "Banking was requested but is not yet applied: the compliance engine has no persistent cross-year surplus ledger with double-spend protection. Review before MRV hand-off.",
+    energy_mj_applied: null,
+    evidence: [],
   };
 }
 
@@ -616,58 +613,35 @@ function resolveBorrowing(args: BalanceToolArgs): FuelEuBalanceToolResult {
   if (!args.requested) {
     return { tool: null, status: "UNAVAILABLE", detail: "Borrowing was not requested.", energy_mj_applied: null, evidence: [] };
   }
-  if (args.sign !== "deficit" || args.balance === null) {
-    return {
-      tool: "BORROWING",
-      status: "REQUIRES_REVIEW",
-      detail: "Borrowing was requested but the vessel has no resolved deficit to cover.",
-      energy_mj_applied: 0,
-      evidence: [],
-    };
-  }
+  // Part 3.6: borrowing is SAFELY DEFERRED. No persistent cross-year ledger /
+  // double-spend protection exists, so we must not claim a deficit was covered
+  // by a future period.
   return {
     tool: "BORROWING",
-    status: "APPLIED",
-    detail: "Deficit covered by borrowing from a future compliance period.",
-    energy_mj_applied: Math.abs(args.balance),
-    evidence: [`deficit_${Math.abs(args.balance)}`, "rule:fueleu_borrowing_v1"],
+    status: "REQUIRES_REVIEW",
+    detail:
+      "Borrowing was requested but is not yet applied: the compliance engine has no persistent future-period ledger with double-spend protection. Review before MRV hand-off.",
+    energy_mj_applied: null,
+    evidence: [],
   };
 }
 
 function resolvePooling(args: BalanceToolArgs & {
-  pool_snapshot: ReadonlyArray<{ vessel_id: string; imo: string; surplus_energy_mj: number }>;
+  pool_snapshot: ReadonlyArray<{ vessel_id: string; imo: string; surplus_intensity_gco2e_per_mj: number }>;
 }): FuelEuBalanceToolResult {
   if (!args.requested) {
     return { tool: null, status: "UNAVAILABLE", detail: "Pooling was not requested.", energy_mj_applied: null, evidence: [] };
   }
-  if (args.sign !== "deficit" || args.balance === null) {
-    return {
-      tool: "POOLING",
-      status: "POOLING_REQUIRES_REVIEW",
-      detail: "Pooling was requested but this vessel has no resolved deficit to satisfy via the pool.",
-      energy_mj_applied: 0,
-      evidence: [],
-    };
-  }
-  const pool = args.pool_snapshot ?? [];
-  const totalSurplus = pool.reduce((s, p) => s + (p.surplus_energy_mj ?? 0), 0);
-  if (totalSurplus <= 0) {
-    return {
-      tool: "POOLING",
-      status: "POOLING_REQUIRES_REVIEW",
-      detail: "Pooling requested but the pool snapshot has no verified surplus energy to allocate.",
-      energy_mj_applied: 0,
-      evidence: pool.map((p) => `${p.imo}:${p.surplus_energy_mj}`),
-    };
-  }
-  const deficitMj = Math.abs(args.balance);
-  const applied = Math.min(deficitMj, totalSurplus);
+  // Part 3.6: pooling is SAFELY DEFERRED. The pool membership, verified surplus,
+  // and allocation are not persistable/enforceable in the current model, so we
+  // must not report a pooled cover amount. Always flag for explicit review.
   return {
     tool: "POOLING",
-    status: "APPLIED",
-    detail: `Pool surplus cover applied to the deficit (${applied} MJ of ${deficitMj} MJ).`,
-    energy_mj_applied: applied,
-    evidence: pool.map((p) => `${p.imo}:${p.surplus_energy_mj}`),
+    status: "POOLING_REQUIRES_REVIEW",
+    detail:
+      "Pooling was requested but is not yet applied: pool membership and verified surplus allocation are not enforceable without a persistent, double-spend-protected pool ledger. Review before MRV hand-off.",
+    energy_mj_applied: null,
+    evidence: (args.pool_snapshot ?? []).map((p) => `${p.imo}:${p.surplus_intensity_gco2e_per_mj}`),
   };
 }
 

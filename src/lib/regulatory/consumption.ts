@@ -31,6 +31,8 @@ export const CONSUMPTION_METHODS = [
   "INSUFFICIENT_DATA",
   "CONFLICT_DELTA",
   "ESTIMATED_MANUAL",
+  "INSUFFICIENT_FUEL_TYPE_DATA",
+  "UNKNOWN_FUEL_TYPE",
 ] as const;
 
 export type ConsumptionMethod = (typeof CONSUMPTION_METHODS)[number];
@@ -69,6 +71,73 @@ export interface ConsumptionInput {
 /** Tolerance (fraction) beyond which conflicting sources flag REVIEW. */
 export const DEFAULT_CONFLICT_TOLERANCE = 0.15;
 export const MIN_REPORT_DAYS = 1;
+
+/**
+ * Split an aggregate noon-report total across fuel types.
+ *
+ * A noon report exposes a single TOTAL `fuel_consumption_tonnes` — there is no
+ * per-fuel column in the schema. Allocating the whole total to EVERY fuel type
+ * that a pipeline loops over was the Part 3.5 double-count defect. This helper
+ * returns the quantity attributable to the requested fuel type:
+ *
+ *   - exactly one distinct fuel in evidence  -> SINGLE_FUEL, full total
+ *   - multiple fuels with BDN deliveries     -> BDN_RATIO proportional split,
+ *     matching the deterministic `correlateNoonFuel` (fuel-correlation) split:
+ *     share = total_mt × (delivered_mt(fuel) / total_delivered_mt)
+ *   - multiple fuels but NO defensible ratio -> resolved=false (REVIEW): we
+ *     refuse to fabricate a per-fuel number.
+ */
+function splitNoonConsumption(opts: {
+  total_mt: number;
+  requestedFuelType: string | null;
+  deliveries: FuelDeliveryRow[];
+  robFuelTypes: string[];
+}): { resolved: true; quantity_mt: number; split: "SINGLE_FUEL" | "BDN_RATIO"; traceability: Record<string, unknown> } | { resolved: false } {
+  const { total_mt, requestedFuelType, deliveries, robFuelTypes } = opts;
+  const fuel = requestedFuelType ?? null;
+
+  const deliveryFuels = [...new Set(deliveries.map((d) => d.fuel_type).filter(Boolean))];
+  const robFuels = [...new Set(robFuelTypes.filter(Boolean))];
+  const distinctFuels = [...new Set([...deliveryFuels, ...robFuels])];
+
+  // Single distinct fuel (or no cross-fuel evidence at all) -> full total.
+  if (distinctFuels.length <= 1) {
+    return {
+      resolved: true,
+      quantity_mt: total_mt,
+      split: "SINGLE_FUEL",
+      traceability: { split: "SINGLE_FUEL", split_basis: "single-fuel evidence" },
+    };
+  }
+
+  // Multiple fuel types present. A per-fuel split needs a defensible ratio.
+  if (fuel === null) {
+    return { resolved: false };
+  }
+  const fuelDelivered = deliveries
+    .filter((d) => d.fuel_type === fuel)
+    .reduce((s, d) => s + (Number(d.quantity_mt) || 0), 0);
+  const totalDelivered = deliveries.reduce(
+    (s, d) => s + (Number(d.quantity_mt) || 0),
+    0,
+  );
+  if (!fuelDelivered || !totalDelivered || fuelDelivered <= 0 || totalDelivered <= 0) {
+    return { resolved: false };
+  }
+  const share = (fuelDelivered / totalDelivered) * total_mt;
+  return {
+    resolved: true,
+    quantity_mt: share,
+    split: "BDN_RATIO",
+    traceability: {
+      split: "BDN_RATIO",
+      split_basis:
+        "Noon total allocated across fuel types by BDN delivery ratio (deterministic proportional split).",
+      fuel_delivered_mt: fuelDelivered,
+      total_delivered_mt: totalDelivered,
+    },
+  };
+}
 
 /**
  * Attribute consumption for a single voyage from available source records.
@@ -118,19 +187,46 @@ export function attributeVoyageConsumption(
     typeof fuelType === "string"
   ) {
     const window = noonWindowConsumption(fuelType, candidateNotes, voyage, input);
-    // Cross-check against BDN deliveries / ROB delta for conflict detection.
-    const ref = crossCheckReference(fuelType, voyageDeliveries, voyageRobs, voyage);
-    if (ref !== null && Math.abs(window.quantity_mt - ref) / Math.max(ref, 1) > DEFAULT_CONFLICT_TOLERANCE) {
+    // The noon report carries a TOTAL `fuel_consumption_tonnes` (not per fuel).
+    // When more than one fuel type is present we must NOT assign the whole total
+    // to each fuel (the Part 3.5 double-count defect). Allocate deterministically
+    // using a defensible split, or refuse to fabricate one.
+    const split = splitNoonConsumption({
+      total_mt: window.quantity_mt,
+      requestedFuelType: fuelType,
+      deliveries: voyageDeliveries,
+      robFuelTypes: voyageRobs.map((r) => r.fuel_type),
+    });
+    if (split.resolved === false) {
       return {
-        method: "CONFLICT_DELTA",
+        method: "INSUFFICIENT_FUEL_TYPE_DATA",
         confidence: "LOW",
         status: "REVIEW",
-        quantity_mt: window.quantity_mt,
+        quantity_mt: 0,
         fuel_type: fuelType,
         source_type: "noon_reports",
         source_record_ids: window.sourceIds,
         attribution_method: "NOON_REPORT_INTERVAL",
-        traceability: { ...window.traceability, cross_check_reference_mt: ref },
+        traceability: {
+          ...window.traceability,
+          note: "Noon report provides an aggregate total but no defensible per-fuel split exists — refusing to assign the full total to a single fuel type.",
+        },
+        notes: "Total noon consumption cannot be split across multiple fuel types without a defensible ratio — per-fuel consumption requires review.",
+      };
+    }
+    // Cross-check the allocated share against the per-fuel reference.
+    const ref = crossCheckReference(fuelType, voyageDeliveries, voyageRobs, voyage);
+    if (ref !== null && Math.abs(split.quantity_mt - ref) / Math.max(ref, 1) > DEFAULT_CONFLICT_TOLERANCE) {
+      return {
+        method: "CONFLICT_DELTA",
+        confidence: "LOW",
+        status: "REVIEW",
+        quantity_mt: split.quantity_mt,
+        fuel_type: fuelType,
+        source_type: "noon_reports",
+        source_record_ids: window.sourceIds,
+        attribution_method: "NOON_REPORT_INTERVAL",
+        traceability: { ...window.traceability, ...split.traceability, cross_check_reference_mt: ref },
         notes: "Noon-report consumption conflicts with BDN/ROB evidence beyond tolerance — manual review required.",
       };
     }
@@ -138,13 +234,16 @@ export function attributeVoyageConsumption(
       method: "NOON_REPORT_INTERVAL",
       confidence: "HIGH",
       status: "VERIFIED",
-      quantity_mt: window.quantity_mt,
+      quantity_mt: split.quantity_mt,
       fuel_type: fuelType,
       source_type: "noon_reports",
       source_record_ids: window.sourceIds,
       attribution_method: "NOON_REPORT_INTERVAL",
-      traceability: window.traceability,
-      notes: "Consumption attributed from noon-report fuel readings bracketing the voyage.",
+      traceability: { ...window.traceability, ...split.traceability },
+      notes:
+        split.split === "BDN_RATIO"
+          ? "Consumption attributed from noon-report total, allocated across fuel types by BDN delivery ratio."
+          : "Consumption attributed from noon-report fuel readings bracketing the voyage.",
     };
   }
 
@@ -156,7 +255,16 @@ export function attributeVoyageConsumption(
       const firstRead = first.readings[0]!;
       const lastRead = first.readings[first.readings.length - 1]!;
       const delta = firstRead.rob_mt - lastRead.rob_mt;
-      if (delta >= 0) {
+      // The current schema carries a single total ROB reading with NO per-fuel
+      // split (migration 0016). If the ROB fuel type is unknown, or the caller
+      // asked for a specific fuel that the ROB reading cannot be attributed to,
+      // we must not claim the total delta belongs to a (possibly wrong) fuel.
+      if (
+        delta >= 0 &&
+        first.fuel_type &&
+        first.fuel_type.trim() !== "" &&
+        (typeof fuelType !== "string" || first.fuel_type === fuelType)
+      ) {
         return {
           method: "ROB_DELTA",
           confidence: "MEDIUM",
@@ -176,12 +284,82 @@ export function attributeVoyageConsumption(
           notes: "Consumption attributed from ROB delta across the voyage window.",
         };
       }
+      // ROB reading exists but its fuel type is unknown or mismatched: we cannot
+      // legally attribute the total delta to the requested fuel type.
+      if (
+        first.fuel_type &&
+        first.fuel_type.trim() !== "" &&
+        typeof fuelType === "string" &&
+        first.fuel_type !== fuelType
+      ) {
+        return {
+          method: "INSUFFICIENT_FUEL_TYPE_DATA",
+          confidence: "LOW",
+          status: "REVIEW",
+          quantity_mt: 0,
+          fuel_type: fuelType,
+          source_type: "fuel_robs",
+          source_record_ids: [],
+          attribution_method: "ROB_DELTA",
+          traceability: {
+            voyage_id: voyage.id,
+            note: "ROB reading has fuel type " + first.fuel_type + " but per-fuel attribution requested for " + fuelType + "; total ROB delta not attributed to a single fuel.",
+          },
+          notes: "ROB delta cannot be safely attributed to a single fuel type — requires review.",
+        };
+      }
+      // The ROB reading exists but carries NO fuel type (the current schema only
+      // stores a scalar total ROB). If it's the operative evidence (no BDN
+      // deliveries), surface UNKNOWN_FUEL_TYPE / REVIEW rather than fabricate a
+      // per-fuel split.
+      if (
+        voyageDeliveries.length === 0 &&
+        (!first.fuel_type || first.fuel_type.trim() === "")
+      ) {
+        return {
+          method: "UNKNOWN_FUEL_TYPE",
+          confidence: "LOW",
+          status: "REVIEW",
+          quantity_mt: 0,
+          fuel_type: fuelType ?? null,
+          source_type: "fuel_robs",
+          source_record_ids: [],
+          attribution_method: "ROB_DELTA",
+          traceability: {
+            voyage_id: voyage.id,
+            note: "ROB reading provides a total with no per-fuel type — cannot split; UNKNOWN_FUEL_TYPE.",
+          },
+          notes: "ROB reading exists but its fuel type is unknown — per-fuel consumption requires review.",
+        };
+      }
     }
   }
 
-  // 4. BDN delivery reconciled to the voyage.
+  // 4. BDN delivery reconciled to the voyage. Select the delivery for the
+  //    requested fuel type (the caller passes the full multi-fuel set so the
+  //    noon path can split, but a BDN attribution is per-fuel).
   if (voyageDeliveries.length > 0) {
-    const d = voyageDeliveries[0]!;
+    const d =
+      typeof fuelType === "string"
+        ? voyageDeliveries.find((x) => x.fuel_type === fuelType) ?? null
+        : voyageDeliveries[0] ?? null;
+    if (d === null) {
+      return {
+        method: "INSUFFICIENT_FUEL_TYPE_DATA",
+        confidence: "LOW",
+        status: "REVIEW",
+        quantity_mt: 0,
+        fuel_type: fuelType ?? null,
+        source_type: "fuel_deliveries",
+        source_record_ids: [],
+        attribution_method: "BDN_TO_VOYAGE",
+        traceability: {
+          voyage_id: voyage.id,
+          note: "No BDN delivery matches requested fuel type — nothing attributed.",
+        },
+        notes: "No BDN delivery matches the requested fuel type — requires review.",
+      };
+    }
     return {
       method: "BDN_TO_VOYAGE",
       confidence: "MEDIUM",

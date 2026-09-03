@@ -136,13 +136,16 @@ export class EtsPipelineService {
       const evidence = this.deliveriesForVoyage(deliveries, voyage.id, voyage.departure_time, voyage.arrival_time);
       const fuels = new Set(evidence.map((d) => d.fuel_type));
       for (const fuelType of fuels) {
-        const fuelEvidence = evidence.filter((d) => d.fuel_type === fuelType);
+        // NOTE: pass the FULL per-voyage delivery set (not a per-fuel subset) so
+        // the shared attribution layer can split aggregate noon consumption
+        // across fuel types by BDN ratio (Part 3.6 double-count fix). The
+        // requested fuelType selects the fuel; the engine resolves per-fuel.
         const attribution = attributeVoyageConsumption({
           vessel_id: vesselId,
           voyage,
           reporting_year: reportingYear,
           noonReports,
-          deliveries: fuelEvidence,
+          deliveries: evidence,
           robsByDate,
           fuelType,
         });

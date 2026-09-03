@@ -190,6 +190,52 @@ describe("compliance (fuelEU/compliance)", () => {
     expect(res.compliance_status).toBe("POOLING_REQUIRES_REVIEW");
     expect(res.pooling.status).toBe("POOLING_REQUIRES_REVIEW");
   });
+
+  it("banking requested → safely deferred to REQUIRES_REVIEW (never applied, no fake MJ)", () => {
+    const res = evaluateFuelEuCompliance(
+      complianceInput({ banking_requested: true }),
+    );
+    expect(res.banking.status).toBe("REQUIRES_REVIEW");
+    expect(res.banking.energy_mj_applied).toBeNull();
+    // A banked amount is not claimed; the surplus is not silently turned into MJ.
+    expect(res.compliance_status).toBe("REQUIRES_REVIEW");
+  });
+
+  it("borrowing requested → safely deferred to REQUIRES_REVIEW (never applied, no fake MJ)", () => {
+    const res = evaluateFuelEuCompliance(
+      complianceInput({
+        rules: { ...BASE_RULES, target_gco2e_per_mj: 77.49, reduction_pct: 0.15 },
+        borrowing_requested: true,
+      }),
+    );
+    expect(res.borrowing.status).toBe("REQUIRES_REVIEW");
+    expect(res.borrowing.energy_mj_applied).toBeNull();
+    expect(res.compliance_status).toBe("REQUIRES_REVIEW");
+  });
+
+  it("pooling requested → deferred even when a pool surplus exists (no enforced ledger)", () => {
+    const res = evaluateFuelEuCompliance(
+      complianceInput({
+        rules: { ...BASE_RULES, target_gco2e_per_mj: 77.49, reduction_pct: 0.15 },
+        pooling_requested: true,
+        pool_snapshot: [
+          { vessel_id: "v-other", imo: "1000002", surplus_intensity_gco2e_per_mj: 4.0 },
+        ],
+      }),
+    );
+    expect(res.pooling.status).toBe("POOLING_REQUIRES_REVIEW");
+    expect(res.pooling.energy_mj_applied).toBeNull();
+    expect(res.compliance_status).toBe("POOLING_REQUIRES_REVIEW");
+  });
+
+  it("OPS unavailable → ops_energy_mj is null (not a fabricated 0)", () => {
+    const res = evaluateFuelEuCompliance(
+      complianceInput({ ops_energy_mj: 0, ops_data_available: false }),
+    );
+    expect(res.ops_energy_mj).toBeNull();
+    expect(res.ops_data_available).toBe(false);
+    expect(res.exceptions.some((e) => e.code === "MISSING_CONSUMPTION")).toBe(true);
+  });
 });
 
 // ── Penalty ────────────────────────────────────────────────────────────────
@@ -248,6 +294,15 @@ describe("pooling (fuelEU/pooling)", () => {
     expect(snapshot.length).toBe(1);
     expect(snapshot[0]?.vessel_id).toBe("v1");
   });
+
+  it("buildPoolSnapshot reports surplus as an intensity balance (gCO2e/MJ), never mislabeled as MJ", () => {
+    const snapshot = buildPoolSnapshot([
+      { vessel_id: "v1", vessel_name: "A", imo: "1000001", reporting_year: 2026, total_energy_mj: 1, actual_intensity: 84, target_intensity: 89.34, compliance_balance: 5.34, surplus_or_deficit: "surplus", poolable_balance: 0, penalty_exposure_estimate: null },
+    ]);
+    expect(snapshot).toEqual([
+      { vessel_id: "v1", imo: "1000001", surplus_intensity_gco2e_per_mj: 5.34 },
+    ]);
+  });
 });
 
 // ── Parameters ─────────────────────────────────────────────────────────────
@@ -261,6 +316,11 @@ describe("parameters (fuelEU/parameters)", () => {
     expect(lhv?.lhv_mj_per_kg).toBe(40.5);
     const wtw = getWtwFactor("hfo_rme180");
     expect(wtw?.requires_regulatory_verification).toBe(true);
+  });
+  it("marks methanol/ammonia/hydrogen WtW factors as requiring regulatory verification", () => {
+    expect(getWtwFactor("methanol")?.requires_regulatory_verification).toBe(true);
+    expect(getWtwFactor("ammonia")?.requires_regulatory_verification).toBe(true);
+    expect(getWtwFactor("hydrogen")?.requires_regulatory_verification).toBe(true);
   });
 });
 

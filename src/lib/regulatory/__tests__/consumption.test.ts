@@ -137,17 +137,77 @@ describe("attributeVoyageConsumption — noon report interval", () => {
 });
 
 describe("attributeVoyageConsumption — ROB delta", () => {
-  it("attributes consumption from a ROB delta across the voyage window", () => {
+  it("attributes a same-fuel ROB delta across the voyage window", () => {
     const input = base({
       robsByDate: [
         { date: "2025-05-31", fuel_type: "HFO", rob_mt: 500 },
         { date: "2025-06-04", fuel_type: "HFO", rob_mt: 380 },
       ],
+      fuelType: "HFO",
     });
     const res = attributeVoyageConsumption(input);
     expect(res.method).toBe("ROB_DELTA");
     expect(res.quantity_mt).toBe(120);
     expect(res.confidence).toBe("MEDIUM");
+  });
+});
+
+describe("attributeVoyageConsumption — noon multi-fuel split (no double-count)", () => {
+  it("allocates an aggregate noon total across fuel types by BDN ratio", () => {
+    const noonReports = [
+      noon("2025-05-31T00:00:00.000Z", 100),
+      noon("2025-06-02T00:00:00.000Z", 25),
+      noon("2025-06-04T00:00:00.000Z", 100),
+    ];
+    const both = [
+      delivery("2025-06-02", "HFO", 75, "del-hfo"),
+      delivery("2025-06-02", "MGO", 25, "del-mgo"),
+    ];
+    const hfo = attributeVoyageConsumption(
+      base({ noonReports, deliveries: both, fuelType: "HFO" }),
+    );
+    const mgo = attributeVoyageConsumption(
+      base({ noonReports, deliveries: both, fuelType: "MGO" }),
+    );
+    expect(hfo.method).toBe("NOON_REPORT_INTERVAL");
+    expect(hfo.quantity_mt).toBe(75);
+    expect(mgo.method).toBe("NOON_REPORT_INTERVAL");
+    expect(mgo.quantity_mt).toBe(25);
+    // Per-fuel shares sum to the aggregate total — no double-count of the total.
+    expect(hfo.quantity_mt + mgo.quantity_mt).toBe(100);
+  });
+
+  it("refuses to invent a per-fuel split (INSUFFICIENT_FUEL_TYPE_DATA) when no defensible ratio exists for the requested fuel", () => {
+    const res = attributeVoyageConsumption(
+      base({
+        noonReports: [
+          noon("2025-05-31T00:00:00.000Z", 100),
+          noon("2025-06-02T00:00:00.000Z", 25),
+          noon("2025-06-04T00:00:00.000Z", 100),
+        ],
+        deliveries: [delivery("2025-06-02", "HFO", 75, "del-hfo"), delivery("2025-06-02", "MGO", 25, "del-mgo")],
+        fuelType: "LNG",
+      }),
+    );
+    expect(res.method).toBe("INSUFFICIENT_FUEL_TYPE_DATA");
+    expect(res.status).toBe("REVIEW");
+    expect(res.quantity_mt).toBe(0);
+    expect(res.notes ?? "").toContainString("split");
+  });
+
+  it("does not assign an unknown-fuel ROB delta to a specific fuel type", () => {
+    const res = attributeVoyageConsumption(
+      base({
+        robsByDate: [
+          { date: "2025-05-31", fuel_type: "", rob_mt: 500 },
+          { date: "2025-06-04", fuel_type: "", rob_mt: 380 },
+        ],
+        fuelType: "HFO",
+      }),
+    );
+    // A scalar total ROB reading cannot be attributed to HFO without fabrication.
+    expect(res.status).toBe("REVIEW");
+    expect(res.quantity_mt).toBe(0);
   });
 });
 

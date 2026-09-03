@@ -118,12 +118,13 @@ export const WTW_REGISTRY: ReadonlyArray<WtwEntry> = [
   // Biofuels — default (ISCC-certified) factors
   { fuelTypeSlug: "bio_hfo", wtw_gco2e_per_mj: 20.5, source: "FuelEU MRV (2023) — ISCC default", requires_regulatory_verification: true },
   { fuelTypeSlug: "bio_mgo", wtw_gco2e_per_mj: 19.8, source: "FuelEU MRV (2023) — ISCC default", requires_regulatory_verification: true },
-  // Methanol (from natural gas)
-  { fuelTypeSlug: "methanol",  wtw_gco2e_per_mj: 81.0, source: "IPCC" },
-  // Ammonia (from natural gas)
-  { fuelTypeSlug: "ammonia",   wtw_gco2e_per_mj: 82.0, source: "IPCC" },
-  // Hydrogen (from natural gas / SMR)
-  { fuelTypeSlug: "hydrogen",  wtw_gco2e_per_mj: 85.0, source: "IPCC" },
+  // Methanol (from natural gas). Value unchanged (81.0); flagged for
+  // verification for consistency with every other WtW factor.
+  { fuelTypeSlug: "methanol",  wtw_gco2e_per_mj: 81.0, source: "IPCC", requires_regulatory_verification: true },
+  // Ammonia (from natural gas). Value unchanged (82.0).
+  { fuelTypeSlug: "ammonia",   wtw_gco2e_per_mj: 82.0, source: "IPCC", requires_regulatory_verification: true },
+  // Hydrogen (from natural gas / SMR). Value unchanged (85.0).
+  { fuelTypeSlug: "hydrogen",  wtw_gco2e_per_mj: 85.0, source: "IPCC", requires_regulatory_verification: true },
 ];
 
 export function getWtwFactor(slug: string): WtwEntry | undefined {

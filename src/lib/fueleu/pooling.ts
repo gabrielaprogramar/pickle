@@ -14,7 +14,13 @@
 
 import type { VesselPoolingPosition, ComplianceSign } from "@/lib/fueleu/types";
 
-/** A vessel's poolable surplus (gCO₂e/MJ·MJ → surplus units). NULL only when balance unresolved. */
+/**
+ * A vessel's poolable surplus balance. NOTE the unit: it is a raw GHG-intensity
+ * balance in gCO₂e/MJ — NOT an energy quantity in MJ. It cannot be presented as
+ * energy-equivalent surplus unless converted as (intensity_balance/baseline) ×
+ * total_energy_mj. Part 3.6 therefore defers pooling (never APPLIED) and treats
+ * this as informational/review only. NULL only when the balance is unresolved.
+ */
 export function computePoolableBalance(
   complianceBalance: number | null,
   surplusOrDeficit: ComplianceSign | null,
@@ -42,19 +48,21 @@ export function resolvePoolingPosition(vessel: VesselPoolingPosition): PoolingRe
 /**
  * Build a pool snapshot from a set of vessels' compliance results.
  * Only vessels with a resolvable, evidenced surplus are included; unresolved
- * (NULL) balances are excluded rather than assumed zero.
+ * (NULL) balances are excluded rather than assumed zero. The reported surplus is
+ * an intensity balance in gCO₂e/MJ — it is NOT energy MJ and must not be
+ * consumed as such without the baseline/energy conversion.
  */
 export function buildPoolSnapshot(
   vessels: ReadonlyArray<VesselPoolingPosition>,
-): ReadonlyArray<{ vessel_id: string; imo: string; surplus_energy_mj: number }> {
-  const out: Array<{ vessel_id: string; imo: string; surplus_energy_mj: number }> = [];
+): ReadonlyArray<{ vessel_id: string; imo: string; surplus_intensity_gco2e_per_mj: number }> {
+  const out: Array<{ vessel_id: string; imo: string; surplus_intensity_gco2e_per_mj: number }> = [];
   for (const v of vessels) {
     const pos = resolvePoolingPosition(v);
     if (pos.poolable && pos.poolable_balance !== null && pos.poolable_balance > 0) {
       out.push({
         vessel_id: v.vessel_id,
         imo: v.imo,
-        surplus_energy_mj: pos.poolable_balance,
+        surplus_intensity_gco2e_per_mj: pos.poolable_balance,
       });
     }
   }

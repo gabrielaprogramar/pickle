@@ -328,6 +328,46 @@ describe("FuelEuPipelineService — negatives / UNKNOWN preservation", () => {
     expect(result.compliance_applicable).toBe(false);
     expect(result.compliance_status).toBe("NOT_APPLICABLE");
   });
+
+  it("GT >= 5000 but all voyages NON_EU (no EU engagement) → NOT_APPLICABLE for the year", async () => {
+    const { pipeline, client } = buildEnv({
+      voyages: [
+        makeVoyage({ departure_port_name: "Singapore", arrival_port_name: "Shanghai" }),
+      ],
+      portCalls: [
+        { ...makePortCall(), id: "pc-sg", port_name: "Singapore", port_country: "SG" },
+        { ...makePortCall(), id: "pc-cn", port_name: "Shanghai", port_country: "CN" },
+      ],
+      deliveries: [],
+    });
+    const result = await pipeline.run(VESSEL_ID, 2026);
+    expect(result.compliance_status).toBe("NOT_APPLICABLE");
+    expect(result.compliance_applicable).toBe(false);
+
+    const appRow = await client
+      .from("regulation_applicability")
+      .select("*")
+      .eq("vessel_id", VESSEL_ID)
+      .eq("regulation", "FUEL_EU")
+      .eq("reporting_year", 2026)
+      .maybeSingle();
+    expect((appRow.data as { applicability: string } | null)?.applicability).toBe("NOT_APPLICABLE");
+  });
+
+  it("GT >= 5000 with no voyage/port-call activity → REQUIRES_REVIEW (EU participation unproven)", async () => {
+    const { pipeline, client } = buildEnv({ voyages: [], deliveries: [] });
+    const result = await pipeline.run(VESSEL_ID, 2026);
+    expect(result.compliance_status).toBe("REQUIRES_REVIEW");
+
+    const appRow = await client
+      .from("regulation_applicability")
+      .select("*")
+      .eq("vessel_id", VESSEL_ID)
+      .eq("regulation", "FUEL_EU")
+      .eq("reporting_year", 2026)
+      .maybeSingle();
+    expect((appRow.data as { applicability: string } | null)?.applicability).toBe("REQUIRES_REVIEW");
+  });
 });
 
 describe("FuelEuPipelineService — lossless round-trip + idempotency", () => {

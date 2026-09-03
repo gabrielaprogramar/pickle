@@ -305,7 +305,8 @@ function toComplianceInput(input: FuelEuCalculationInput): FuelEuComplianceInput
       penalty_eur_per_tonne_vlsfoe: input.rules?.penalty_eur_per_tonne_vlsfoe ?? null,
       penalty_formula_version: input.rules?.penalty_formula_version ?? null,
     },
-    ops_energy_mj: input.ops_energy_mj ?? 0,
+    // Preserve OPS "unavailable" as null rather than coercing to a fabricated 0.
+    ops_energy_mj: input.ops_data_available ? (input.ops_energy_mj ?? 0) : null,
     ops_data_available: input.ops_data_available ?? false,
     biofuel_certification: input.biofuel_certification ?? [],
     penalty_assessed_eur: input.penalty_assessed_eur ?? null,

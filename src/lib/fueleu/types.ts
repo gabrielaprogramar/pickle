@@ -202,8 +202,9 @@ export interface FuelEuCalculationInput {
     readonly penalty_formula_version: string | null;
   };
 
-  /** OPS energy tied to the canonical port-call/activity model. */
-  readonly ops_energy_mj?: number;
+  /** OPS energy tied to the canonical port-call/activity model. `null` (not 0)
+   *  means OPS data is unavailable — never fabricate an OPS=0 figure. */
+  readonly ops_energy_mj?: number | null;
   readonly ops_data_available?: boolean;
 
   /**
@@ -232,7 +233,12 @@ export interface FuelEuCalculationInput {
   readonly pool_snapshot?: ReadonlyArray<{
     readonly vessel_id: string;
     readonly imo: string;
-    readonly surplus_energy_mj: number;
+    /** NOTE: raw intensity balance in gCO₂e/MJ — NOT energy MJ. A surplus can
+     *  only be expressed in energy terms as (intensity_balance/baseline) ×
+     *  total_energy_mj, which requires baseline + energy inputs not available on
+     *  this snapshot. Pooling is deferred (never APPLIED) in Part 3.6 for this
+     *  reason, so this value is informational/review only. */
+    readonly surplus_intensity_gco2e_per_mj: number;
   }>;
 }
 
