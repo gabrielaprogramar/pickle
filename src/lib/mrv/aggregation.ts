@@ -28,8 +28,72 @@
  * This module is PURE / deterministic given its inputs.
  */
 
-import { getFuelEmissionInfo } from "@/lib/fuel-delivery/emission-factors";
+import { getFuelEmissionInfo, isKnownFuelType } from "@/lib/fuel-delivery/emission-factors";
 import type { MrvFuelStocktake, MrvVoyageEntry, MrvCompletenessCheck } from "./types";
+
+/**
+ * PART 4.6 — explicit consumption audit-status semantics.
+ *
+ * A `voyage_consumption` row's `status` is the SHARED producer's verification
+ * state (see `regulatory/consumption.ts`):
+ *   VERIFIED  — attributed from mitigating, high-confidence evidence (noon
+ *               report interval / non-conflicting ROB delta). AUDITED.
+ *   PENDING   — BDN-reconciled attribution; operationally usable but NOT yet
+ *               verified. MUST NOT count toward an audited MRV figure.
+ *   REVIEW    — conflicting / unknown-fuel-type / insufficient-type evidence.
+ *               Unresolved compliance-quality problem. MUST NOT count.
+ *   BLOCKED   — no usable evidence (INSUFFICIENT_DATA). BLOCKING.
+ *
+ * The audited annual totals may ONLY include rows classified
+ * `INCLUDED_IN_CALCULATION` (status VERIFIED AND a KNOWN fuel in the shared
+ * registry). Everything else is surfaced as unverified / unresolved / blocking
+ * so that "data with unresolved compliance-quality problems" never masquerades
+ * as verified MRV evidence.
+ *
+ * Classification:
+ *   INCLUDED_IN_CALCULATION     -> VERIFIED + known fuel (audited).
+ *   INCLUDED_BUT_NOT_VERIFIED   -> PENDING + known fuel (provisional only).
+ *   EXCLUDED                    -> REVIEW + known fuel, OR unknown fuel with a
+ *                                  VERIFIED/PENDING status (NO_FACTOR).
+ *   BLOCKING                    -> BLOCKED status, or unknown/invalid status.
+ */
+export type ConsumptionAuditClass =
+  | "INCLUDED_IN_CALCULATION"
+  | "INCLUDED_BUT_NOT_VERIFIED"
+  | "EXCLUDED"
+  | "BLOCKING";
+
+const VERIFIED_STATUS = "VERIFIED";
+const PENDING_STATUS = "PENDING";
+const REVIEW_STATUS = "REVIEW";
+const BLOCKED_STATUS = "BLOCKED";
+
+export function classifyConsumptionAuditStatus(
+  status: string,
+  fuelType: string | null | undefined,
+): { readonly auditClass: ConsumptionAuditClass; readonly reason: string | null } {
+  const isKnown = isKnownFuelType(fuelType);
+  switch (status) {
+    case VERIFIED_STATUS:
+      return isKnown
+        ? { auditClass: "INCLUDED_IN_CALCULATION", reason: null }
+        : { auditClass: "EXCLUDED", reason: "UNKNOWN_FUEL_TYPE" };
+    case PENDING_STATUS:
+      return isKnown
+        ? { auditClass: "INCLUDED_BUT_NOT_VERIFIED", reason: null }
+        : { auditClass: "EXCLUDED", reason: "UNKNOWN_FUEL_TYPE" };
+    case REVIEW_STATUS:
+      return isKnown
+        ? { auditClass: "EXCLUDED", reason: "REVIEW" }
+        : { auditClass: "EXCLUDED", reason: "REVIEW_UNKNOWN_FUEL_TYPE" };
+    case BLOCKED_STATUS:
+      return { auditClass: "BLOCKING", reason: "BLOCKED" };
+    default:
+      return isKnown
+        ? { auditClass: "BLOCKING", reason: `INVALID_STATUS_${status ?? "null"}` }
+        : { auditClass: "BLOCKING", reason: `INVALID_STATUS_${status ?? "null"}_UNKNOWN_FUEL_TYPE` };
+  }
+}
 
 export interface MrvAggregationInput {
   /** Canonical consumption rows for the vessel/year (from voyage_consumption). */
@@ -84,17 +148,24 @@ export interface MrvAggregationResult {
   /** Number of canonical consumption rows carrying a NON-verified status. */
   readonly unresolved_consumption_count: number;
   readonly unresolved_consumption_rows: ReadonlyArray<{ voyage_id: string | null; fuel_type: string; status: string }>;
+  /**
+   * Count of rows that are INCLUDED_BUT_NOT_VERIFIED (status PENDING, known
+   * fuel). These are operationally usable but NOT audited; their presence means
+   * the report cannot be considered verification-ready.
+   */
+  readonly non_verified_consumption_count: number;
+  readonly non_verified_consumption_rows: ReadonlyArray<{ voyage_id: string | null; fuel_type: string }>;
 }
-
-const AUDIT_STATUSES = new Set(["VERIFIED", "PENDING", "REVIEW"]);
 
 /**
  * Aggregate an annual MRV report from canonical consumption rows. NEVER
- * equal-share: total_fuel_mt is the sum of canonical per-(voyage,fuel)
- * quantities that carry an audited/verifiable status. Rows with a non-audited
- * status (BLOCKED, INSUFFICIENT_DATA, UNKNOWN_FUEL_TYPE, NEGATIVE, ...) are
- * excluded from the total and counted as unresolved — the report must surface
- * them rather than silently under-state emissions.
+ * equal-share: `total_fuel_mt`/`total_co2` are the sum of canonical
+ * per-(voyage,fuel) quantities that are AUDITED ONLY — status VERIFIED AND a
+ * KNOWN fuel in the shared registry. Rows classified INCLUDED_BUT_NOT_VERIFIED
+ * (PENDING) are counted separately and are NOT part of the audited figure.
+ * Rows classified EXCLUDED (REVIEW, unknown fuel, no factor) or BLOCKING are
+ * surfaced via `unresolved_consumption_count` so the report can never silently
+ * under-state or overstate emissions.
  */
 export function aggregateAnnualMrv(input: MrvAggregationInput): MrvAggregationResult {
   const fuelTotals = new Map<string, number>();
@@ -102,33 +173,40 @@ export function aggregateAnnualMrv(input: MrvAggregationInput): MrvAggregationRe
   let totalCo2 = 0;
   const unresolved: Array<{ voyage_id: string | null; fuel_type: string; status: string }> = [];
   let unresolvedCount = 0;
-
-  const unresolvedFor = (c: { voyage_id: string | null; fuel_type: string; status: string }): string | null => {
-    if (!AUDIT_STATUSES.has(c.status)) return c.status;
-    if (c.fuel_type === "unknown" || c.fuel_type.trim() === "") return "UNKNOWN_FUEL_TYPE";
-    return null;
-  };
+  const nonVerified: Array<{ voyage_id: string | null; fuel_type: string }> = [];
+  let nonVerifiedCount = 0;
 
   for (const c of input.consumption) {
-    const cause = unresolvedFor(c);
-    if (cause !== null) {
-      unresolved.push({ voyage_id: c.voyage_id, fuel_type: c.fuel_type, status: cause });
+    const { auditClass, reason } = classifyConsumptionAuditStatus(c.status, c.fuel_type);
+
+    if (auditClass === "INCLUDED_BUT_NOT_VERIFIED") {
+      nonVerified.push({ voyage_id: c.voyage_id, fuel_type: c.fuel_type });
+      nonVerifiedCount++;
+      continue;
+    }
+    if (auditClass !== "INCLUDED_IN_CALCULATION") {
+      unresolved.push({
+        voyage_id: c.voyage_id,
+        fuel_type: c.fuel_type,
+        status: reason ?? c.status,
+      });
       unresolvedCount++;
       continue;
     }
-    const info = getFuelEmissionInfo(c.fuel_type);
+
     if (c.quantity_mt < 0) {
       unresolved.push({ voyage_id: c.voyage_id, fuel_type: c.fuel_type, status: "NEGATIVE" });
       unresolvedCount++;
       continue;
     }
+    // c.fuel_type is guaranteed a KNOWN fuel here (classify gates on isKnownFuelType).
+    const info = getFuelEmissionInfo(c.fuel_type as string);
     if (!info) {
-      // getFuelEmissionInfo has a fallback, but guard defensively.
       unresolved.push({ voyage_id: c.voyage_id, fuel_type: c.fuel_type, status: "NO_FACTOR" });
       unresolvedCount++;
       continue;
     }
-    fuelTotals.set(c.fuel_type, (fuelTotals.get(c.fuel_type) ?? 0) + c.quantity_mt);
+    fuelTotals.set(c.fuel_type as string, (fuelTotals.get(c.fuel_type as string) ?? 0) + c.quantity_mt);
     totalFuelMt += c.quantity_mt;
     totalCo2 += c.quantity_mt * info.co2_factor;
   }
@@ -191,13 +269,24 @@ export function aggregateAnnualMrv(input: MrvAggregationInput): MrvAggregationRe
     }
 
     // Per-voyage consumption from the canonical map (never equal-share).
+    // Only INCLUDED_IN_CALCULATION rows (VERIFIED + known fuel) contribute to the
+    // audited per-voyage figure; any non-audited row makes the voyage entry
+    // report a lower data_quality and must not be counted as verified.
     const voyageConsumption = input.consumptionByVoyage?.get(v.id) ?? [];
     const fuelType = voyageConsumption[0]?.fuel_type ?? "unknown";
-    const qty = voyageConsumption.reduce((s, c) => s + (c.status === "BLOCKED" ? 0 : c.quantity_mt), 0);
-    const co2 = voyageConsumption.reduce(
-      (s, c) => (c.status === "BLOCKED" ? s : s + c.quantity_mt * getFuelEmissionInfo(c.fuel_type).co2_factor),
-      0,
-    );
+    let qty = 0;
+    let co2 = 0;
+    let hasNonAuditedRow = false;
+    for (const c of voyageConsumption) {
+      const cls = classifyConsumptionAuditStatus(c.status, c.fuel_type);
+      if (cls.auditClass === "INCLUDED_IN_CALCULATION" && c.quantity_mt >= 0) {
+        const info = getFuelEmissionInfo(c.fuel_type as string);
+        qty += c.quantity_mt;
+        co2 += c.quantity_mt * (info?.co2_factor ?? 0);
+      } else if (cls.auditClass !== "INCLUDED_BUT_NOT_VERIFIED") {
+        hasNonAuditedRow = true;
+      }
+    }
     const consumptionMethod = voyageConsumption[0]?.method ?? "INSUFFICIENT_DATA";
     const consumptionStatus = voyageConsumption[0]?.status ?? "BLOCKED";
 
@@ -218,11 +307,13 @@ export function aggregateAnnualMrv(input: MrvAggregationInput): MrvAggregationRe
       consumption_method: consumptionMethod,
       consumption_status: consumptionStatus,
       data_quality:
-        consumptionStatus === "BLOCKED"
+        hasNonAuditedRow
           ? "data_incomplete"
-          : distanceQuality === "AUDITED"
-            ? "audited"
-            : "data_incomplete",
+          : consumptionStatus === "BLOCKED"
+            ? "data_incomplete"
+            : distanceQuality === "AUDITED"
+              ? "audited"
+              : "data_incomplete",
     });
   }
 
@@ -267,7 +358,7 @@ export function aggregateAnnualMrv(input: MrvAggregationInput): MrvAggregationRe
     voyage_entries: entries,
     unresolved_consumption_count: unresolvedCount,
     unresolved_consumption_rows: unresolved,
+    non_verified_consumption_count: nonVerifiedCount,
+    non_verified_consumption_rows: nonVerified,
   };
 }
-
-export { AUDIT_STATUSES };

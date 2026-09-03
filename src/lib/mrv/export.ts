@@ -1,4 +1,19 @@
 import type { MrvExportResult, ChecklistStatus, MrvReportResult, MrvLifecycle } from "@/lib/mrv/types";
+import { createHash } from "node:crypto";
+
+/**
+ * PART 4.6 — real SHA-256 content hash using Node's crypto (NOT the legacy
+ * 31-bit rolling hash, which was mislabelled "sha256-not-available").
+ */
+export function sha256Hex(content: string): string {
+  return createHash("sha256").update(content).digest("hex");
+}
+
+/**
+ * Backwards-compatible alias so existing callers/tests keep working while the
+ * underlying implementation is now a real SHA-256 (plain hex).
+ */
+export const simpleHash = sha256Hex;
 
 /**
  * THETIS-MRV Annex II Part D field mapping (Implementing Reg. (EU) 2023/2449).
@@ -84,7 +99,11 @@ export function blockingExportIssues(
 }
 
 export function generateXmlExport(report: MrvReportResult): MrvExportResult {
-  const ts = new Date().toISOString();
+  // Deterministic per snapshot: derive the artifact timestamp from the report's
+  // persisted `generated_at` (fall back to now only for the legacy inline case)
+  // so that re-exporting the SAME persisted snapshot is byte-identical (the
+  // audit requires repeat export of identical content => identical hash).
+  const ts = report.generated_at ?? new Date().toISOString();
   const blocking = blockingExportIssues(report);
   const validationStatus: ChecklistStatus = blocking.length > 0 ? "BLOCKED" : "PASS";
 
@@ -164,21 +183,28 @@ export function generateXmlExport(report: MrvReportResult): MrvExportResult {
   lines.push("    <AnnualFields>" + escapeXml(THETIS_FIELD_MAPPING.annual_part.map((f) => f.annex_field).join("; ")) + "</AnnualFields>");
   lines.push("  </FieldMappingReference>");
 
-  // Submission posture — explicit, never overclaims THETIS submission.
-  lines.push(`  <SubmissionStatus>SCHEMA_VALIDATED_LOCALLY</SubmissionStatus>`);
-  lines.push(`  <ExternalSubmissionNote>The report schema was validated locally against Annex II. External THETIS-MRV submission is NOT performed by this system and is NOT claimed.</ExternalSubmissionNote>`);
+  // Submission posture — explicit, based on whether any blocking issue remains.
+  lines.push(`  <SubmissionStatus>${blocking.length > 0 ? "SUBMISSION_BLOCKED" : "SCHEMA_VALIDATED_LOCALLY"}</SubmissionStatus>`);
+  lines.push(`  <ExternalSubmissionNote>The report ${blocking.length > 0 ? "has unresolved blocking evidence, so this export is a diagnostic artifact and MUST NOT be submitted." : "was serialised and validated locally against Annex II (IR (EU) 2023/2449); external THETIS-MRV submission is NOT performed by this system and is NOT claimed."}</ExternalSubmissionNote>`);
+  lines.push(`  <ContentHashAlgorithm>sha256</ContentHashAlgorithm>`);
   lines.push("</thetis_mrv:MrvAnnualReport>");
 
   const content = lines.join("\n");
-  const hash = simpleHash(content);
+  const hash = sha256Hex(content);
 
   return {
     format: "xml",
     content,
     content_hash: hash,
+    content_hash_algorithm: "sha256",
     generated_at: ts,
     validation_status: validationStatus,
-    submission_status: blocking.length > 0 ? "BLOCKED" : "SCHEMA_VALIDATED_LOCALLY",
+    submission_status: blocking.length > 0 ? "SUBMISSION_BLOCKED" : "SCHEMA_VALIDATED_LOCALLY",
+    external_submission_note:
+      "The report was serialised against the Annex II field set (IR (EU) 2023/2449) " +
+      (blocking.length > 0
+        ? "but blocks any external submission because unresolved evidence remains — this file is a diagnostic artifact only."
+        : "and validated locally against that field set. No external THETIS-MRV submission is performed or claimed by this system."),
   };
 }
 
@@ -208,15 +234,18 @@ export function generateCsvExport(report: MrvReportResult): MrvExportResult {
   }
 
   const content = rows.join("\n");
-  const hash = simpleHash(content);
+  const hash = sha256Hex(content);
 
   return {
     format: "csv",
     content,
     content_hash: hash,
+    content_hash_algorithm: "sha256",
     generated_at: ts,
     validation_status: validationStatus,
-    submission_status: blocking.length > 0 ? "BLOCKED" : "SCHEMA_VALIDATED_LOCALLY",
+    submission_status: blocking.length > 0 ? "SUBMISSION_BLOCKED" : "SCHEMA_VALIDATED_LOCALLY",
+    external_submission_note:
+      "CSV is a local review artifact. External submission is not performed or claimed.",
   };
 }
 
@@ -234,14 +263,4 @@ function escapeCsv(s: string): string {
     return `"${s.replace(/"/g, '""')}"`;
   }
   return s;
-}
-
-export function simpleHash(content: string): string {
-  let hash = 0;
-  for (let i = 0; i < content.length; i++) {
-    const char = content.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash |= 0;
-  }
-  return `sha256-not-available:${Math.abs(hash).toString(16)}`;
 }

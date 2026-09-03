@@ -44,7 +44,34 @@ const DEFAULT_EMISSION_FACTORS: Record<string, FuelEmissionInfo> = {
   ammonia:  { co2_factor: 0.000, sox_factor: 0.000, pm_factor: 0.0000, density_default: 680.0, display_name: "Ammonia", source: "IMO GHG Study (TtW zero)" },
 };
 
-/** Default fallback for unknown fuel types (assume MGO-like). */
+/**
+ * The set of fuel-type keys that have an authoritative factor in the registry.
+ * `getFuelEmissionInfo` still returns the legacy MGO-proxy fallback for
+ * consumers (EU ETS / FuelEU) that predate the Part 4.6 audit — see below.
+ * Compliance-critical paths that must NEVER let an unknown fuel become an
+ * assumed MGO factor MUST gate on `isKnownFuelType` instead of the legacy
+ * return value (e.g. MRV aggregation treats unknown fuel as UNRESOLVED and
+ * excludes it from audited totals).
+ */
+const KNOWN_FUEL_TYPES: ReadonlySet<string> = new Set(Object.keys(DEFAULT_EMISSION_FACTORS));
+
+/**
+ * Whether a fuel type is a KNOWN fuel in the authoritative registry. Unknown
+ * types return false so callers can surface `UNKNOWN_FUEL_TYPE` / REQUIRES_REVIEW
+ * rather than silently applying an assumed MGO factor. AUTHORITATIVE single
+ * source of truth for "is this a recognised fuel".
+ */
+export function isKnownFuelType(fuelType: string | null | undefined): boolean {
+  if (!fuelType) return false;
+  return KNOWN_FUEL_TYPES.has(fuelType.trim());
+}
+
+/**
+ * Legacy fallback for unknown fuel types. KEPT ONLY for pre-Part-4.6 consumers
+ * (EU ETS / FuelEU) whose behaviour is intentionally unchanged by this fix.
+ * NEW compliance-critical code MUST NOT assume an unknown fuel maps to MGO —
+ * use `isKnownFuelType` and treat unknown fuel as unresolved instead.
+ */
 const FALLBACK_INFO: FuelEmissionInfo = {
   co2_factor: 3.206,
   sox_factor: 0.010,

@@ -374,6 +374,12 @@ describe("MRV export", () => {
       total_time_at_sea_hours: 96,
       source_consumption_ids: ["bdn-1"],
       source_voyage_ids: ["v1"],
+      calculation_version: "2.0.0",
+      parameter_version: "2025.1",
+      mrv_rule_version: 1,
+      mrv_rule_effective_from: "2025-01-01",
+      mrv_rule_effective_until: "2026-12-31",
+      geography_version: "2026.1",
     };
     const base: MrvReportResult = {
       calculation_version: "2.0.0",
@@ -437,7 +443,7 @@ describe("MRV export", () => {
 
   it("blocks export when blocking evidence unresolved", () => {
     const blocked = generateXmlExport(makeDummyReport({ lifecycle: "REQUIRES_REVIEW" }));
-    if (blocked.submission_status !== "BLOCKED") throw new Error(`Expected BLOCKED, got ${blocked.submission_status}`);
+    if (blocked.submission_status !== "SUBMISSION_BLOCKED") throw new Error(`Expected SUBMISSION_BLOCKED, got ${blocked.submission_status}`);
     if (blocked.validation_status !== "BLOCKED") throw new Error("Expected validation BLOCKED");
   });
 

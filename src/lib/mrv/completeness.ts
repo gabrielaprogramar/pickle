@@ -17,6 +17,10 @@ export interface MrvDatasetInfo {
   readonly aggregationChecks?: ReadonlyArray<MrvCompletenessCheck>;
   /** Count of canonical consumption rows that are unresolved (BLOCKED etc.). */
   readonly unresolvedConsumptionCount?: number;
+  /** Total number of canonical consumption rows (for the sourced check). */
+  readonly totalConsumptionCount?: number;
+  /** Count of INCLUDED_BUT_NOT_VERIFIED (PENDING) consumption rows. */
+  readonly nonVerifiedConsumptionCount?: number;
   /** Number of voyages lacking auditable distance. */
   readonly missingDistanceVoyages?: number;
   /** Number of voyages lacking auditable time. */
@@ -53,9 +57,15 @@ export function runMrvCompletenessCheck(data: MrvDatasetInfo): MrvCompletenessRe
   if (!data.hasVoyages) blocking.push("No voyages found for reporting year");
 
   // 2. Canonical consumption present (voyage_consumption), NOT equal-share.
-  const hasConsumption = data.unresolvedConsumptionCount !== undefined
-    ? data.unresolvedConsumptionCount >= 0
-    : data.hasFuelDeliveries;
+  // PART 4.6 — the old `unresolvedConsumptionCount >= 0` was vacuously true
+  // (a count is always >= 0). We now require at least one canonical consumption
+  // row; presence of PENDING (non-verified) rows blocks verification-readiness
+  // because such rows must not masquerade as audited evidence.
+  const hasConsumption = data.totalConsumptionCount !== undefined
+    ? data.totalConsumptionCount > 0
+    : data.unresolvedConsumptionCount !== undefined
+      ? data.unresolvedConsumptionCount > 0 || data.hasFuelDeliveries
+      : data.hasFuelDeliveries;
   checks.push({
     check_name: "consumption_sourced",
     passed: hasConsumption,
@@ -65,6 +75,20 @@ export function runMrvCompletenessCheck(data: MrvDatasetInfo): MrvCompletenessRe
       : "No canonical per-voyage consumption available — equal-share allocation is forbidden",
   });
   if (!hasConsumption) blocking.push("No canonical per-voyage consumption — equal-share forbidden");
+
+  // PART 4.6 — PENDING (INCLUDED_BUT_NOT_VERIFIED) rows are operationally usable
+  // but NOT verified; their presence blocks verification-readiness so an
+  // unverified year can never be exported as audited MRV.
+  const allVerified = !data.nonVerifiedConsumptionCount || data.nonVerifiedConsumptionCount === 0;
+  checks.push({
+    check_name: "consumption_verified",
+    passed: allVerified,
+    severity: "error",
+    message: allVerified
+      ? "All consumption rows are verified"
+      : `${data.nonVerifiedConsumptionCount} non-verified (PENDING) consumption row(s) present — cannot be treated as verified MRV evidence`,
+  });
+  if (!allVerified) blocking.push("Non-verified consumption rows present");
 
   // 3. No unresolved consumption rows (BLOCKED / UNKNOWN would under-report).
   const unresolvedOk = !data.unresolvedConsumptionCount || data.unresolvedConsumptionCount === 0;

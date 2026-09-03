@@ -1,5 +1,5 @@
 import type { MrvVerifierPackage } from "@/lib/mrv/types";
-import { simpleHash } from "@/lib/mrv/export";
+import { sha256Hex } from "@/lib/mrv/export";
 
 export interface VerifierPackageInput {
   readonly reportId: string;
@@ -38,7 +38,7 @@ export function buildVerifierPackage(input: VerifierPackageInput): MrvVerifierPa
     input.calculationVersion ?? "",
     ...sourceIds,
   ].join("\u0000");
-  const reproducibilityHash = simpleHash(hashInput);
+  const reproducibilityHash = sha256Hex(hashInput);
 
   return {
     report_id: input.reportId,
@@ -52,5 +52,3 @@ export function buildVerifierPackage(input: VerifierPackageInput): MrvVerifierPa
     generated_at: new Date().toISOString(),
   };
 }
-
-export { simpleHash };

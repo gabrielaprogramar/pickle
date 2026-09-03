@@ -125,6 +125,14 @@ export interface MrvReportVersion {
   readonly total_time_at_sea_hours: number | null;
   readonly source_consumption_ids: string[];
   readonly source_voyage_ids: string[];
+  // PART 4.6 — every version PINs the registry/rule/classifier versions that
+  // produced it, so a historical revision is reproducible after later changes.
+  readonly calculation_version: string;
+  readonly parameter_version: string;
+  readonly mrv_rule_version: number | null;
+  readonly mrv_rule_effective_from: string | null;
+  readonly mrv_rule_effective_until: string | null;
+  readonly geography_version: string;
 }
 
 // ── Report result ──────────────────────────────────────────────────────────
@@ -185,17 +193,18 @@ export interface MrvExportResult {
   readonly format: "xml" | "csv";
   readonly content: string;
   readonly content_hash: string;
+  /** PART 4.6 — real algorithm used for `content_hash` (a true SHA-256). */
+  readonly content_hash_algorithm: string;
+  /**
+   * PART 4.6 — truthful export status. `INTERNAL_DRAFT_EXPORT` means the file
+   * carries a SUBMISSION_BLOCKED marker (diagnostic artifact only). The export
+   * NEVER claims external verification or THETIS submission.
+   */
+  readonly submission_status: "SCHEMA_VALIDATED_LOCALLY" | "SUBMISSION_BLOCKED";
+  /** PART 4.6 — explicit, never-overclaiming statement about validation scope. */
+  readonly external_submission_note: string;
   readonly generated_at: string;
   readonly validation_status: ChecklistStatus;
-  /**
-   * Verification posture for external submission. This system performs LOCAL,
-   * deterministic schema validation only. THETIS-MRV direct submission is NOT
-   * performed and is never claimed. Values:
-   *   'SCHEMA_VALIDATED_LOCALLY' — validated locally against the Annex II
-   *     field set; NOT submitted to THETIS.
-   *   'BLOCKED'                   — blocking validation issues prevented export.
-   */
-  readonly submission_status: "SCHEMA_VALIDATED_LOCALLY" | "BLOCKED";
 }
 
 // ── Verifier package ───────────────────────────────────────────────────────

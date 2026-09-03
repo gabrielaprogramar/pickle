@@ -7,6 +7,7 @@ import type {
   MrvChecklistResult,
   MrvExportResult,
   MrvVerifierPackage,
+  MrvLifecycle,
 } from "@/lib/mrv/types";
 import { MRV_CALCULATION_VERSION } from "@/lib/mrv/types";
 import { ETS_CURRENT_PARAMETER_VERSION } from "@/lib/eu-ets/parameters";
@@ -14,6 +15,8 @@ import { runMrvCompletenessCheck, type MrvDatasetInfo, type MrvCompletenessResul
 import { runPreSubmissionChecklist, type MrvPreSubmissionInput } from "@/lib/mrv/checklist";
 import { generateXmlExport, generateCsvExport } from "@/lib/mrv/export";
 import { buildVerifierPackage, type VerifierPackageInput } from "@/lib/mrv/verifier-package";
+import { canTransition } from "@/lib/mrv/lifecycle";
+import type { MrvReportRow } from "@/lib/mrv/types";
 import {
   generateAnnualMrvReport,
   type MrvPipelineInput,
@@ -27,6 +30,22 @@ export class MrvReportService {
     private readonly auditLog?: AuditLogRepository,
     private readonly organizationId?: string,
   ) {}
+
+  private statusCodeForLifecycle(lifecycle: MrvLifecycle): string {
+    switch (lifecycle) {
+      case "DATA_INCOMPLETE":
+        return "blocked";
+      case "VALIDATED":
+        return "validated";
+      case "VERIFIED":
+      case "SCHEMA_VALIDATED_LOCALLY":
+      case "EXPORTED":
+      case "SUPERSEDED":
+        return lifecycle;
+      default:
+        return "draft";
+    }
+  }
 
   /**
    * Run completeness check without generating a report.
@@ -44,12 +63,30 @@ export class MrvReportService {
    * applicability, canonical consumption, active monitoring-plan resolution,
    * explicit lifecycle, auditable distance/time). Consumes `voyage_consumption`;
    * there is NO equal-share allocation here.
+   *
+   * Versioning (PART 4.6): the appended revision number is monotonic and driven
+   * by the version repository's `findLatest` (NOT a bare MAX+1 against the
+   * table), so concurrent writes cannot collide with the
+   * (mrv_report_id, version_number) UNIQUE constraint. When no version repo is
+   * wired (legacy tests) the version number is 1.
    */
   async generateReport(input: MrvPipelineInput): Promise<MrvReportResult> {
-    const { result, version } = generateAnnualMrvReport(input);
+    // PART 4.6 — pin the exact MRV rule versions actually applied so the produced
+    // revision is reproducible after later rule changes (historical replay).
+    const pinnedRule = {
+      mrvRuleVersion: input.applicability.rule_version,
+      mrvRuleEffectiveFrom: input.applicability.rule_effective_from,
+      mrvRuleEffectiveUntil: input.applicability.rule_effective_until,
+    };
+
+    const { result, version } = generateAnnualMrvReport(
+      input,
+      { versionNumber: 1 },
+      pinnedRule,
+    );
 
     // Capture the prior lifecycle so every state transition is auditable; never
-    // a silent coercion — the state machine itself (lifecycle.ts) guards this.
+    // a silent coercion — the state machine (lifecycle.ts) guards this.
     const prior = await this.repo.findByVesselAndYear(input.vessel_id, input.reporting_year);
     const priorLifecycle = prior?.lifecycle ?? null;
 
@@ -80,16 +117,26 @@ export class MrvReportService {
       generated_at: result.generated_at,
     };
     const saved = await this.repo.upsert(insert);
+    const effectiveReportId = saved?.id ?? prior?.id;
+
+    // PART 4.6 — monotonic version_number computed from the version repo via
+    // findLatest (NOT a raw MAX+1 against the table), after a stable report id
+    // is known. First revision is 1; revisions increment monotonically.
+    let versionNumber = 1;
+    if (this.versionRepo && effectiveReportId) {
+      const latest = await this.versionRepo.findLatest(effectiveReportId);
+      versionNumber = (latest?.version_number ?? 0) + 1;
+    }
 
     // Append the immutable report version (append-only revision trail). When no
     // version repo is wired (e.g. legacy tests), skip — the HEAD still mirrors.
-    if (this.versionRepo && saved?.id) {
+    if (this.versionRepo && effectiveReportId) {
       const vInsert: MrvReportVersionInsert = {
-        mrv_report_id: saved.id,
-        version_number: version.version_number,
+        mrv_report_id: effectiveReportId,
+        version_number: versionNumber,
         submission_status: version.submission_status,
         calculation_version: MRV_CALCULATION_VERSION,
-        parameter_version: ETS_CURRENT_PARAMETER_VERSION,
+        parameter_version: version.parameter_version,
         monitoring_plan_version: result.monitoring_plan_ver,
         period_start: version.period_start,
         period_end: version.period_end,
@@ -106,6 +153,11 @@ export class MrvReportService {
         traceability: {
           consumption_source: "voyage_consumption",
           emission_factor_source: "shared_registry",
+          mrv_rule_version: pinnedRule.mrvRuleVersion,
+          mrv_rule_effective_from: pinnedRule.mrvRuleEffectiveFrom,
+          mrv_rule_effective_until: pinnedRule.mrvRuleEffectiveUntil,
+          geography_version: version.geography_version,
+          calculation_version: MRV_CALCULATION_VERSION,
         },
       };
       await this.versionRepo.append(vInsert);
@@ -120,12 +172,14 @@ export class MrvReportService {
         organization_id: this.organizationId,
         action: "mrv.lifecycle_transition",
         entity_type: "mrv_report",
-        entity_id: saved?.id,
+        entity_id: effectiveReportId,
         before_data: { lifecycle: priorLifecycle },
         after_data: {
           lifecycle: result.lifecycle,
           reporting_year: input.reporting_year,
           calculation_version: MRV_CALCULATION_VERSION,
+          parameter_version: version.parameter_version,
+          version_number: versionNumber,
           total_fuel_mt: result.total_fuel_mt,
           total_co2_tonnes: result.total_co2_tonnes,
           monitoring_plan_ver: result.monitoring_plan_ver,
@@ -137,6 +191,68 @@ export class MrvReportService {
     }
 
     return result;
+  }
+
+  /**
+   * PART 4.6 — the ONE authoritative lifecycle transition entry point.
+   *
+   * Loads the persisted HEAD, validates the edge via `canTransition`, REJECTS
+   * illegal edges (e.g. DRAFT→VERIFIED, DATA_INCOMPLETE→VERIFIED,
+   * REQUIRES_REVIEW→EXPORTED), and only then persists the new state (HEAD)
+   * and writes an immutable audit event. AFter VERIFIED the version is treated
+   * as immutable in code (a DB trigger is recommended — see migration 0024).
+   */
+  async transitionMrvReport(
+    vesselId: string,
+    reportingYear: number,
+    to: MrvLifecycle,
+  ): Promise<MrvReportRow | null> {
+    const current = await this.repo.findByVesselAndYear(vesselId, reportingYear);
+    if (!current) return null;
+    const from: MrvLifecycle = current.lifecycle as MrvLifecycle | null ?? "DRAFT";
+    const transition = canTransition(from, to);
+    if (!transition.ok) {
+      throw new Error(transition.reason ?? `Illegal MRV transition ${from} → ${to}`);
+    }
+
+    const update: MrvReportInsert = {
+      vessel_id: current.vessel_id,
+      reporting_year: current.reporting_year,
+      status: this.statusCodeForLifecycle(to),
+      completeness_status: current.completeness_status,
+      completeness_checks: current.completeness_checks as unknown[],
+      blocking_issues: current.blocking_issues as unknown[],
+      warnings: current.warnings as unknown[],
+      report_data: current.report_data,
+      total_voyages: current.total_voyages,
+      total_fuel_mt: current.total_fuel_mt,
+      total_co2_tonnes: current.total_co2_tonnes,
+      monitoring_plan_version: current.monitoring_plan_version,
+      methodology: current.methodology,
+      calculation_version: current.calculation_version,
+      parameter_version: current.parameter_version,
+      ets_record_id: current.ets_record_id ?? null,
+      lifecycle: to,
+      period_start: current.period_start,
+      period_end: current.period_end,
+      monitoring_plan_ver: current.monitoring_plan_ver,
+      total_distance_nm: current.total_distance_nm,
+      total_time_at_sea_hours: current.total_time_at_sea_hours,
+    };
+    const saved = await this.repo.upsert(update);
+
+    if (this.auditLog && this.organizationId) {
+      await this.auditLog.insert({
+        organization_id: this.organizationId,
+        action: "mrv.lifecycle_transition",
+        entity_type: "mrv_report",
+        entity_id: saved.id,
+        before_data: { lifecycle: from, status: current.status },
+        after_data: { lifecycle: to, status: saved.status, reporting_year: reportingYear },
+        source: "mrv-reporting",
+      });
+    }
+    return saved;
   }
 
   /**
