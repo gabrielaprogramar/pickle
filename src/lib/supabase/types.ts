@@ -909,26 +909,26 @@ export type FuelDeliveryInsert = {
 
 // ── 1h. FUEL EU RECORDS ROW TYPES (1:1 with migration 0007) ───────────────────
 
-/** One row of the `fuel_eu_records` table. */
+/** One row of the `fuel_eu_records` table. Numeric aggregates are NULLABLE so UNKNOWN stays NULL (never a fabricated 0). */
 export type FuelEuRecordRow = {
   readonly id: string;
   readonly vessel_id: string;
   readonly reporting_year: number;
   readonly calculation_version: string;
   readonly status: string;
-  readonly energy_input_mj: number;
-  readonly total_wtw_emissions_gco2e: number;
-  readonly ghg_intensity_gco2e_per_mj: number;
-  readonly target_gco2e_per_mj: number;
-  readonly compliance_balance: number;
-  readonly surplus_or_deficit: string;
+  readonly energy_input_mj: number | null;
+  readonly total_wtw_emissions_gco2e: number | null;
+  readonly ghg_intensity_gco2e_per_mj: number | null;
+  readonly target_gco2e_per_mj: number | null;
+  readonly compliance_balance: number | null;
+  readonly surplus_or_deficit: string | null;
   readonly penalty_exposure_estimate: number | null;
   readonly penalty_formula_version: string | null;
-  readonly biofuel_energy_mj: number;
-  readonly fossil_energy_mj: number;
+  readonly biofuel_energy_mj: number | null;
+  readonly fossil_energy_mj: number | null;
   readonly iscc_missing_flag: boolean;
   readonly iscc_missing_details: unknown;
-  readonly ops_energy_mj: number;
+  readonly ops_energy_mj: number | null;
   readonly ops_data_available: boolean;
   readonly parameter_version: string;
   readonly calculation_details: Record<string, unknown>;
@@ -943,19 +943,19 @@ export type FuelEuRecordInsert = {
   readonly reporting_year: number;
   readonly calculation_version: string;
   readonly status?: string;
-  readonly energy_input_mj: number;
-  readonly total_wtw_emissions_gco2e: number;
-  readonly ghg_intensity_gco2e_per_mj: number;
-  readonly target_gco2e_per_mj: number;
-  readonly compliance_balance: number;
-  readonly surplus_or_deficit: string;
+  readonly energy_input_mj: number | null;
+  readonly total_wtw_emissions_gco2e: number | null;
+  readonly ghg_intensity_gco2e_per_mj: number | null;
+  readonly target_gco2e_per_mj: number | null;
+  readonly compliance_balance: number | null;
+  readonly surplus_or_deficit: string | null;
   readonly penalty_exposure_estimate?: number | null;
   readonly penalty_formula_version?: string | null;
-  readonly biofuel_energy_mj: number;
-  readonly fossil_energy_mj: number;
+  readonly biofuel_energy_mj: number | null;
+  readonly fossil_energy_mj: number | null;
   readonly iscc_missing_flag: boolean;
   readonly iscc_missing_details?: unknown;
-  readonly ops_energy_mj: number;
+  readonly ops_energy_mj: number | null;
   readonly ops_data_available: boolean;
   readonly parameter_version: string;
   readonly calculation_details: Record<string, unknown>;

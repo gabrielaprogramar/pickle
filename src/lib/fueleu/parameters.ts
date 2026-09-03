@@ -1,14 +1,21 @@
 /**
- * FuelEU Maritime regulatory parameter registry.
+ * FuelEU Maritime fuel physics + parameter version registry.
  *
- * All parameters are versioned so that past calculations remain reproducible
- * even when regulatory values are updated.
+ * ── Scope of this module ───────────────────────────────────────────────────
+ * Part 3 moves REGULATORY year-schedules (baseline intensity, per-year
+ * reduction targets, penalty rates/formulas) OUT of hardcoded constants and
+ * INTO the Part 1 versioned `regulatory_rules` foundation (seeded by
+ * `0021_repair_fueleu_pipeline.sql` as `FUEL_EU` rules). Those values are
+ * resolved at runtime by the FuelEU pipeline and injected into the compliance
+ * engine — never re-derived from literals in this file.
  *
- * ── Naming convention ──────────────────────────────────────────────────────
- *   - Weighted-average LHV (MJ/kg)      → lhv_mj_per_kg
- *   - Well-to-Wake GHG factor (gCO₂e/MJ) → wtw_gco2e_per_mj
- *   - Reduction target (fraction)        → reduction_target
- *   - Penalty rate (EUR per tonne VLSFOe) → penalty_eur_per_tonne
+ * This module now only keeps:
+ *   • the LHV (MJ/kg) registry (fuel physics),
+ *   • the WtW (gCO₂e/MJ) factor registry,
+ *   • the parameter version tag.
+ *
+ * Legal/regulatory figures that require independent confirmation are annotated
+ * REQUIRES REGULATORY VERIFICATION.
  */
 
 export type LhvFuelCategory = "fossil" | "biofuel";
@@ -18,57 +25,10 @@ export type LhvFuelCategory = "fossil" | "biofuel";
 /** Current parameter version. Bump when any value below changes. */
 export const CURRENT_PARAMETER_VERSION = "2025.1";
 
-// ── Baseline intensity ─────────────────────────────────────────────────────
-
-/** FuelEU Maritime baseline GHG intensity in gCO₂e/MJ. */
-export const BASELINE_GHG_INTENSITY_GCO2E_PER_MJ = 91.16;
-
-// ── Reduction targets per calendar year ────────────────────────────────────
-
-export interface YearReductionTarget {
-  readonly year: number;
-  /** Reduction percentage relative to baseline, expressed as a decimal fraction (e.g. 0.02 = 2%). */
-  readonly reduction_pct: number;
-  readonly label: string;
-}
-
-export const REDUCTION_TARGETS: ReadonlyArray<YearReductionTarget> = [
-  { year: 2025, reduction_pct: 0.02, label: "2025-2029 (2%)" },
-  { year: 2030, reduction_pct: 0.06, label: "2030-2034 (6%)" },
-  { year: 2035, reduction_pct: 0.15, label: "2035-2039 (15%)" },
-  { year: 2040, reduction_pct: 0.31, label: "2040-2044 (31%)" },
-  { year: 2045, reduction_pct: 0.62, label: "2045-2049 (62%)" },
-  { year: 2050, reduction_pct: 0.80, label: "2050+ (80%)" },
-];
-
-/**
- * Resolve the reduction target for a given reporting year.
- * Falls back to the most recent past target for years before 2025
- * (returns the first entry, which is 2025) and to the last known target
- * for years beyond the schedule.
- */
-export function getReductionTarget(year: number): YearReductionTarget {
-  const sorted = [...REDUCTION_TARGETS].sort((a, b) => a.year - b.year);
-  const first = sorted[0];
-  if (!first) throw new Error("REDUCTION_TARGETS is empty");
-  if (year <= first.year) return first;
-  for (let i = sorted.length - 1; i >= 0; i--) {
-    const target = sorted[i];
-    if (target && year >= target.year) return target;
-  }
-  return first;
-}
-
-/** Compute the target GHG intensity for a given year: baseline × (1 - reduction). */
-export function computeTargetIntensity(year: number): number {
-  const target = getReductionTarget(year);
-  return BASELINE_GHG_INTENSITY_GCO2E_PER_MJ * (1 - target.reduction_pct);
-}
-
 // ── LHV (Lower Heating Value) registry ─────────────────────────────────────
 
 export interface LhvEntry {
-  /** Fuel type slug as used in fuel-delivery domain. */
+  /** Fuel type slug as used in the fuel-consumption domain. */
   readonly fuelTypeSlug: string;
   /** MJ per kg (net calorific value). */
   readonly lhv_mj_per_kg: number;
@@ -123,33 +83,41 @@ export interface WtwEntry {
   readonly wtw_gco2e_per_mj: number;
   /** Source reference. */
   readonly source: string;
+  /** Whether this value is a legal/regulatory figure needing independent verification. */
+  readonly requires_regulatory_verification?: boolean;
 }
 
+/**
+ * REQUIRES REGULATORY VERIFICATION: FuelEU MRV default WtW factors are legal
+ * values that must be confirmed against the current delegated act before a
+ * formal compliance return is filed. They are retained here for the engine to
+ * produce a deterministic ESTIMATE only.
+ */
 export const WTW_REGISTRY: ReadonlyArray<WtwEntry> = [
   // Fossil HFO
-  { fuelTypeSlug: "hfo_rme180", wtw_gco2e_per_mj: 87.5, source: "FuelEU MRV (2023)" },
-  { fuelTypeSlug: "hfo_rmk380", wtw_gco2e_per_mj: 87.5, source: "FuelEU MRV (2023)" },
-  { fuelTypeSlug: "hfo_rmd80",  wtw_gco2e_per_mj: 87.5, source: "FuelEU MRV (2023)" },
+  { fuelTypeSlug: "hfo_rme180", wtw_gco2e_per_mj: 87.5, source: "FuelEU MRV (2023)", requires_regulatory_verification: true },
+  { fuelTypeSlug: "hfo_rmk380", wtw_gco2e_per_mj: 87.5, source: "FuelEU MRV (2023)", requires_regulatory_verification: true },
+  { fuelTypeSlug: "hfo_rmd80",  wtw_gco2e_per_mj: 87.5, source: "FuelEU MRV (2023)", requires_regulatory_verification: true },
   // Fossil MGO/MDO
-  { fuelTypeSlug: "mgo_dma",    wtw_gco2e_per_mj: 85.7, source: "FuelEU MRV (2023)" },
-  { fuelTypeSlug: "mgo_dmz",    wtw_gco2e_per_mj: 85.7, source: "FuelEU MRV (2023)" },
-  { fuelTypeSlug: "mdo_dmb",    wtw_gco2e_per_mj: 85.7, source: "FuelEU MRV (2023)" },
+  { fuelTypeSlug: "mgo_dma",    wtw_gco2e_per_mj: 85.7, source: "FuelEU MRV (2023)", requires_regulatory_verification: true },
+  { fuelTypeSlug: "mgo_dmz",    wtw_gco2e_per_mj: 85.7, source: "FuelEU MRV (2023)", requires_regulatory_verification: true },
+  { fuelTypeSlug: "mdo_dmb",    wtw_gco2e_per_mj: 85.7, source: "FuelEU MRV (2023)", requires_regulatory_verification: true },
   // VLSFO
-  { fuelTypeSlug: "vlsfo_rme180", wtw_gco2e_per_mj: 87.5, source: "FuelEU MRV (2023)" },
-  { fuelTypeSlug: "vlsfo_rmk380", wtw_gco2e_per_mj: 87.5, source: "FuelEU MRV (2023)" },
+  { fuelTypeSlug: "vlsfo_rme180", wtw_gco2e_per_mj: 87.5, source: "FuelEU MRV (2023)", requires_regulatory_verification: true },
+  { fuelTypeSlug: "vlsfo_rmk380", wtw_gco2e_per_mj: 87.5, source: "FuelEU MRV (2023)", requires_regulatory_verification: true },
   // ULSFO
-  { fuelTypeSlug: "ulfso_rme180", wtw_gco2e_per_mj: 87.5, source: "FuelEU MRV (2023)" },
-  { fuelTypeSlug: "ulfso_rmk380", wtw_gco2e_per_mj: 87.5, source: "FuelEU MRV (2023)" },
+  { fuelTypeSlug: "ulfso_rme180", wtw_gco2e_per_mj: 87.5, source: "FuelEU MRV (2023)", requires_regulatory_verification: true },
+  { fuelTypeSlug: "ulfso_rmk380", wtw_gco2e_per_mj: 87.5, source: "FuelEU MRV (2023)", requires_regulatory_verification: true },
   // Low/ultra-low sulphur distillates
-  { fuelTypeSlug: "lsmgo", wtw_gco2e_per_mj: 85.7, source: "FuelEU MRV (2023)" },
-  { fuelTypeSlug: "ulsfo", wtw_gco2e_per_mj: 85.7, source: "FuelEU MRV (2023)" },
+  { fuelTypeSlug: "lsmgo", wtw_gco2e_per_mj: 85.7, source: "FuelEU MRV (2023)", requires_regulatory_verification: true },
+  { fuelTypeSlug: "ulsfo", wtw_gco2e_per_mj: 85.7, source: "FuelEU MRV (2023)", requires_regulatory_verification: true },
   // LNG
-  { fuelTypeSlug: "lng",   wtw_gco2e_per_mj: 76.0, source: "FuelEU MRV (2023)" },
+  { fuelTypeSlug: "lng",   wtw_gco2e_per_mj: 76.0, source: "FuelEU MRV (2023)", requires_regulatory_verification: true },
   // LPG
-  { fuelTypeSlug: "lpg",   wtw_gco2e_per_mj: 81.5, source: "FuelEU MRV (2023)" },
+  { fuelTypeSlug: "lpg",   wtw_gco2e_per_mj: 81.5, source: "FuelEU MRV (2023)", requires_regulatory_verification: true },
   // Biofuels — default (ISCC-certified) factors
-  { fuelTypeSlug: "bio_hfo", wtw_gco2e_per_mj: 20.5, source: "FuelEU MRV (2023) — ISCC default" },
-  { fuelTypeSlug: "bio_mgo", wtw_gco2e_per_mj: 19.8, source: "FuelEU MRV (2023) — ISCC default" },
+  { fuelTypeSlug: "bio_hfo", wtw_gco2e_per_mj: 20.5, source: "FuelEU MRV (2023) — ISCC default", requires_regulatory_verification: true },
+  { fuelTypeSlug: "bio_mgo", wtw_gco2e_per_mj: 19.8, source: "FuelEU MRV (2023) — ISCC default", requires_regulatory_verification: true },
   // Methanol (from natural gas)
   { fuelTypeSlug: "methanol",  wtw_gco2e_per_mj: 81.0, source: "IPCC" },
   // Ammonia (from natural gas)
@@ -160,35 +128,4 @@ export const WTW_REGISTRY: ReadonlyArray<WtwEntry> = [
 
 export function getWtwFactor(slug: string): WtwEntry | undefined {
   return WTW_REGISTRY.find((e) => e.fuelTypeSlug === slug);
-}
-
-// ── Penalty formula registry ───────────────────────────────────────────────
-
-export interface PenaltyFormulaEntry {
-  readonly version: string;
-  /** Base penalty EUR per tonne of VLSFO-equivalent deficit. */
-  readonly penalty_eur_per_tonne: number;
-  /** Default VLSFO emission factor used to convert deficit to tonnes VLSFOe. */
-  readonly vlsfo_emission_factor_gco2e_per_mj: number;
-  /** Default VLSFO energy content (MJ per tonne) used for deficit conversion. */
-  readonly vlsfo_energy_mj_per_tonne: number;
-  /** Human-readable label. */
-  readonly label: string;
-  /** Whether this formula produces an estimate. */
-  readonly is_estimate: boolean;
-}
-
-export const PENALTY_FORMULAS: ReadonlyArray<PenaltyFormulaEntry> = [
-  {
-    version: "2025.1",
-    penalty_eur_per_tonne: 2400,
-    vlsfo_emission_factor_gco2e_per_mj: 87.5,
-    vlsfo_energy_mj_per_tonne: 40500,
-    label: "Default FuelEU Maritime penalty formula (estimate)",
-    is_estimate: true,
-  },
-];
-
-export function getPenaltyFormula(version: string = "2025.1"): PenaltyFormulaEntry | undefined {
-  return PENALTY_FORMULAS.find((f) => f.version === version);
 }

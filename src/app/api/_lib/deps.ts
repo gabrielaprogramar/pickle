@@ -27,6 +27,8 @@ import {
   type PortCallRepository,
   createAuditLogRepository,
   type AuditLogRepository,
+  createCertificateRepository,
+  type CertificateRepository,
 } from "@/lib/supabase";
 import { createMarineTrafficClient, type MarineTrafficClient } from "@/lib/marinetraffic";
 
@@ -45,6 +47,7 @@ export interface ApiDependencies {
   readonly noonReports: NoonReportRepository;
   readonly portCalls: PortCallRepository;
   readonly auditLog: AuditLogRepository;
+  readonly certificates: CertificateRepository;
   /** Organization context for audit-trail writes (e.g. EU ETS calculations). */
   readonly organizationId?: string;
   readonly marineTraffic: MarineTrafficClient;
@@ -65,9 +68,10 @@ export function createDefaultDeps(): ApiDependencies {
   const noonReports = createNoonReportRepository();
   const portCalls = createPortCallRepository();
   const auditLog = createAuditLogRepository();
+  const certificates = createCertificateRepository();
   const marineTraffic = createMarineTrafficClient();
 
-  return { vessels, voyages, aisPositions, fuelDeliveries, fuelTypes, fuelEuRecords, euEtsRecords, mrvReports, regulatoryRules, regulationApplicability, voyageConsumption, noonReports, portCalls, auditLog, marineTraffic };
+  return { vessels, voyages, aisPositions, fuelDeliveries, fuelTypes, fuelEuRecords, euEtsRecords, mrvReports, regulatoryRules, regulationApplicability, voyageConsumption, noonReports, portCalls, auditLog, certificates, marineTraffic };
 }
 
 export function createApiDeps(
@@ -88,6 +92,7 @@ export function createApiDeps(
     noonReports: overrides.noonReports ?? createNoonReportRepository(),
     portCalls: overrides.portCalls ?? createPortCallRepository(),
     auditLog: overrides.auditLog ?? createAuditLogRepository(),
+    certificates: overrides.certificates ?? createCertificateRepository(),
     marineTraffic: overrides.marineTraffic ?? createMarineTrafficClient(),
   };
 }

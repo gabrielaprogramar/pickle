@@ -8,6 +8,7 @@ import {
 import { NOT_FOUND, VALIDATION_ERROR } from "@/app/api/_lib/errors";
 import type { ApiDependencies } from "@/app/api/_lib/deps";
 import { FuelEUComplianceService } from "@/lib/fueleu/service";
+import { FuelEuPipelineService } from "@/lib/fueleu/pipeline";
 
 interface RouteParams {
   imo: string;
@@ -59,25 +60,33 @@ export async function handlePostFuelEuCalculate(
       return apiError(NOT_FOUND, `No vessel found for IMO ${imo}.`, 404);
     }
 
-    const body = await parseJsonBody<{
-      ops_energy_mj?: number;
-      parameter_version?: string;
-    }>(request);
+    await parseJsonBody<unknown>(request);
 
-    if (body === null) {
-      return apiError(VALIDATION_ERROR, "Request body must be valid JSON.", 400);
-    }
-
-    const deliveries = await deps.fuelDeliveries.findByVesselAndYear(vessel.id, yearNum);
-
-    const service = new FuelEUComplianceService(deps.fuelEuRecords);
-    const result = await service.calculateAndSave({
-      vessel_id: vessel.id,
-      reporting_year: yearNum,
-      deliveries,
-      ops_energy_mj: body.ops_energy_mj,
-      parameter_version_override: body.parameter_version,
+    // ── End-to-end pipeline ────────────────────────────────────────────────
+    // Produces applicability from the seeded `fueleu_scope` rule, attributes
+    // BDN-evidenced per-(voyage, fuel) consumption from the canonical
+    // `voyage_consumption` model, resolves authoritative port countries from
+    // `port_calls` via the shared EU ETS port classifier, reads baseline/target/
+    // penalty from versioned `regulatory_rules`, derives ISCC biofuel evidence
+    // from the certificate registry, runs the scope-aware compliance engine,
+    // persists the `fuel_eu_record`, and writes an audit trail. No manually
+    // assembled inputs — same repo/service dependency pattern as EU ETS.
+    const pipeline = new FuelEuPipelineService({
+      vessels: deps.vessels,
+      voyages: deps.voyages,
+      fuelDeliveries: deps.fuelDeliveries,
+      noonReports: deps.noonReports,
+      portCalls: deps.portCalls,
+      regulatoryRules: deps.regulatoryRules,
+      regulationApplicability: deps.regulationApplicability,
+      voyageConsumption: deps.voyageConsumption,
+      fuelEuRecords: deps.fuelEuRecords,
+      certificates: deps.certificates,
+      auditLog: deps.auditLog,
+      organizationId: deps.organizationId,
     });
+
+    const result = await pipeline.run(vessel.id, yearNum);
 
     return apiCreated(result);
   } catch (err) {
